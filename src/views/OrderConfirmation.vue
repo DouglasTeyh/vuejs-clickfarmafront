@@ -38,20 +38,10 @@
             </div>
           </div>
           
-          <!-- Timeline do Pedido -->
-          <div class="card mb-4">
-            <div class="card-header bg-light">
-              <h5 class="mb-0">
-                <i class="fas fa-history me-2"></i>Status do Pedido
-              </h5>
-            </div>
-            <div class="card-body">
-              <OrderTimeline :order="order" />
-            </div>
-          </div>
+         
 
           <!-- Informações de Entrega -->
-          <div class="card mb-4">
+          <!-- <div class="card mb-4">
             <div class="card-header bg-light">
               <h5 class="mb-0">
                 <i class="fas fa-truck me-2"></i>Informações de Entrega
@@ -90,7 +80,7 @@
                 <p class="text-muted">Informações de entrega não disponíveis.</p>
               </div>
             </div>
-          </div>
+          </div>  -->
 
           <!-- Informações de Pagamento -->
           <div class="card mb-4">

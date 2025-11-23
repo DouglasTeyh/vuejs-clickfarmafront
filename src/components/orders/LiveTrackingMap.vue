@@ -483,7 +483,8 @@ export default {
   beforeUnmount() {
     this.stopMapAutoRefresh()
     if (this.map) {
-      this.map.remove()
+      this.map.remove(); this.map = null
+
     }
   }
 }
