@@ -1,5 +1,6 @@
 package com.clickfarma.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
@@ -13,6 +14,7 @@ public class ItemPedido {
 
     @ManyToOne
     @JoinColumn(name = "pedido_id", nullable = false)
+    @JsonIgnore // Forçar ignorar o pedido no JSON do item
     private Pedido pedido;
 
     @ManyToOne

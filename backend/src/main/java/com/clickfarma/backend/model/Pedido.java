@@ -1,5 +1,6 @@
 package com.clickfarma.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ public class Pedido {
     @Column(name = "codigo_pedido", unique = true)
     private String codigoPedido;
 
+    @JsonIgnore // <-- Mudança aqui: Ignorar totalmente o objeto usuario na hora de retornar o Pedido/Carrinho
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
@@ -46,6 +48,7 @@ public class Pedido {
     private LocalDateTime dataAtualizacao;
 
     @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Rastreio rastreio;
 
     // Enum para status

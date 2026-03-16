@@ -1,5 +1,6 @@
 package com.clickfarma.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ public class Usuario {
     private LocalDateTime dataCadastro;
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("usuario") // Ignora a propriedade usuario dentro da lista de pedidos para não fazer loop
     private List<Pedido> pedidos = new ArrayList<>();
 
     // Construtores
