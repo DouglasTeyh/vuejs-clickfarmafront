@@ -2,13 +2,15 @@ package com.clickfarma.backend.controller;
 
 import com.clickfarma.backend.dto.ItemPedidoRequestDTO;
 import com.clickfarma.backend.dto.UpdateCartItemDTO;
-import com.clickfarma.backend.model.Pedido;
+import com.clickfarma.backend.model.Carrinho;
 import com.clickfarma.backend.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -20,25 +22,22 @@ public class CartController {
 
     @GetMapping
     @Operation(summary = "Obter Carrinho", description = "Retorna o carrinho de compras atual do usuário autenticado.")
-    public ResponseEntity<Pedido> getCart() {
-        Pedido cart = cartService.getCart();
-        return ResponseEntity.ok(cart);
+    public ResponseEntity<List<Carrinho>> getCart() {
+        return ResponseEntity.ok(cartService.getCart());
     }
 
     @PostMapping("/items")
     @Operation(summary = "Adicionar Produto", description = "Adiciona um produto ao carrinho ou atualiza a quantidade se já existir.")
-    public ResponseEntity<Pedido> addItemToCart(@RequestBody ItemPedidoRequestDTO itemDTO) {
-        Pedido cart = cartService.addItemToCart(itemDTO);
-        return ResponseEntity.ok(cart);
+    public ResponseEntity<List<Carrinho>> addItemToCart(@RequestBody ItemPedidoRequestDTO itemDTO) {
+        return ResponseEntity.ok(cartService.addItemToCart(itemDTO));
     }
 
     @PutMapping("/items/{produtoId}")
     @Operation(summary = "Atualizar Quantidade", description = "Atualiza a quantidade de um produto específico no carrinho.")
-    public ResponseEntity<Pedido> updateItemInCart(
+    public ResponseEntity<List<Carrinho>> updateItemInCart(
             @PathVariable Long produtoId,
             @RequestBody UpdateCartItemDTO itemDTO) {
-        Pedido cart = cartService.updateItemInCart(produtoId, itemDTO);
-        return ResponseEntity.ok(cart);
+        return ResponseEntity.ok(cartService.updateItemInCart(produtoId, itemDTO));
     }
 
     @DeleteMapping("/items/{produtoId}")
