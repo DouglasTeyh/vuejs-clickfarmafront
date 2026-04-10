@@ -26,11 +26,11 @@
           <div class="col-lg-5 col-md-6">
             <div class="search-box">
               <i class="fas fa-search search-icon"></i>
-              <input 
-                v-model="searchTerm" 
-                type="text" 
-                class="form-control search-input" 
-                placeholder="Buscar produtos por nome ou descrição..."
+              <input
+                  v-model="searchTerm"
+                  type="text"
+                  class="form-control search-input"
+                  placeholder="Buscar produtos por nome ou descrição..."
               >
             </div>
           </div>
@@ -39,7 +39,7 @@
               <label class="form-label fw-semibold">📁 Categoria</label>
               <select v-model="filters.category" class="form-select">
                 <option value="">Todas as categorias</option>
-                <option v-for="cat in categories" :key="cat" :value="cat">
+                <option v-for="cat in categoriesList" :key="cat" :value="cat">
                   {{ getCategoryIcon(cat) }} {{ cat }}
                 </option>
               </select>
@@ -128,14 +128,14 @@
       <!-- Products Grid -->
       <div v-else class="products-grid">
         <div class="row g-4">
-          <div 
-            v-for="product in filteredProducts" 
-            :key="product.id" 
-            class="col-xl-3 col-lg-4 col-md-6"
+          <div
+              v-for="product in filteredProducts"
+              :key="product.id"
+              class="col-xl-3 col-lg-4 col-md-6"
           >
-            <ProductCard 
-              :product="product" 
-              @add-to-cart="handleAddToCart"
+            <ProductCard
+                :product="product"
+                @add-to-cart="handleAddToCart"
             />
           </div>
         </div>
@@ -165,7 +165,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 import ProductCard from '@/components/products/ProductCard.vue'
 
 export default {
@@ -186,53 +186,66 @@ export default {
     }
   },
   computed: {
-    ...mapState(['products', 'categories']),
-    ...mapGetters(['cartItemsCount']),
-    
+    ...mapState(['products']),
+
+    categoriesList() {
+      if (!this.products || !Array.isArray(this.products)) {
+        return []
+      }
+      const categories = [...new Set(this.products.map(p => p.category))].filter(Boolean)
+      return categories.sort()
+    },
+
     filteredProducts() {
       if (!this.products || !Array.isArray(this.products)) {
         return []
       }
-      
+
       let filtered = this.products.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                             product.description.toLowerCase().includes(this.searchTerm.toLowerCase())
+        const searchTermLower = this.searchTerm.toLowerCase()
+        const matchesSearch = !this.searchTerm ||
+            (product.name && product.name.toLowerCase().includes(searchTermLower)) ||
+            (product.description && product.description.toLowerCase().includes(searchTermLower))
+
         const matchesCategory = !this.filters.category || product.category === this.filters.category
-        const matchesStock = this.filters.stock === 'all' || 
-                           (this.filters.stock === 'in_stock' && product.inStock) ||
-                           (this.filters.stock === 'out_of_stock' && !product.inStock)
-        
+
+        // CORREÇÃO: Usa estoque ao invés de inStock
+        const matchesStock = this.filters.stock === 'all' ||
+            (this.filters.stock === 'in_stock' && product.estoque > 0) ||
+            (this.filters.stock === 'out_of_stock' && product.estoque === 0)
+
         return matchesSearch && matchesCategory && matchesStock
       })
 
+      // Ordenação
       switch (this.filters.sortBy) {
         case 'name_desc':
-          filtered.sort((a, b) => b.name.localeCompare(a.name))
+          filtered.sort((a, b) => (b.name || '').localeCompare(a.name || ''))
           break
         case 'price':
-          filtered.sort((a, b) => a.price - b.price)
+          filtered.sort((a, b) => (a.price || 0) - (b.price || 0))
           break
         case 'price_desc':
-          filtered.sort((a, b) => b.price - a.price)
+          filtered.sort((a, b) => (b.price || 0) - (a.price || 0))
           break
         default: // 'name'
-          filtered.sort((a, b) => a.name.localeCompare(b.name))
+          filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
       }
 
       return filtered
     },
-    
+
     hasActiveFilters() {
       return this.searchTerm || this.filters.category || this.filters.stock !== 'all'
     }
   },
   async mounted() {
-    console.log('🚀 Componente Products montado - inicializando...');
-    await this.initializeComponent();
+    console.log('🚀 Componente Products montado - inicializando...')
+    await this.initializeComponent()
   },
   methods: {
-    ...mapActions(['fetchProducts']), // 🔥 REMOVIDO: addToCart daqui
-    
+    ...mapActions(['fetchProducts']),
+
     getCategoryIcon(category) {
       const icons = {
         'Medicamentos': '💊',
@@ -240,55 +253,57 @@ export default {
         'Higiene': '🚿',
         'Vitaminas': '🌿',
         'Maternidade': '👶'
-      };
-      return icons[category] || '📦';
+      }
+      return icons[category] || '📦'
     },
-    
+
     async initializeComponent() {
-      this.loading = true;
-      this.error = null;
-      
+      this.loading = true
+      this.error = null
+
       try {
-        console.log('📦 Buscando produtos da API...');
-        await this.fetchProducts();
-        console.log('✅ Produtos carregados com sucesso');
-        console.log('📊 Total de produtos:', this.products?.length || 0);
-        this.trackPageView();
+        console.log('📦 Buscando produtos da API...')
+        await this.fetchProducts()
+        console.log('✅ Produtos carregados com sucesso')
+        console.log('📊 Total de produtos:', this.products?.length || 0)
+        if (this.products && this.products.length > 0) {
+          console.log('📋 Exemplo do primeiro produto:', this.products[0])
+        }
+        this.trackPageView()
       } catch (err) {
-        console.error('❌ Erro ao carregar produtos:', err);
-        this.error = 'Erro ao carregar produtos. Tente novamente.';
+        console.error('❌ Erro ao carregar produtos:', err)
+        this.error = 'Erro ao carregar produtos. Tente novamente.'
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
-    
+
     trackPageView() {
       if (window.gtag) {
         window.gtag('event', 'page_view', {
           page_title: 'Página de Produtos',
           page_location: '/products'
-        });
+        })
       }
     },
-    
-    // 🔥 CORRIGIDO: Este método não deve chamar addToCart
-    // Apenas recebe o evento do ProductCard para tracking
+
     handleAddToCart(product) {
-      console.log(`📦 Products.vue - Produto adicionado via ProductCard: ${product.name}`);
-      // Aqui você pode adicionar analytics ou tracking, mas NÃO chamar addToCart
+      console.log(`📦 Produto adicionado ao carrinho: ${product.name}`)
+      // Dispara evento para adicionar ao carrinho
+      this.$emit('add-to-cart', product)
     },
-    
+
     retryLoading() {
-      this.initializeComponent();
+      this.initializeComponent()
     },
-    
+
     clearAllFilters() {
-      this.searchTerm = '';
+      this.searchTerm = ''
       this.filters = {
         category: '',
         sortBy: 'name',
         stock: 'all'
-      };
+      }
     }
   }
 }
@@ -356,11 +371,11 @@ export default {
     border-radius: 0 0 15px 15px;
     padding: 2rem 0;
   }
-  
+
   .products-header h1 {
     font-size: 1.8rem;
   }
-  
+
   .search-input {
     font-size: 0.9rem;
   }

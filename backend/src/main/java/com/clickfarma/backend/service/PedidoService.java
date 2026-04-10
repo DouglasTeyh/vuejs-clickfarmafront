@@ -99,6 +99,10 @@ public class PedidoService {
                 .collect(Collectors.toList());
     }
 
+    public List<Pedido> findPedidosComItensParaWellness(Long usuarioId) {
+        return pedidoRepository.findPedidosComItensByUsuario(usuarioId);
+    }
+
     public PedidoResponseDTO buscarPorCodigo(String codigo) {
         Pedido pedido = pedidoRepository.findByCodigoPedidoWithRastreio(codigo);
         if (pedido == null) {

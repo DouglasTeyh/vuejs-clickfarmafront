@@ -7,7 +7,8 @@ services:
       MYSQL_ROOT_PASSWORD: guga1010@
       MYSQL_DATABASE: clickfarma
     ports:
-      - "3306:3306"
+      - "3307:3306"
+
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
@@ -33,7 +34,7 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - JWT_SECRET=clickfarmaSecretKey2026VeryLongSecretKeyForJWTGeneration
       - JWT_EXPIRATION=86400000
-      - GEMINI_API_KEY=AIzaSyDSoJB97VTSTQRnP_Fy9XHQriXNeVIQezE
+      - GEMINI_API_KEY=AIzaSyA_X8-Fo45xUuSM98iMBQyD6EWbkrcG29M
     depends_on:
       db:
         condition: service_healthy

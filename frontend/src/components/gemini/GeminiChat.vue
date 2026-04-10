@@ -58,6 +58,9 @@
       >
         {{ suggestion }}
       </button>
+      <button @click="getWellnessSuggestions" class="suggestion-btn wellness-btn">
+        🌿 Recomendações de Bem-Estar
+      </button>
     </div>
   </div>
 </template>
@@ -103,6 +106,35 @@ export default {
       })
     },
 
+    async getWellnessSuggestions() {
+      this.loading = true;
+      try {
+        const userId = localStorage.getItem('userId');
+        const userName = localStorage.getItem('userName');
+
+        const response = await api.post('/gemini/wellness', {
+          userId: userId,
+          userName: userName
+        });
+
+        this.messages.push({
+          role: 'bot',
+          content: response.data.response,
+          time: this.getCurrentTime()
+        });
+      } catch (error) {
+        console.error('Erro ao obter recomendações de bem-estar:', error);
+        this.messages.push({
+          role: 'bot',
+          content: 'Desculpe, não consegui gerar recomendações de bem-estar no momento.',
+          time: this.getCurrentTime()
+        });
+      } finally {
+        this.loading = false;
+        this.scrollToBottom();
+      }
+    },
+
     async sendMessage() {
       if (!this.userMessage.trim() || this.loading) return
 
@@ -118,17 +150,41 @@ export default {
       this.loading = true
 
       try {
-        const response = await api.post('/gemini/chat', { message })
+        const response = await api.post('/gemini/chat', {
+          message: message
+        })
+
         this.messages.push({
           role: 'bot',
           content: response.data.response,
           time: this.getCurrentTime()
         })
       } catch (error) {
-        console.error('Erro no chat:', error)
+        console.error('Erro completo:', error)
+        console.error('Detalhes da resposta:', error.response)
+
+        let errorMessage = 'Desculpe, estou com problemas. Tente novamente mais tarde.'
+
+        if (error.response) {
+          console.error('Status:', error.response.status)
+          console.error('Data:', error.response.data)
+
+          if (error.response.status === 403) {
+            errorMessage = 'Erro de permissão. Verificando configurações...'
+          } else if (error.response.status === 401) {
+            errorMessage = 'Você precisa estar autenticado para usar o chat.'
+          } else if (error.response.status === 500) {
+            errorMessage = 'Erro no servidor. Verifique se a chave da API Gemini está configurada.'
+          } else if (error.response.data?.response) {
+            errorMessage = error.response.data.response
+          }
+        } else if (error.message === 'Network Error') {
+          errorMessage = 'Erro de conexão. Verifique se o backend está rodando em http://localhost:8080'
+        }
+
         this.messages.push({
           role: 'bot',
-          content: 'Desculpe, estou com problemas. Tente novamente mais tarde.',
+          content: errorMessage,
           time: this.getCurrentTime()
         })
       } finally {
@@ -377,5 +433,17 @@ export default {
   background: #e9ecef;
   border-color: #4285f4;
   color: #4285f4;
+}
+
+.wellness-btn {
+  background: linear-gradient(135deg, #34a853, #1e7e34);
+  color: white;
+  border-color: #34a853;
+}
+
+.wellness-btn:hover {
+  background: linear-gradient(135deg, #2d8e47, #166b2a);
+  color: white;
+  border-color: #2d8e47;
 }
 </style>

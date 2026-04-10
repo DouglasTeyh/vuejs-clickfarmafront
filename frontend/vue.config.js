@@ -5,13 +5,14 @@ module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
     host: '0.0.0.0',
-    port: 80,
+    port: 8082,
     allowedHosts: 'all',
     proxy: {
       '/api': {
-        target: 'http://backend:8080',
+        target: 'http://localhost:8080',
         changeOrigin: true,
-        ws: true
+        ws: true,
+        pathRewrite: {'^/api': '/api'}
       }
     }
   },

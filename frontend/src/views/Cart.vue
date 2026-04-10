@@ -1,31 +1,37 @@
 <template>
   <div class="container mt-4">
     <h2 class="page-title">🛒 Meu Carrinho</h2>
-    
+
     <!-- Carrinho vazio -->
     <EmptyCart v-if="cart.length === 0" />
-    
+
     <!-- Carrinho com itens -->
     <div v-else>
+      <!-- Consultor de IA -->
+      <CartAIAdvisor
+          :cartItems="cart"
+          :cartTotal="cartTotal"
+      />
+
       <div class="row">
         <!-- Lista de itens -->
         <div class="col-md-8">
           <div class="cart-items">
-            <CartItem 
-              v-for="item in cart" 
-              :key="item.id" 
-              :item="item"
-              @update-quantity="updateQuantity"
-              @remove-item="removeFromCart"
+            <CartItem
+                v-for="item in cart"
+                :key="item.id"
+                :item="item"
+                @update-quantity="updateQuantity"
+                @remove-item="removeFromCart"
             />
           </div>
         </div>
-        
+
         <!-- Resumo do pedido -->
         <div class="col-md-4">
-          <OrderSummary 
-            :items-count="cartItemsCount"
-            :total="cartTotal"
+          <OrderSummary
+              :items-count="cartItemsCount"
+              :total="cartTotal"
           />
         </div>
       </div>
@@ -38,13 +44,15 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 import EmptyCart from '@/components/cart/EmptyCart.vue'
 import CartItem from '@/components/cart/CartItem.vue'
 import OrderSummary from '@/components/cart/OrderSummary.vue'
+import CartAIAdvisor from '@/components/cart/CartAIAdvisor.vue'
 
 export default {
   name: 'CartPage',
   components: {
     EmptyCart,
     CartItem,
-    OrderSummary
+    OrderSummary,
+    CartAIAdvisor
   },
   computed: {
     ...mapState(['cart']),
@@ -52,7 +60,7 @@ export default {
   },
   methods: {
     ...mapActions(['removeFromCart', 'updateCartQuantity']),
-    
+
     updateQuantity(productId, quantity) {
       const validQuantity = Math.max(1, quantity)
       this.updateCartQuantity({ productId, quantity: validQuantity })

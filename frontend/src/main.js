@@ -3,9 +3,12 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import axios from 'axios'
+import './theme.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
-// Configuração do axios
-axios.defaults.baseURL = 'http://backend:8080/api'
+// Configuração do axios - URL relativa funciona em qualquer ambiente
+axios.defaults.baseURL = '/api'
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
 // Interceptor para token
