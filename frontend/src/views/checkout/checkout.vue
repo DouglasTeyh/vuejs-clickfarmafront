@@ -1,50 +1,50 @@
 <template>
   <div class="payment-methods">
     <h5 class="mb-3">💳 Método de Pagamento</h5>
-    
+
     <div class="form-check mb-3">
-      <input 
-        v-model="selectedMethod" 
-        value="credit_card" 
-        type="radio" 
-        class="form-check-input" 
+      <input
+        v-model="selectedMethod"
+        value="credit_card"
+        type="radio"
+        class="form-check-input"
         id="creditCard"
       >
       <label class="form-check-label" for="creditCard">
         <i class="bi bi-credit-card"></i> Cartão de Crédito
       </label>
     </div>
-    
+
     <div class="form-check mb-3">
-      <input 
-        v-model="selectedMethod" 
-        value="debit_card" 
-        type="radio" 
-        class="form-check-input" 
+      <input
+        v-model="selectedMethod"
+        value="debit_card"
+        type="radio"
+        class="form-check-input"
         id="debitCard"
       >
       <label class="form-check-label" for="debitCard">
         <i class="bi bi-card-checklist"></i> Cartão de Débito
       </label>
     </div>
-    
+
     <div class="form-check mb-3">
-      <input 
-        v-model="selectedMethod" 
-        value="pix" 
-        type="radio" 
-        class="form-check-input" 
+      <input
+        v-model="selectedMethod"
+        value="pix"
+        type="radio"
+        class="form-check-input"
         id="pix"
       >
       <label class="form-check-label" for="pix">
         <i class="bi bi-qr-code"></i> PIX
       </label>
     </div>
-    
+
     <div v-if="selectedMethod === 'pix'" class="alert alert-info mt-3">
       <p>Você será redirecionado para gerar um código PIX após confirmar o pedido.</p>
     </div>
-    
+
     <div v-if="selectedMethod === 'credit_card' || selectedMethod === 'debit_card'" class="card-data mt-3">
       <div class="row">
         <div class="col-md-12 mb-3">

@@ -1,45 +1,29 @@
 <template>
-  <div class="checkout-page">
-    <div class="container mt-4">
-      <!-- Steps -->
-      <checkout-steps :current-step="1" />
-      
-      <div class="row">
-        <!-- Coluna Principal -->
-        <div class="col-lg-8">
-          <!-- Opções de Entrega -->
-          <delivery-options
-            :addresses="userAddresses"
-            :selected-delivery-option="deliveryOption"
-            :selected-address="selectedAddress"
-            :selected-store="selectedStore"
-            @update:delivery-option="updateDeliveryOption"
-            @update:selected-address="updateSelectedAddress"
-            @update:selected-store="updateSelectedStore"
-          />
-          
-          <!-- Botão de Continuar -->
-          <div class="text-end mt-4">
-            <button 
-              class="btn btn-primary btn-lg"
-              @click="proceedToPayment"
-              :disabled="!canProceed"
-            >
-              Continuar para Pagamento <i class="fas fa-arrow-right ms-2"></i>
-            </button>
-          </div>
+  <div class="container mt-5 mb-5">
+    <div class="row">
+      <div class="col-md-8">
+        <!-- Endereço -->
+        <div class="card shadow-sm border-0 p-4 mb-4">
+          <h4 class="mb-4 font-weight-bold">📍 Entrega</h4>
+          <input type="text" v-model="endereco" class="form-control bg-light p-3" placeholder="Seu endereço completo">
         </div>
-        
-        <!-- Resumo -->
-        <div class="col-lg-4">
-          <checkout-summary
-            :cart="cart"
-            :delivery-option="deliveryOption"
-            :selected-address="selectedAddress"
-            :selected-store="selectedStore"
-            :selected-payment-method="''"
-            :current-step="1"
-          />
+        <!-- Pagamento (Componente Filho) -->
+        <div class="card shadow-sm border-0 p-4">
+          <PaymentMethod @update-method="setMetodo" />
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card shadow-sm border-0 p-4 sticky-top" style="top: 20px;">
+          <h4 class="mb-4 font-weight-bold">Resumo</h4>
+          <div class="d-flex justify-content-between mb-4 h5 font-weight-bold">
+            <span>Total</span>
+            <span class="text-primary">R$ {{ cartTotal.toFixed(2) }}</span>
+          </div>
+          <button @click="finalizar" :disabled="loading" class="btn btn-primary btn-lg w-100 py-3 font-weight-bold shadow-sm">
+            <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+            {{ loading ? 'Processando...' : 'FINALIZAR E PAGAR' }}
+          </button>
         </div>
       </div>
     </div>
@@ -47,133 +31,70 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
-import CheckoutSteps from '@/components/checkout/CheckoutSteps.vue'
-import DeliveryOptions from '@/components/checkout/DeliveryOptions.vue'
-import CheckoutSummary from '@/components/checkout/CheckoutSummary.vue'
+import { mapState } from 'vuex';
+import { OrderService } from '@/services/orderService.js';
+import PaymentMethod from '@/components/checkout/PaymentMethod.vue';
 
 export default {
-  name: 'Checkout',
-  components: {
-    CheckoutSteps,
-    DeliveryOptions,
-    CheckoutSummary
-  },
+  props: ['cart'],
+  components: { PaymentMethod },
   data() {
     return {
-      deliveryOption: 'delivery',
-      selectedAddress: null,
-      selectedStore: null
-    }
+      loading: false,
+      endereco: 'Rua das Flores, 123',
+      metodo: 'MERCADO_PAGO',
+      localCart: []
+    };
   },
   computed: {
-    ...mapGetters(['cartItemsCount', 'cartTotal']),
-    ...mapState(['cart', 'user']),
-    
-    userAddresses() {
-      // Endereços mockados - em produção viriam da API
-      return [
-        {
-          id: 1,
-          nickname: 'Casa',
-          street: 'Rua das Flores',
-          number: '123',
-          complement: 'Apto 101',
-          neighborhood: 'Centro',
-          city: 'Recife',
-          state: 'PE',
-          zipcode: '50000-000',
-          isDefault: true
-        },
-        {
-          id: 2,
-          nickname: 'Trabalho',
-          street: 'Av. Boa Viagem',
-          number: '456',
-          complement: 'Sala 501',
-          neighborhood: 'Boa Viagem',
-          city: 'Recife',
-          state: 'PE',
-          zipcode: '51000-000',
-          isDefault: false
-        }
-      ]
-    },
-    
-    canProceed() {
-      if (this.deliveryOption === 'delivery') {
-        return this.selectedAddress !== null
-      } else if (this.deliveryOption === 'pickup') {
-        return this.selectedStore !== null
-      }
-      return false
+    ...mapState(['user']),
+    cartTotal() {
+      return this.localCart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+  },
+  created() {
+    if (this.cart) {
+      this.localCart = JSON.parse(this.cart);
     }
   },
   methods: {
-    updateDeliveryOption(option) {
-      this.deliveryOption = option
+    setMetodo(m) {
+      this.metodo = m;
     },
-    
-    updateSelectedAddress(address) {
-      this.selectedAddress = address
-    },
-    
-    updateSelectedStore(store) {
-      this.selectedStore = store
-    },
-    
-    proceedToPayment() {
-      if (!this.canProceed) {
-        alert('Por favor, selecione uma opção de entrega válida.')
-        return
-      }
-      
-      // Salvar dados do checkout com estrutura consistente
-      const checkoutData = {
-        deliveryOption: this.deliveryOption,
-        deliveryType: this.deliveryOption, // ← ADICIONADO: alias para consistência
-        selectedAddress: this.selectedAddress,
-        selectedStore: this.selectedStore,
-        deliveryInfo: this.selectedAddress || this.selectedStore, // ← ADICIONADO: estrutura unificada
-        timestamp: new Date().toISOString()
-      }
-      
-      console.log('🚚 Dados de checkout salvos:', checkoutData) // ← DEBUG
-      
-      localStorage.setItem('checkoutData', JSON.stringify(checkoutData))
-      
-      // Ir para pagamento
-      this.$router.push('/payment-method')
-    }
-  },
-  
-  mounted() {
-    // Verificar se há itens no carrinho
-    if (this.cart.length === 0) {
-      alert('Seu carrinho está vazio!')
-      this.$router.push('/products')
-      return
-    }
-    
-    // Carregar dados salvos se existirem
-    const savedCheckoutData = localStorage.getItem('checkoutData')
-    if (savedCheckoutData) {
+
+    async finalizar() {
+      this.loading = true;
       try {
-        const data = JSON.parse(savedCheckoutData)
-        this.deliveryOption = data.deliveryOption || 'delivery'
-        this.selectedAddress = data.selectedAddress || null
-        this.selectedStore = data.selectedStore || null
-      } catch (error) {
-        console.error('Erro ao carregar dados do checkout:', error)
+        const pedidoRequest = {
+          usuarioId: this.user ? this.user.id : 1,
+          itens: this.localCart.map(item => ({
+            produtoId: item.id,
+            quantidade: item.quantity || 1
+          })),
+          metodoPagamento: this.metodo,
+          enderecoEntrega: this.endereco,
+          observacoes: '',
+          subtotal: this.cartTotal,
+          valorFrete: 0.0,
+          totalFinal: this.cartTotal
+        };
+
+        const res = await OrderService.createOrder(pedidoRequest);
+
+        if (res.linkPagamento) {
+          window.location.href = res.linkPagamento;
+        } else {
+          console.error("Resposta do servidor não contém o link de pagamento:", res);
+          alert("Erro: Link de pagamento não gerado.");
+        }
+      } catch (e) {
+        console.error("Erro ao finalizar o pedido:", e);
+        const errorMessage = e.response?.data?.message || "Erro ao conectar com o servidor Java.";
+        alert(errorMessage);
+      } finally {
+        this.loading = false;
       }
     }
   }
 }
 </script>
-
-<style scoped>
-.checkout-page {
-  min-height: 100vh;
-  background-color: #f8f9fa;
-}
-</style>

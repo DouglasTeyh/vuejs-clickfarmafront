@@ -19,6 +19,11 @@ public class PedidoRequestDTO {
 
     private String observacoes;
 
+    // NOVOS CAMPOS PARA FRETE E TOTAL
+    private Double subtotal;
+    private Double valorFrete;
+    private Double totalFinal;
+
     // Getters e Setters
     public Long getUsuarioId() { return usuarioId; }
     public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
@@ -34,4 +39,13 @@ public class PedidoRequestDTO {
 
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+
+    public Double getSubtotal() { return subtotal; }
+    public void setSubtotal(Double subtotal) { this.subtotal = subtotal; }
+
+    public Double getValorFrete() { return valorFrete; }
+    public void setValorFrete(Double valorFrete) { this.valorFrete = valorFrete; }
+
+    public Double getTotalFinal() { return totalFinal; }
+    public void setTotalFinal(Double totalFinal) { this.totalFinal = totalFinal; }
 }

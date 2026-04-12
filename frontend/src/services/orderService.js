@@ -1,5 +1,23 @@
-// src/services/orderService.js
+import api from './api';
+
 export class OrderService {
+  /**
+   * Cria um novo pedido no backend.
+   * @param {object} pedidoRequest - O objeto do pedido a ser enviado.
+   * @returns {Promise<object>} A resposta da API, contendo o link de pagamento.
+   */
+  static async createOrder(pedidoRequest) {
+    try {
+      // Corrigido: O prefixo /api já está na baseURL do axios.
+      const response = await api.post('/pedidos', pedidoRequest);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar o pedido:', error.response?.data || error.message);
+      // Lança o erro para que o componente possa tratá-lo
+      throw error;
+    }
+  }
+
   static async getOrderDetails(orderId) {
     try {
       // Simulação de API

@@ -29,7 +29,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                // Desabilita o CSRF de uma forma mais explícita
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/swagger-ui/**",
@@ -42,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/produtos/**").permitAll()
                         .requestMatchers("/api/categorias/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios").permitAll()
                         .requestMatchers("/api/gemini/**").permitAll()
                         .anyRequest().authenticated()

@@ -57,9 +57,10 @@ const routes = [
     component: Cart 
   },
   { 
-    path: '/checkout', 
+    path: '/checkout/:cart?', 
     name: 'Checkout',
     component: Checkout,
+    props: true,
     meta: { requiresAuth: true }
   },
   {
@@ -85,6 +86,13 @@ const routes = [
     name: 'Prescriptions',
     component: Prescriptions,
     meta: { requiresAuth: true }
+  },
+
+  // Adicione esta rota
+  {
+    path: '/sucesso-pagamento',
+    name: 'SucessoPagamento',
+    component: () => import('@/views/SucessoPagamento.vue')
   },
   {
     path: '/order-confirmation',

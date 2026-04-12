@@ -369,9 +369,9 @@ export default createStore({
     ADD_TO_CART(state, product) {
       const existingItem = state.cart.find(item => item.id === product.id);
       if (existingItem) {
-        existingItem.quantity += product.quantity || 1;
+        existingItem.quantity++;
       } else {
-        state.cart.push({ ...product, quantity: product.quantity || 1 });
+        state.cart.push({ ...product, quantity: 1 });
       }
     },
     REMOVE_FROM_CART(state, productId) {
@@ -380,7 +380,9 @@ export default createStore({
     UPDATE_CART_QUANTITY(state, { productId, quantity }) {
       const item = state.cart.find(item => item.id === productId);
       if (item) {
-        item.quantity = quantity;
+        // Garante que a quantidade seja um número e no mínimo 1
+        const newQuantity = Number(quantity);
+        item.quantity = isNaN(newQuantity) || newQuantity < 1 ? 1 : newQuantity;
       }
     },
     CLEAR_CART(state) {

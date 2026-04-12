@@ -2,6 +2,7 @@ package com.clickfarma.backend.controller;
 
 import com.clickfarma.backend.dto.*;
 import com.clickfarma.backend.service.PedidoService;
+import com.clickfarma.backend.service.PagamentoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,20 +20,21 @@ public class PedidoController {
     @Autowired
     private PedidoService pedidoService;
 
-    // POST - Criar novo pedido
+    @Autowired
+    private PagamentoService pagamentoService;
+
     @PostMapping
     public ResponseEntity<?> criarPedido(@Valid @RequestBody PedidoRequestDTO pedidoDTO) {
         try {
             PedidoResponseDTO novoPedido = pedidoService.criarPedido(pedidoDTO);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new MensagemResponseDTO(
-                            "Pedido criado com sucesso!",
-                            true,
-                            novoPedido
-                    ));
+
+            // A lógica de pagamento foi movida para dentro do PedidoService
+            // para garantir que o link só seja gerado após o sucesso da criação do pedido.
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(novoPedido);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                    .body(new MensagemResponseDTO(e.getMessage(), false));
+            // Retorna a mensagem de erro exata do serviço (ex: "Estoque insuficiente")
+            return ResponseEntity.badRequest().body(new MensagemResponseDTO(e.getMessage(), false));
         }
     }
 

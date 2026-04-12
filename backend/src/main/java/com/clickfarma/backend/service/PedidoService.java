@@ -32,39 +32,38 @@ public class PedidoService {
     @Autowired
     private RastreioRepository rastreioRepository;
 
+    @Autowired
+    private PagamentoService pagamentoService;
+
     @Transactional
     public PedidoResponseDTO criarPedido(PedidoRequestDTO pedidoDTO) {
-        // Buscar usuário
         Usuario usuario = usuarioRepository.findById(pedidoDTO.getUsuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        // Criar pedido
         Pedido pedido = new Pedido(usuario);
         pedido.setMetodoPagamento(pedidoDTO.getMetodoPagamento());
         pedido.setEnderecoEntrega(pedidoDTO.getEnderecoEntrega() != null ?
                 pedidoDTO.getEnderecoEntrega() : usuario.getEndereco());
         pedido.setObservacoes(pedidoDTO.getObservacoes());
+        pedido.setStatus(Pedido.StatusPedido.AGUARDANDO_PAGAMENTO);
+        pedido.setDataPedido(LocalDateTime.now());
+        pedido.setDataAtualizacao(LocalDateTime.now());
 
-        // Salvar pedido primeiro
         Pedido pedidoSalvo = pedidoRepository.save(pedido);
 
-        // Processar itens
         BigDecimal valorTotal = BigDecimal.ZERO;
 
         for (ItemPedidoRequestDTO itemDTO : pedidoDTO.getItens()) {
             Produto produto = produtoRepository.findById(itemDTO.getProdutoId())
                     .orElseThrow(() -> new RuntimeException("Produto não encontrado: " + itemDTO.getProdutoId()));
 
-            // Verificar estoque
             if (produto.getEstoque() < itemDTO.getQuantidade()) {
                 throw new RuntimeException("Estoque insuficiente para o produto: " + produto.getNome());
             }
 
-            // Criar item
             ItemPedido item = new ItemPedido(produto, itemDTO.getQuantidade());
             item.setPedido(pedidoSalvo);
 
-            // Atualizar estoque
             produto.setEstoque(produto.getEstoque() - itemDTO.getQuantidade());
             produtoRepository.save(produto);
 
@@ -72,11 +71,16 @@ public class PedidoService {
             valorTotal = valorTotal.add(item.getSubtotal());
         }
 
-        // Atualizar valor total do pedido
         pedidoSalvo.setValorTotal(valorTotal);
         pedidoSalvo = pedidoRepository.save(pedidoSalvo);
 
-        return new PedidoResponseDTO(pedidoSalvo);
+        // Gera o link de pagamento AQUI, após o sucesso da criação do pedido
+        String linkPagamento = pagamentoService.criarLinkPagamento(valorTotal.doubleValue(), pedidoSalvo.getId());
+
+        PedidoResponseDTO responseDTO = new PedidoResponseDTO(pedidoSalvo);
+        responseDTO.setLinkPagamento(linkPagamento);
+
+        return responseDTO;
     }
 
     public List<PedidoResponseDTO> listarTodos() {
@@ -124,7 +128,6 @@ public class PedidoService {
 
         pedido.setDataAtualizacao(LocalDateTime.now());
 
-        // Se status for ENVIADO, criar rastreio automaticamente
         if (status.equals("ENVIADO") && pedido.getRastreio() == null) {
             Rastreio rastreio = new Rastreio(pedido);
             rastreio.setTransportadora("ClickFarma Express");
@@ -178,7 +181,6 @@ public class PedidoService {
         return new RastreioResponseDTO(rastreio);
     }
 
-    // Buscar por status
     public List<PedidoResponseDTO> buscarPorStatus(String status) {
         try {
             Pedido.StatusPedido statusEnum = Pedido.StatusPedido.valueOf(status);
@@ -191,7 +193,6 @@ public class PedidoService {
         }
     }
 
-    // Buscar por período
     public List<PedidoResponseDTO> buscarPorPeriodo(LocalDateTime inicio, LocalDateTime fim) {
         return pedidoRepository.findByDataPedidoBetween(inicio, fim)
                 .stream()
@@ -199,7 +200,6 @@ public class PedidoService {
                 .collect(Collectors.toList());
     }
 
-    // Buscar pedidos recentes
     public List<PedidoResponseDTO> buscarRecentes() {
         return pedidoRepository.findTop10ByOrderByDataPedidoDesc()
                 .stream()
@@ -207,13 +207,11 @@ public class PedidoService {
                 .collect(Collectors.toList());
     }
 
-    // Cancelar pedido
     @Transactional
     public void cancelarPedido(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
-        // Verificar se pode cancelar
         if (pedido.getStatus() == Pedido.StatusPedido.ENTREGUE) {
             throw new RuntimeException("Pedido já entregue não pode ser cancelado");
         }
@@ -222,7 +220,6 @@ public class PedidoService {
             throw new RuntimeException("Pedido já está cancelado");
         }
 
-        // Devolver produtos ao estoque
         for (ItemPedido item : pedido.getItens()) {
             Produto produto = item.getProduto();
             produto.setEstoque(produto.getEstoque() + item.getQuantidade());
@@ -234,7 +231,6 @@ public class PedidoService {
         pedidoRepository.save(pedido);
     }
 
-    // Gerar relatório
     public Map<String, Object> gerarRelatorio(LocalDateTime inicio, LocalDateTime fim) {
         if (inicio == null) {
             inicio = LocalDateTime.now().minusMonths(1);
@@ -249,14 +245,12 @@ public class PedidoService {
         relatorio.put("periodo", inicio + " até " + fim);
         relatorio.put("totalPedidos", pedidos.size());
 
-        // Calcular valor total
         BigDecimal valorTotal = pedidos.stream()
                 .map(Pedido::getValorTotal)
                 .filter(v -> v != null)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         relatorio.put("valorTotal", valorTotal);
 
-        // Contar por status
         Map<String, Long> contagemStatus = pedidos.stream()
                 .collect(Collectors.groupingBy(
                         p -> p.getStatus() != null ? p.getStatus().name() : "SEM_STATUS",
@@ -264,7 +258,6 @@ public class PedidoService {
                 ));
         relatorio.put("contagemStatus", contagemStatus);
 
-        // Média de valor por pedido
         if (!pedidos.isEmpty()) {
             BigDecimal media = valorTotal.divide(BigDecimal.valueOf(pedidos.size()), 2, BigDecimal.ROUND_HALF_UP);
             relatorio.put("mediaValor", media);
