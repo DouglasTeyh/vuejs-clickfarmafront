@@ -46,7 +46,7 @@ public class PagamentoService {
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
                     .externalReference(pedidoId.toString())
-                    .notificationUrl("https://seu-dominio.com/api/webhook") // Para produção
+                    .notificationUrl("https://seu-dominio.com/api/webhook")
                     .build();
 
             // Criar preferência
