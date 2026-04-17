@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/pedidos").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios").permitAll()
                         .requestMatchers("/api/gemini/**").permitAll()
+                        .requestMatchers("/api/receita/**").permitAll()  // ← LINHA ADICIONADA
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

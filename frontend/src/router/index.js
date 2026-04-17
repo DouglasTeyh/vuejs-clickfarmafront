@@ -20,19 +20,22 @@ import OrderManagement from '../views/admin/OrderManagement.vue'
 import PrescriptionValidation from '../views/admin/PrescriptionValidation.vue'
 import UserManagement from '../views/admin/UserManagement.vue'
 
+// Importe o componente
+import UploadReceita from '@/components/prescriptions/UploadReceita.vue';
+
 const routes = [
-  { 
-    path: '/', 
+  {
+    path: '/',
     name: 'Home',
-    component: Home 
-  },
-  { 
-    path: '/products', 
-    name: 'Products',
-    component: Products 
+    component: Home
   },
   {
-    path: '/promotions', 
+    path: '/products',
+    name: 'Products',
+    component: Products
+  },
+  {
+    path: '/promotions',
     name: 'Promotions',
     component: () => import('../views/Promotions.vue')
   },
@@ -41,23 +44,23 @@ const routes = [
     name: 'ProductDetail',
     component: ProductDetail
   },
-  { 
-    path: '/login', 
+  {
+    path: '/login',
     name: 'Login',
-    component: Login 
+    component: Login
   },
-  { 
-    path: '/register', 
+  {
+    path: '/register',
     name: 'Register',
-    component: Register 
-  },  
-  { 
-    path: '/cart', 
-    name: 'Cart',
-    component: Cart 
+    component: Register
   },
-  { 
-    path: '/checkout/:cart?', 
+  {
+    path: '/cart',
+    name: 'Cart',
+    component: Cart
+  },
+  {
+    path: '/checkout/:cart?',
     name: 'Checkout',
     component: Checkout,
     props: true,
@@ -88,7 +91,17 @@ const routes = [
     meta: { requiresAuth: true }
   },
 
-  // Adicione esta rota
+  // Nova rota de upload de receita
+  {
+    path: '/prescriptions/upload',
+    name: 'UploadReceita',
+    component: UploadReceita,
+    meta: {
+      title: 'Leitura de Receita Médica',
+      requiresAuth: false // ou true se precisar de login
+    }
+  },
+
   {
     path: '/sucesso-pagamento',
     name: 'SucessoPagamento',
@@ -146,7 +159,7 @@ const routes = [
   // Outras rotas existentes
   {
     path: '/about',
-    name: 'About', 
+    name: 'About',
     component: () => import('../views/About.vue')
   },
   {
@@ -171,7 +184,7 @@ const routes = [
       {
         path: 'dashboard',
         name: 'AdminDashboardOverview',
-        component: { template: '<div>Bem-vindo ao Painel Administrativo!</div>' } 
+        component: { template: '<div>Bem-vindo ao Painel Administrativo!</div>' }
       },
       {
         path: 'products',
@@ -211,7 +224,7 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = localStorage.getItem('authToken')
   const user = JSON.parse(localStorage.getItem('user') || '{}')
   const isAdmin = user.role === 'admin'
-  
+
   if (to.meta.requiresAuth && !isAuthenticated) {
     if (to.path.startsWith('/admin')) {
       next('/admin/login')

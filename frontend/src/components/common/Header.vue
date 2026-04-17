@@ -54,6 +54,11 @@
               <router-link to="/track-order" class="nav-link cf-nav-link">Rastrear</router-link>
             </li>
             <li class="nav-item">
+              <router-link to="/prescriptions/upload" class="nav-link cf-nav-link">
+                📸 Ler Receita
+              </router-link>
+            </li>
+            <li class="nav-item">
               <router-link to="/about" class="nav-link cf-nav-link">Sobre</router-link>
             </li>
           </ul>
