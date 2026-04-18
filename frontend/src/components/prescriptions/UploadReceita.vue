@@ -54,23 +54,63 @@
         <div v-if="resultado.sucesso && resultado.medicamentos?.length > 0">
           <h3>
             <i class="fas fa-pills"></i>
-            Medicamentos ({{ resultado.medicamentos.length }})
+            Medicamentos Identificados ({{ resultado.medicamentos.length }})
           </h3>
 
           <div class="medicamentos-lista">
             <div v-for="(med, index) in resultado.medicamentos" :key="index" class="medicamento-card">
               <div class="medicamento-info">
-                <div class="medicamento-nome">
-                  <strong>{{ med.nome }}</strong>
-                  <span v-if="med.dosagem" class="dosagem">{{ med.dosagem }}</span>
+                <div class="medicamento-header">
+                  <div class="medicamento-nome">
+                    <strong>{{ med.nomeCompleto || med.nome }}</strong>
+                    <span v-if="med.dosagem" class="dosagem">{{ med.dosagem }}</span>
+                  </div>
+                  <div v-if="med.preco > 0" class="medicamento-preco">
+                    <span class="preco-label">R$</span>
+                    <span class="preco-valor">{{ formatarPreco(med.preco) }}</span>
+                  </div>
                 </div>
-                <div class="quantidade">
-                  <i class="fas fa-cubes"></i> Quantidade: {{ med.quantidade || 1 }}
+
+                <div v-if="med.descricaoProduto" class="medicamento-descricao">
+                  {{ med.descricaoProduto }}
+                </div>
+
+                <div class="medicamento-detalhes">
+                  <div class="detalhe">
+                    <i class="fas fa-cubes"></i>
+                    <span>Quantidade prescrita: {{ med.quantidade }}</span>
+                  </div>
+                  <div v-if="med.estoque !== undefined" class="detalhe" :class="{ 'sem-estoque': med.estoque === 0 }">
+                    <i class="fas fa-warehouse"></i>
+                    <span v-if="med.estoque > 0">{{ med.estoque }} em estoque</span>
+                    <span v-else>Fora de estoque</span>
+                  </div>
                 </div>
               </div>
-              <button @click="adicionarAoCarrinho(med)" class="btn-adicionar">
-                <i class="fas fa-cart-plus"></i> Adicionar
-              </button>
+
+              <div class="medicamento-acoes">
+                <div class="quantidade-selector">
+                  <button @click="diminuirQuantidade(index)" class="btn-qty">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                  <input 
+                    v-model.number="quantidades[index]" 
+                    type="number" 
+                    min="1" 
+                    class="input-qty"
+                  />
+                  <button @click="aumentarQuantidade(index)" class="btn-qty">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+                <button 
+                  @click="adicionarAoCarrinho(med, index)" 
+                  class="btn-adicionar"
+                  :disabled="med.estoque === 0"
+                >
+                  <i class="fas fa-cart-plus"></i> Adicionar
+                </button>
+              </div>
             </div>
           </div>
 
@@ -78,6 +118,10 @@
             <button @click="adicionarTodosAoCarrinho" class="btn-adicionar-todos">
               <i class="fas fa-shopping-cart"></i>
               Adicionar Todos ({{ resultado.medicamentos.length }})
+            </button>
+            <button @click="limparImagem" class="btn-nova-receita">
+              <i class="fas fa-redo"></i>
+              Nova Receita
             </button>
           </div>
         </div>
@@ -115,7 +159,8 @@ export default {
       imagemPreview: null,
       nomeArquivo: null,
       carregando: false,
-      resultado: null
+      resultado: null,
+      quantidades: {}
     };
   },
   methods: {
@@ -130,6 +175,7 @@ export default {
 
       this.nomeArquivo = arquivo.name;
       this.resultado = null;
+      this.quantidades = {};
 
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -144,6 +190,7 @@ export default {
       this.imagemPreview = null;
       this.nomeArquivo = null;
       this.resultado = null;
+      this.quantidades = {};
       if (this.$refs.fileInput) {
         this.$refs.fileInput.value = '';
       }
@@ -163,6 +210,13 @@ export default {
             this.nomeArquivo
         );
         this.resultado = response;
+        
+        // Inicializar quantidades com os valores da receita
+        if (response.medicamentos) {
+          response.medicamentos.forEach((med, index) => {
+            this.quantidades[index] = med.quantidade || 1;
+          });
+        }
       } catch (error) {
         this.resultado = {
           sucesso: false,
@@ -173,32 +227,56 @@ export default {
       }
     },
 
-    adicionarAoCarrinho(medicamento) {
+    aumentarQuantidade(index) {
+      if (!this.quantidades[index]) {
+        this.quantidades[index] = 1;
+      }
+      this.quantidades[index]++;
+    },
+
+    diminuirQuantidade(index) {
+      if (this.quantidades[index] && this.quantidades[index] > 1) {
+        this.quantidades[index]--;
+      }
+    },
+
+    adicionarAoCarrinho(medicamento, index) {
+      const quantidade = this.quantidades[index] || medicamento.quantidade || 1;
+      
       const item = {
-        id: Date.now(),
-        nome: medicamento.nome,
-        quantidade: medicamento.quantidade || 1,
+        id: medicamento.produtoId || `receita-${Date.now()}-${index}`,
+        name: medicamento.nomeCompleto || medicamento.nome,
+        price: medicamento.preco || 0,
+        quantity: quantidade,
+        description: medicamento.descricaoProduto || medicamento.descricaoIA || '',
         dosagem: medicamento.dosagem || '',
         origem: 'receita',
         dataAdicao: new Date().toISOString()
       };
 
-      if (this.$store && this.$store.commit) {
-        this.$store.commit('carrinho/adicionarItem', item);
-        alert(`${medicamento.nome} adicionado ao carrinho!`);
+      // Usar a ação correta do Vuex
+      if (this.$store && this.$store.dispatch) {
+        this.$store.dispatch('addToCart', item);
+        this.$notify({
+          group: 'foo',
+          title: 'Sucesso!',
+          text: `${item.name} adicionado ao carrinho!`,
+          type: 'success'
+        });
       } else {
+        // Fallback para localStorage se Vuex não estiver disponível
         const carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
         carrinho.push(item);
         localStorage.setItem('carrinho', JSON.stringify(carrinho));
-        alert(`${medicamento.nome} adicionado ao carrinho (local)!`);
+        alert(`${item.name} adicionado ao carrinho (local)!`);
       }
     },
 
     adicionarTodosAoCarrinho() {
       if (!this.resultado?.medicamentos) return;
 
-      this.resultado.medicamentos.forEach(med => {
-        this.adicionarAoCarrinho(med);
+      this.resultado.medicamentos.forEach((med, index) => {
+        this.adicionarAoCarrinho(med, index);
       });
 
       setTimeout(() => {
@@ -206,6 +284,13 @@ export default {
           this.$router.push('/cart');
         }
       }, 1000);
+    },
+
+    formatarPreco(preco) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(preco);
     }
   }
 };
@@ -213,7 +298,7 @@ export default {
 
 <style scoped>
 .upload-receita-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -234,6 +319,7 @@ export default {
 
 .receita-header h2 {
   margin: 0 0 10px;
+  font-size: 24px;
 }
 
 .descricao {
@@ -302,6 +388,11 @@ export default {
   padding: 8px 15px;
   border-radius: 20px;
   cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-clear:hover {
+  background: rgba(220, 53, 69, 1);
 }
 
 .actions {
@@ -318,6 +409,7 @@ export default {
   font-size: 16px;
   cursor: pointer;
   width: 100%;
+  font-weight: 600;
 }
 
 .btn-processar:hover {
@@ -351,6 +443,14 @@ export default {
   border-top: 1px solid #eee;
 }
 
+.resultados h3 {
+  color: #333;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .medicamentos-lista {
   display: flex;
   flex-direction: column;
@@ -366,16 +466,33 @@ export default {
   justify-content: space-between;
   align-items: center;
   border-left: 4px solid #28a745;
+  gap: 15px;
 }
 
 .medicamento-card:hover {
-  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.medicamento-info {
+  flex: 1;
+}
+
+.medicamento-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.medicamento-nome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .medicamento-nome strong {
   font-size: 16px;
-  display: block;
-  margin-bottom: 5px;
+  color: #333;
 }
 
 .dosagem {
@@ -384,13 +501,88 @@ export default {
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 11px;
-  margin-left: 8px;
+  color: #666;
 }
 
-.quantidade {
+.medicamento-preco {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.preco-label {
+  font-size: 12px;
+  color: #28a745;
+}
+
+.preco-valor {
+  font-size: 18px;
+  color: #28a745;
+}
+
+.medicamento-descricao {
   font-size: 13px;
   color: #666;
-  margin-top: 5px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.medicamento-detalhes {
+  display: flex;
+  gap: 15px;
+  font-size: 12px;
+  color: #666;
+}
+
+.detalhe {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.detalhe.sem-estoque {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.medicamento-acoes {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.quantidade-selector {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+}
+
+.btn-qty {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: #667eea;
+  font-size: 14px;
+}
+
+.btn-qty:hover {
+  background: #f0f0f0;
+}
+
+.input-qty {
+  width: 40px;
+  border: none;
+  text-align: center;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.input-qty:focus {
+  outline: none;
 }
 
 .btn-adicionar {
@@ -400,30 +592,57 @@ export default {
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.btn-adicionar:hover {
+.btn-adicionar:hover:not(:disabled) {
   background: #218838;
 }
 
+.btn-adicionar:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .acoes-bulk {
-  text-align: center;
+  display: flex;
+  gap: 10px;
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #dee2e6;
 }
 
 .btn-adicionar-todos {
+  flex: 1;
   background: #007bff;
   color: white;
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .btn-adicionar-todos:hover {
   background: #0056b3;
+}
+
+.btn-nova-receita {
+  flex: 1;
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-nova-receita:hover {
+  background: #5a6268;
 }
 
 .alerta-sem-medicamentos,
@@ -435,11 +654,15 @@ export default {
 .alerta-sem-medicamentos i {
   font-size: 48px;
   color: #ffc107;
+  margin-bottom: 15px;
+  display: block;
 }
 
 .erro-area i {
   font-size: 48px;
   color: #dc3545;
+  margin-bottom: 15px;
+  display: block;
 }
 
 .btn-tentar-novamente {
@@ -452,14 +675,45 @@ export default {
   margin-top: 15px;
 }
 
+.btn-tentar-novamente:hover {
+  background: #5a6268;
+}
+
 @media (max-width: 768px) {
   .medicamento-card {
     flex-direction: column;
-    text-align: center;
-    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .medicamento-header {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .medicamento-preco {
+    margin-top: 8px;
+  }
+
+  .medicamento-acoes {
+    width: 100%;
+    flex-direction: column;
   }
 
   .btn-adicionar {
+    width: 100%;
+  }
+
+  .quantidade-selector {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .acoes-bulk {
+    flex-direction: column;
+  }
+
+  .btn-adicionar-todos,
+  .btn-nova-receita {
     width: 100%;
   }
 }

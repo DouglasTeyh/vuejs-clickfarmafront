@@ -52,6 +52,7 @@ public class GroqProcessadorReceitaService {
                    - nome: SOMENTE o princípio ativo em minúsculo (ex: "paracetamol")
                    - quantidade: número de unidades/caixas prescritas (padrão: 1 se não informado)
                    - dosagem: concentração por unidade (ex: "500mg", "10mg/ml", "250mg/5ml")
+                   - descricao: breve descrição amigável do medicamento (ex: "Analgésico e antitérmico para dor e febre")
                 
                 4. REGRAS ESPECIAIS PARA BUSCA NO BANCO DE DADOS:
                    - Para medicamentos combinados, liste os princípios ativos separadamente
@@ -66,19 +67,19 @@ public class GroqProcessadorReceitaService {
                 EXEMPLOS DE RESPOSTA CORRETA:
                 
                 Entrada: "Prescrevo ao paciente Amoxicilina 500mg, tomar 1 comprimido de 8/8h por 7 dias"
-                Saída: {"medicamentos": [{"nome": "amoxicilina", "quantidade": 1, "dosagem": "500mg"}]}
+                Saída: {"medicamentos": [{"nome": "amoxicilina", "quantidade": 1, "dosagem": "500mg", "descricao": "Antibiótico para infecções bacterianas"}]}
                 
                 Entrada: "Receita: Ibuprofeno 400mg - 20 comprimidos, Dipirona 500mg/ml - 1 frasco"
-                Saída: {"medicamentos": [{"nome": "ibuprofeno", "quantidade": 20, "dosagem": "400mg"}, {"nome": "dipirona", "quantidade": 1, "dosagem": "500mg/ml"}]}
+                Saída: {"medicamentos": [{"nome": "ibuprofeno", "quantidade": 20, "dosagem": "400mg", "descricao": "Anti-inflamatório e analgésico para dor e inflamação"}, {"nome": "dipirona", "quantidade": 1, "dosagem": "500mg/ml", "descricao": "Analgésico e antitérmico de ação rápida"}]}
                 
                 Entrada: "Uso contínuo: Losartana 50mg, 30 comprimidos"
-                Saída: {"medicamentos": [{"nome": "losartana", "quantidade": 30, "dosagem": "50mg"}]}
+                Saída: {"medicamentos": [{"nome": "losartana", "quantidade": 30, "dosagem": "50mg", "descricao": "Medicamento para controle de pressão arterial"}]}
                 
                 FORMATO EXATO DE RESPOSTA (sem formatação adicional):
                 {
                   "medicamentos": [
-                    {"nome": "medicamento1", "quantidade": 1, "dosagem": "500mg"},
-                    {"nome": "medicamento2", "quantidade": 2, "dosagem": "400mg"}
+                    {"nome": "medicamento1", "quantidade": 1, "dosagem": "500mg", "descricao": "Descrição breve do medicamento"},
+                    {"nome": "medicamento2", "quantidade": 2, "dosagem": "400mg", "descricao": "Outra descrição breve"}
                   ]
                 }
                 """, textoReceita);
@@ -126,6 +127,10 @@ public class GroqProcessadorReceitaService {
                                     }
 
                                     item.setDosagem((String) med.getOrDefault("dosagem", ""));
+                                    
+                                    // Adicionar descrição fornecida pela IA
+                                    String descricaoIA = (String) med.getOrDefault("descricao", "");
+                                    item.setDescricaoIA(descricaoIA);
 
                                     // Buscar produto no banco de dados
                                     buscarProdutoNoBanco(item);
@@ -200,19 +205,26 @@ public class GroqProcessadorReceitaService {
                 item.setDescricaoProduto(produtoEncontrado.getDescricao());
                 item.setNomeCompleto(produtoEncontrado.getNome());
                 item.setNome(produtoEncontrado.getNome());
-                log.info("✅ Produto selecionado: {} - R$ {}",
-                        produtoEncontrado.getNome(), produtoEncontrado.getPreco());
+                item.setEstoque(produtoEncontrado.getEstoque());
+                log.info("✅ Produto selecionado: {} - R$ {} - Estoque: {}",
+                        produtoEncontrado.getNome(), produtoEncontrado.getPreco(), produtoEncontrado.getEstoque());
             } else {
                 log.warn("❌ Produto NÃO encontrado no banco: {}", nomeBusca);
-                item.setDescricaoProduto("⚠️ Medicamento identificado na receita, mas não encontrado no nosso catálogo. Consulte nosso atendimento.");
+                // Usar a descrição fornecida pela IA se o produto não foi encontrado
+                String descricaoFinal = item.getDescricaoIA() != null && !item.getDescricaoIA().isEmpty() 
+                    ? item.getDescricaoIA() 
+                    : "⚠️ Medicamento identificado na receita, mas não encontrado no nosso catálogo. Consulte nosso atendimento.";
+                item.setDescricaoProduto(descricaoFinal);
                 item.setPreco(0.0);
                 item.setNomeCompleto(item.getNome());
+                item.setEstoque(0);
             }
 
         } catch (Exception e) {
             log.error("Erro ao buscar produto: {}", item.getNome(), e);
             item.setDescricaoProduto("Erro ao consultar disponibilidade do medicamento.");
             item.setPreco(0.0);
+            item.setEstoque(0);
         }
     }
 }
