@@ -5,9 +5,15 @@ module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
     host: '0.0.0.0',
-    port: 8082,
-    allowedHosts: 'all'
-    // A seção 'proxy' foi removida para evitar conflitos.
+    port: 8081,  // Mudar para 8081
+    allowedHosts: 'all',
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        logLevel: 'debug'
+      }
+    }
   },
   configureWebpack: {
     resolve: {
