@@ -44,11 +44,11 @@ export default {
     getDefaultImage() {
       // Imagem padrão baseada na categoria
       const categoryImages = {
-        'Medicamentos': 'https://via.placeholder.com/400x400/007bff/ffffff?text=Medicamento',
-        'Cosméticos': 'https://via.placeholder.com/400x400/28a745/ffffff?text=Cosmético',
-        'Higiene': 'https://via.placeholder.com/400x400/17a2b8/ffffff?text=Higiene',
-        'Vitaminas': 'https://via.placeholder.com/400x400/ffc107/000000?text=Vitamina',
-        'Maternidade': 'https://via.placeholder.com/400x400/e83e8c/ffffff?text=Maternidade'
+        'Medicamentos': 'https://via.placeholder.com/400x400/2A5C45/ffffff?text=Medicamento',
+        'Cosméticos': 'https://via.placeholder.com/400x400/2A5C45/ffffff?text=Cosmético',
+        'Higiene': 'https://via.placeholder.com/400x400/B89550/ffffff?text=Higiene',
+        'Vitaminas': 'https://via.placeholder.com/400x400/B89550/000000?text=Vitamina',
+        'Maternidade': 'https://via.placeholder.com/400x400/6B8E23/ffffff?text=Maternidade'
       }
       return categoryImages[this.product.category] || 'https://via.placeholder.com/400x400/6c757d/ffffff?text=Produto'
     }
@@ -73,7 +73,7 @@ export default {
 }
 
 .thumbnail.active .img-thumbnail {
-  border-color: #0d6efd;
+  border-color: var(--cf-green);
   border-width: 2px;
 }
 

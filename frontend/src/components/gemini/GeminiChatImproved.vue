@@ -200,7 +200,7 @@ export default {
   align-items: center;
   gap: 10px;
   padding: 15px 20px;
-  background: linear-gradient(135deg, #4285f4, #34a853);
+  background: linear-gradient(135deg, var(--cf-green-dark), var(--cf-green));
   color: white;
 }
 
@@ -265,7 +265,7 @@ export default {
 }
 
 .message.user .message-avatar {
-  background: #0d6efd;
+  background: var(--cf-green);
   color: white;
 }
 
@@ -290,7 +290,7 @@ export default {
 }
 
 .message.user .message-text {
-  background: #0d6efd;
+  background: var(--cf-green);
   color: white;
 }
 
@@ -302,11 +302,11 @@ export default {
 .markdown-content :deep(h6) {
   margin: 10px 0 5px 0;
   font-weight: 600;
-  color: #0d6efd;
+  color: var(--cf-green);
 }
 
 .markdown-content :deep(strong) {
-  color: #0d6efd;
+  color: var(--cf-green);
   font-weight: 600;
 }
 
@@ -337,7 +337,7 @@ export default {
 }
 
 .markdown-content :deep(blockquote) {
-  border-left: 3px solid #0d6efd;
+  border-left: 3px solid var(--cf-green);
   padding-left: 10px;
   margin-left: 0;
   color: #666;
@@ -417,14 +417,14 @@ export default {
 }
 
 .chat-input textarea:focus {
-  border-color: #4285f4;
+  border-color: var(--cf-green);
 }
 
 .chat-input button {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #4285f4;
+  background: var(--cf-green);
   border: none;
   color: white;
   cursor: pointer;
@@ -432,7 +432,7 @@ export default {
 }
 
 .chat-input button:hover:not(:disabled) {
-  background: #3367d6;
+  background: var(--cf-green-dark);
   transform: scale(1.05);
 }
 
@@ -462,8 +462,8 @@ export default {
 }
 
 .suggestion-btn:hover {
-  background: #e9ecef;
-  border-color: #4285f4;
-  color: #4285f4;
+  background: var(--cf-green-xlight);
+  border-color: var(--cf-green);
+  color: var(--cf-green);
 }
 </style>

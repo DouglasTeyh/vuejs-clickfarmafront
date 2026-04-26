@@ -24,10 +24,7 @@
           <!-- Coluna marca -->
           <div class="col-lg-4 col-md-6">
             <div class="cf-footer-brand">
-              <div class="cf-footer-cross">
-                <span class="fch"></span><span class="fcv"></span>
-              </div>
-              <span class="cf-footer-brand-name">Click<em>Farma</em></span>
+              <img src="/images/Logotipo.svg" alt="ClickFarma" class="footer-logo-img">
             </div>
             <p class="cf-footer-desc mt-3">
               Sua farmácia online de confiança. Dermocosméticos, medicamentos e bem-estar com qualidade e agilidade.
@@ -215,29 +212,10 @@ export default {
   align-items: center;
   gap: 10px;
 }
-.cf-footer-cross {
-  width: 22px;
-  height: 22px;
-  position: relative;
-  flex-shrink: 0;
-}
-.fch, .fcv {
-  position: absolute;
-  background: var(--cf-green);
-  border-radius: 2px;
-}
-.fch { width: 100%; height: 4px; top: 50%; left: 0; transform: translateY(-50%); }
-.fcv { width: 4px; height: 100%; left: 50%; top: 0; transform: translateX(-50%); }
-
-.cf-footer-brand-name {
-  font-family: var(--cf-serif);
-  font-size: 1.45rem;
-  font-weight: 400;
-  color: var(--cf-text-dark);
-}
-.cf-footer-brand-name em {
-  font-style: italic;
-  color: var(--cf-green);
+.footer-logo-img {
+  max-height: 42px;
+  width: auto;
+  display: block;
 }
 
 .cf-footer-desc {

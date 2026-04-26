@@ -228,7 +228,7 @@ export default {
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease-in-out;
-  background: linear-gradient(180deg, #2c5aa0 0%, #1e3a8a 100%) !important;
+  background: linear-gradient(180deg, var(--cf-green) 0%, var(--cf-green-dark) 100%) !important;
 }
 
 .main-content {
@@ -245,7 +245,7 @@ export default {
 }
 
 .page-content {
-  background-color: #f8f9fa;
+  background-color: var(--cf-ivory);
   min-height: calc(100vh - 80px);
 }
 
@@ -261,13 +261,13 @@ export default {
 .nav-link:hover { 
   background-color: rgba(255,255,255,0.15) !important; 
   transform: translateX(4px);
-  border-left-color: #ffffff;
+  border-left-color: var(--cf-gold);
 }
 
 .nav-link.active {
   background-color: rgba(255,255,255,0.2) !important;
   font-weight: 600;
-  border-left-color: #ffffff;
+  border-left-color: var(--cf-gold);
 }
 
 .sidebar-footer {
@@ -280,13 +280,13 @@ export default {
 
 /* Botões com cor azul */
 .btn-outline-primary {
-  border-color: #2c5aa0;
-  color: #2c5aa0;
+  border-color: var(--cf-green);
+  color: var(--cf-green);
 }
 
 .btn-outline-primary:hover {
-  background-color: #2c5aa0;
-  border-color: #2c5aa0;
+  background-color: var(--cf-green);
+  border-color: var(--cf-green);
 }
 
 /* Responsividade Mobile */
@@ -363,7 +363,7 @@ export default {
 
 /* Header com cor azul sutil */
 .main-header {
-  background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%) !important;
+  background: linear-gradient(135deg, var(--cf-white) 0%, var(--cf-green-xlight) 100%) !important;
 }
 </style>
 

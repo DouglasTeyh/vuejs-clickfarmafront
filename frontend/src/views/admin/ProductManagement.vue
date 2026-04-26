@@ -364,7 +364,7 @@ export default {
 }
 
 .is-invalid {
-  border-color: #dc3545;
+  border-color: var(--cf-danger);
 }
 
 .invalid-feedback {

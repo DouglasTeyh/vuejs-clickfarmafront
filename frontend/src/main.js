@@ -3,11 +3,15 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import axios from 'axios'
-import './theme.css'
+
+// 1. CARREGAR BOOTSTRAP PRIMEIRO
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
-// Configuração do axios - URL relativa funciona em qualquer ambiente
+// 2. CARREGAR DESIGN SYSTEM DEPOIS (PARA SOBREPOR)
+import './theme.css'
+
+// Configuração do axios
 axios.defaults.baseURL = '/api'
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
@@ -22,10 +26,6 @@ axios.interceptors.request.use(
   },
   error => Promise.reject(error)
 )
-
-// Importar Bootstrap
-import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 const app = createApp(App)
 app.use(router)

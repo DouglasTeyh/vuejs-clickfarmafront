@@ -109,7 +109,7 @@ export default {
 }
 
 .order-card {
-  border: 1px solid #ddd;
+  border: 1px solid var(--cf-border);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 15px;
@@ -131,18 +131,18 @@ export default {
 }
 
 .order-status[data-status="shipped"] {
-  background: #fff3cd;
-  color: #856404;
+  background: var(--cf-gold-light);
+  color: var(--cf-gold);
 }
 
 .order-status[data-status="delivered"] {
-  background: #d4edda;
-  color: #155724;
+  background: var(--cf-green-light);
+  color: var(--cf-green);
 }
 
 .order-details p {
   margin: 5px 0;
-  color: #666;
+  color: var(--cf-text-muted);
 }
 
 .order-actions {
@@ -158,7 +158,7 @@ export default {
 }
 
 .track-btn {
-  background: #007bff;
+  background: var(--cf-green);
   color: white;
 }
 

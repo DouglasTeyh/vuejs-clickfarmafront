@@ -57,6 +57,18 @@
     /* Transições */
     --cf-ease: cubic-bezier(0.4, 0, 0.2, 1);
 
+    /* ---- Bootstrap Overrides ---- */
+    --bs-primary:     var(--cf-green);
+    --bs-primary-rgb: 42, 92, 69;
+    --bs-success:     var(--cf-green);
+    --bs-success-rgb: 42, 92, 69;
+    --bs-info:        var(--cf-green-mid);
+    --bs-warning:     var(--cf-gold);
+    --bs-danger:      var(--cf-danger);
+    --bs-link-color:  var(--cf-green);
+    --bs-link-hover-color: var(--cf-green-dark);
+    --bs-border-color: var(--cf-border);
+
     /* ---- Aliases para compatibilidade com código existente ---- */
     --color-primary:        var(--cf-green);
     --color-primary-dark:   var(--cf-green-dark);
@@ -86,7 +98,7 @@
     --color-success:        var(--cf-success);
     --color-warning:        var(--cf-warning);
     --color-danger:         var(--cf-danger);
-    --color-info:           #2A4C6E;
+    --color-info:           var(--cf-green-mid);
     --font-primary:         var(--cf-sans);
     --font-secondary:       var(--cf-serif);
     --border-light:         1px solid var(--cf-border);
@@ -123,12 +135,19 @@ body {
 /* ===========================
    TIPOGRAFIA
    =========================== */
-h1, h2, h3, h4, h5, h6 {
+h1, h2 {
     font-family: var(--cf-serif);
     font-weight: 400;
     line-height: 1.2;
     color: var(--cf-text-dark);
     letter-spacing: -0.01em;
+}
+
+h3, h4, h5, h6 {
+    font-family: var(--cf-sans);
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--cf-text-dark);
 }
 h1 { font-size: clamp(1.9rem, 4vw, 3.2rem); }
 h2 { font-size: clamp(1.5rem, 3vw, 2.4rem); }
@@ -304,6 +323,110 @@ hr, .divider {
     color: var(--cf-text-dark);
     letter-spacing: -0.01em;
 }
+
+/* ===========================
+   BOOTSTRAP BRUTE FORCE OVERRIDES
+   Força o verde em classes padrão do Bootstrap que podem estar "teimosas"
+   =========================== */
+
+/* Backgrounds */
+.bg-primary { background-color: var(--cf-green) !important; }
+.bg-success { background-color: var(--cf-green) !important; }
+.bg-info    { background-color: var(--cf-green-mid) !important; }
+
+/* Texto */
+.text-primary { color: var(--cf-green) !important; }
+.text-success { color: var(--cf-green) !important; }
+.text-info    { color: var(--cf-green-mid) !important; }
+
+/* Botões */
+.btn-primary {
+    background-color: var(--cf-green) !important;
+    border-color: var(--cf-green) !important;
+    color: white !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: var(--cf-green-dark) !important;
+    border-color: var(--cf-green-dark) !important;
+}
+
+.btn-outline-primary {
+    color: var(--cf-green) !important;
+    border-color: var(--cf-green) !important;
+}
+.btn-outline-primary:hover {
+    background-color: var(--cf-green) !important;
+    color: white !important;
+}
+
+/* Links */
+a { color: var(--cf-green); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--cf-green-dark); }
+
+/* Focus Rings (Remove o azul padrão do Bootstrap) */
+.form-control:focus, .form-select:focus, .btn:focus, .btn-check:focus + .btn {
+    border-color: var(--cf-green) !important;
+    box-shadow: 0 0 0 0.25rem rgba(42, 92, 69, 0.25) !important;
+}
+
+/* Checkboxes e Radios */
+.form-check-input:checked {
+    background-color: var(--cf-green) !important;
+    border-color: var(--cf-green) !important;
+}
+.form-check-input:focus {
+    border-color: var(--cf-green) !important;
+    box-shadow: 0 0 0 0.25rem rgba(42, 92, 69, 0.25) !important;
+}
+
+/* Paginação */
+.page-link { color: var(--cf-green); }
+.page-item.active .page-link {
+    background-color: var(--cf-green) !important;
+    border-color: var(--cf-green) !important;
+}
+
+/* Spinners */
+.spinner-border.text-primary { color: var(--cf-green) !important; }
+
+/* Progress Bars */
+.progress-bar { background-color: var(--cf-green) !important; }
+
+/* Modais */
+.modal-header { border-bottom-color: var(--cf-border) !important; }
+.modal-footer { border-top-color: var(--cf-border) !important; }
+
+/* Dropdowns */
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: var(--cf-green-xlight) !important;
+    color: var(--cf-green) !important;
+}
+
+/* Accordions */
+.accordion-button:not(.collapsed) {
+    background-color: var(--cf-green-xlight) !important;
+    color: var(--cf-green) !important;
+}
+.accordion-button:focus {
+    border-color: var(--cf-green) !important;
+    box-shadow: 0 0 0 0.25rem rgba(42, 92, 69, 0.25) !important;
+}
+.accordion-button::after {
+    filter: sepia(100%) hue-rotate(90deg) saturate(1000%); /* Force green icon */
+}
+
+/* List Groups */
+.list-group-item.active {
+    background-color: var(--cf-green) !important;
+    border-color: var(--cf-green) !important;
+}
+
+/* Tooltips e Popovers (opcional mas bom garantir) */
+.tooltip-inner {
+    background-color: var(--cf-green-dark) !important;
+}
+.bs-tooltip-top .tooltip-arrow::before { border-top-color: var(--cf-green-dark) !important; }
+
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }

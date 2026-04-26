@@ -22,11 +22,7 @@
         <!-- Logo -->
         <router-link to="/" class="navbar-brand me-4">
           <div class="brand-logo">
-            <div class="logo-cross">
-              <span class="cross-h"></span>
-              <span class="cross-v"></span>
-            </div>
-            <span class="brand-name">Click<em>Farma</em></span>
+            <img src="/images/Logotipo.svg" alt="ClickFarma" class="brand-img">
           </div>
         </router-link>
 
@@ -47,7 +43,7 @@
             <li class="nav-item">
               <router-link to="/promotions" class="nav-link cf-nav-link">
                 Promoções
-                <span class="promo-pill">OFF</span>
+                <span class="promo-pill">-20% OFF</span>
               </router-link>
             </li>
             <li class="nav-item">
@@ -135,6 +131,14 @@ export default {
 </script>
 
 <style scoped>
+/* ---- STICKY HEADER ---- */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1001;
+  width: 100%;
+}
+
 /* ---- TOP STRIP ---- */
 .top-strip {
   background: var(--cf-green-xlight);
@@ -152,7 +156,6 @@ export default {
   border-bottom: 1px solid var(--cf-border);
   padding: 0;
   min-height: 66px;
-  box-shadow: var(--cf-shadow-xs);
 }
 
 /* ---- LOGO ---- */
@@ -163,44 +166,10 @@ export default {
   text-decoration: none;
 }
 
-.logo-cross {
-  width: 24px;
-  height: 24px;
-  position: relative;
-  flex-shrink: 0;
-}
-.cross-h, .cross-v {
-  position: absolute;
-  background: var(--cf-green);
-  border-radius: 2px;
-}
-.cross-h {
-  width: 100%;
-  height: 4px;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-}
-.cross-v {
-  width: 4px;
-  height: 100%;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-}
-
-.brand-name {
-  font-family: var(--cf-serif);
-  font-size: 1.5rem;
-  font-weight: 400;
-  color: var(--cf-text-dark);
-  letter-spacing: 0;
-  line-height: 1;
-  text-decoration: none;
-}
-.brand-name em {
-  font-style: italic;
-  color: var(--cf-green);
+.brand-img {
+  max-height: 56px;
+  width: auto;
+  display: block;
 }
 
 /* ---- NAV LINKS ---- */
@@ -384,11 +353,11 @@ export default {
 }
 .cf-dropdown-fullname {
   display: block;
-  font-family: var(--cf-serif);
-  font-size: 1rem;
-  font-weight: 400;
+  font-family: var(--cf-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
   color: var(--cf-text-dark);
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .cf-dd-item {

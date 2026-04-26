@@ -235,20 +235,20 @@ export default {
   color: white;
 }
 
-.stat-icon.sales { background: #3498db; }
-.stat-icon.orders { background: #2ecc71; }
-.stat-icon.products { background: #9b59b6; }
-.stat-icon.users { background: #e74c3c; }
+.stat-icon.sales { background: var(--cf-green); }
+.stat-icon.orders { background: var(--cf-green-mid); }
+.stat-icon.products { background: var(--cf-gold); }
+.stat-icon.users { background: var(--cf-green-dark); }
 
 .stat-info h3 {
   margin: 0;
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--cf-text-dark);
 }
 
 .stat-info p {
   margin: 0;
-  color: #7f8c8d;
+  color: var(--cf-text-muted);
   font-size: 0.9rem;
 }
 
@@ -259,10 +259,10 @@ export default {
   font-weight: 600;
 }
 
-.status-badge.pendente { background: #fff3cd; color: #856404; }
-.status-badge.processando { background: #cce7ff; color: #004085; }
-.status-badge.enviado { background: #fff3cd; color: #856404; }
-.status-badge.entregue { background: #d4edda; color: #155724; }
+.status-badge.pendente { background: var(--cf-gold-light); color: var(--cf-gold); }
+.status-badge.processando { background: var(--cf-green-light); color: var(--cf-green-mid); }
+.status-badge.enviado { background: var(--cf-gold-light); color: var(--cf-gold); }
+.status-badge.entregue { background: var(--cf-green-xlight); color: var(--cf-green); }
 
 .status-chart {
   display: flex;
@@ -289,21 +289,21 @@ export default {
   border-radius: 50%;
 }
 
-.status-dot.pendente { background: #ffc107; }
-.status-dot.processando { background: #17a2b8; }
-.status-dot.enviado { background: #ffc107; }
-.status-dot.entregue { background: #28a745; }
+.status-dot.pendente { background: var(--cf-gold); }
+.status-dot.processando { background: var(--cf-green-mid); }
+.status-dot.enviado { background: var(--cf-gold); }
+.status-dot.entregue { background: var(--cf-green); }
 
 .status-count {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--cf-text-dark);
 }
 
 .table th {
   border-top: none;
   font-weight: 600;
-  color: #495057;
-  background: #f8f9fa;
+  color: var(--cf-text-dark);
+  background: var(--cf-ivory);
 }
 </style>
 [file content end]

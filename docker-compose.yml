@@ -19,10 +19,13 @@ services:
 
   # Backend Java
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
+    image: maven:3.9.6-eclipse-temurin-17-alpine
     container_name: clickfarma-backend
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - /home/douglasteyh/.m2:/root/.m2
+    command: mvn spring-boot:run -DskipTests
     ports:
       - "8080:8080"
     env_file:

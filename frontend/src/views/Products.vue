@@ -1,17 +1,17 @@
 <template>
   <div class="products-page">
-    <!-- Header Section -->
-    <section class="products-header bg-primary text-white py-4 mb-4">
+    <!-- Header Section — Limpo e Editorial -->
+    <section class="products-header">
       <div class="container">
         <div class="row align-items-center">
           <div class="col-md-8">
-            <h1 class="display-6 fw-bold mb-2">💊 Nossos Produtos</h1>
-            <p class="lead mb-0">Encontre os melhores medicamentos e produtos para sua saúde</p>
+            <h1 class="mb-2">Nossos <em>Produtos</em></h1>
+            <p class="mb-0">Mais que medicamentos, entregamos cuidado e bem-estar para sua família.</p>
           </div>
           <div class="col-md-4 text-md-end">
             <div class="products-count">
-              <span class="badge bg-light text-primary fs-6">
-                {{ filteredProducts.length || 0 }} produtos encontrados
+              <span class="count-badge">
+                {{ filteredProducts.length || 0 }} itens selecionados
               </span>
             </div>
           </div>
@@ -30,99 +30,81 @@
                   v-model="searchTerm"
                   type="text"
                   class="form-control search-input"
-                  placeholder="Buscar produtos por nome ou descrição..."
+                  placeholder="Busque por nome, marca ou sintoma..."
               >
             </div>
           </div>
           <div class="col-lg-3 col-md-6">
             <div class="filter-group">
-              <label class="form-label fw-semibold">📁 Categoria</label>
+              <label class="form-label">📂 Categoria</label>
               <select v-model="filters.category" class="form-select">
-                <option value="">Todas as categorias</option>
+                <option value="">Todas as especialidades</option>
                 <option v-for="cat in categoriesList" :key="cat" :value="cat">
-                  {{ getCategoryIcon(cat) }} {{ cat }}
+                  {{ cat }}
                 </option>
               </select>
             </div>
           </div>
           <div class="col-lg-2 col-md-6">
             <div class="filter-group">
-              <label class="form-label fw-semibold">🔀 Ordenar</label>
+              <label class="form-label">🔀 Ordenar</label>
               <select v-model="filters.sortBy" class="form-select">
-                <option value="name">📝 Nome A-Z</option>
-                <option value="name_desc">📝 Nome Z-A</option>
-                <option value="price">💰 Menor preço</option>
-                <option value="price_desc">💰 Maior preço</option>
+                <option value="name">Nome (A-Z)</option>
+                <option value="price">Menor Preço</option>
+                <option value="price_desc">Maior Preço</option>
               </select>
             </div>
           </div>
           <div class="col-lg-2 col-md-6">
             <div class="filter-group">
-              <label class="form-label fw-semibold">📦 Estoque</label>
+              <label class="form-label">📦 Estoque</label>
               <select v-model="filters.stock" class="form-select">
                 <option value="all">Todos</option>
                 <option value="in_stock">Em estoque</option>
-                <option value="out_of_stock">Fora de estoque</option>
               </select>
             </div>
           </div>
         </div>
 
         <!-- Active Filters -->
-        <div v-if="hasActiveFilters" class="active-filters mt-3">
-          <div class="d-flex flex-wrap gap-2 align-items-center">
-            <span class="fw-semibold">Filtros ativos:</span>
-            <span v-if="searchTerm" class="badge bg-primary">
-              Busca: "{{ searchTerm }}"
-              <button @click="searchTerm = ''" class="btn-close btn-close-white ms-1" style="font-size: 0.7rem;"></button>
+        <div v-if="hasActiveFilters" class="active-filters">
+          <span class="fw-medium small me-2">Filtrado por:</span>
+          <div class="d-flex flex-wrap gap-2">
+            <span v-if="searchTerm" class="filter-tag">
+              "{{ searchTerm }}"
+              <i class="fas fa-times" @click="searchTerm = ''" style="cursor:pointer"></i>
             </span>
-            <span v-if="filters.category" class="badge bg-success">
+            <span v-if="filters.category" class="filter-tag">
               {{ filters.category }}
-              <button @click="filters.category = ''" class="btn-close btn-close-white ms-1" style="font-size: 0.7rem;"></button>
+              <i class="fas fa-times" @click="filters.category = ''" style="cursor:pointer"></i>
             </span>
-            <span v-if="filters.stock !== 'all'" class="badge bg-warning text-dark">
-              {{ filters.stock === 'in_stock' ? 'Em estoque' : 'Fora de estoque' }}
-              <button @click="filters.stock = 'all'" class="btn-close ms-1" style="font-size: 0.7rem;"></button>
-            </span>
-            <button @click="clearAllFilters" class="btn btn-sm btn-outline-secondary">
-              Limpar todos
-            </button>
+            <button @click="clearAllFilters" class="clear-all">Limpar filtros</button>
           </div>
         </div>
       </div>
 
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-5">
-        <div class="loading-spinner">
-          <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">Carregando...</span>
-          </div>
-          <p class="mt-3 text-muted">Carregando produtos...</p>
-        </div>
+        <div class="spinner-border cf-spinner" style="width: 2.5rem; height: 2.5rem;" role="status"></div>
+        <p class="mt-3 text-muted fw-light">Organizando catálogo...</p>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="error-state text-center py-5">
-        <div class="error-icon mb-3">
-          <i class="fas fa-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
-        </div>
-        <h4 class="text-danger mb-3">Ops! Algo deu errado</h4>
+      <div v-else-if="error" class="error-state">
+        <div class="error-icon">⚠️</div>
+        <h4 class="mb-3">Conexão interrompida</h4>
         <p class="text-muted mb-4">{{ error }}</p>
-        <button @click="retryLoading" class="btn btn-primary btn-lg">
-          <i class="fas fa-redo me-2"></i>Tentar Novamente
+        <button @click="retryLoading" class="btn btn-primary">
+          Tentar novamente
         </button>
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="filteredProducts.length === 0" class="empty-state text-center py-5">
-        <div class="empty-icon mb-3">
-          <i class="fas fa-search text-muted" style="font-size: 4rem;"></i>
-        </div>
-        <h4 class="text-muted mb-3">Nenhum produto encontrado</h4>
-        <p class="text-muted mb-4">Tente ajustar os filtros ou termos de busca</p>
-        <button @click="clearAllFilters" class="btn btn-primary">
-          <i class="fas fa-times me-2"></i>Limpar Filtros
-        </button>
+      <div v-else-if="filteredProducts.length === 0" class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h4 class="mb-3">Nada encontrado</h4>
+        <p class="text-muted mb-4">Tente outros termos ou remova os filtros ativos.</p>
+        <button @click="clearAllFilters" class="btn btn-primary">Ver Tudo</button>
       </div>
 
       <!-- Products Grid -->
@@ -142,21 +124,16 @@
       </div>
 
       <!-- Quick Actions -->
-      <div v-if="!loading && !error && filteredProducts.length > 0" class="quick-actions mt-5 text-center">
-        <div class="card border-0 bg-light">
-          <div class="card-body py-4">
-            <h5 class="mb-3">Precisa de ajuda para encontrar?</h5>
-            <div class="d-flex flex-wrap justify-content-center gap-3">
-              <button class="btn btn-outline-primary">
-                <i class="fas fa-headset me-2"></i>Falar com Farmacêutico
-              </button>
-              <button class="btn btn-outline-success">
-                <i class="fas fa-prescription me-2"></i>Enviar Receita
-              </button>
-              <button class="btn btn-outline-info">
-                <i class="fas fa-question-circle me-2"></i>Tire suas Dúvidas
-              </button>
-            </div>
+      <div v-if="!loading && !error && filteredProducts.length > 0" class="mt-5 pt-lg-4">
+        <div class="quick-actions-card text-center">
+          <h2 class="qa-title mb-4">Ainda com dúvidas sobre sua prescrição?</h2>
+          <div class="d-flex flex-wrap justify-content-center gap-3">
+            <button class="btn btn-outline-primary shadow-sm bg-white">
+              <i class="fas fa-headset me-2"></i>Chamar Farmacêutico
+            </button>
+            <button class="btn btn-primary">
+              <i class="fas fa-prescription me-2"></i>Enviar Receita
+            </button>
           </div>
         </div>
       </div>
@@ -310,74 +287,137 @@ export default {
 </script>
 
 <style scoped>
-.products-header {
-  background: linear-gradient(135deg, #198754 0%, #146c43 100%);
-  border-radius: 0 0 20px 20px;
+.products-page {
+  background: var(--cf-ivory);
+  min-height: 100vh;
+  padding-bottom: 4rem;
 }
 
-.search-box {
+.products-header {
+  background: var(--cf-white);
+  border-bottom: 1px solid var(--cf-border);
+  padding: 3rem 0;
+  margin-bottom: 3rem;
   position: relative;
 }
 
-.search-input {
-  padding-left: 2.5rem;
-}
-
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6c757d;
-  z-index: 10;
-}
-
-.filter-group label {
-  font-size: 0.9rem;
+.products-header h1 {
+  font-family: var(--cf-serif);
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  color: var(--cf-text-dark);
+  font-weight: 400;
   margin-bottom: 0.5rem;
 }
 
+.products-header p {
+  color: var(--cf-text-muted);
+  font-weight: 300;
+  font-size: 1.1rem;
+}
+
+.count-badge {
+  background: var(--cf-green-xlight);
+  color: var(--cf-green);
+  padding: 0.5rem 1.2rem;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  border: 1px solid var(--cf-green-light);
+}
+
+/* SEARCH & FILTERS */
+.filters-section {
+  background: var(--cf-white);
+  padding: 1.5rem;
+  border-radius: var(--cf-r-lg);
+  border: 1px solid var(--cf-border);
+  box-shadow: var(--cf-shadow-xs);
+}
+
+.search-box { position: relative; }
+.search-input {
+  padding-left: 2.8rem;
+  background: var(--cf-ivory);
+  border: 1px solid var(--cf-border-mid);
+}
+.search-input:focus {
+  background: var(--cf-white);
+  border-color: var(--cf-green);
+}
+.search-icon {
+  position: absolute;
+  left: 1.1rem; top: 50%;
+  transform: translateY(-50%);
+  color: var(--cf-text-faint);
+  font-size: 1rem;
+}
+
+.filter-group label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--cf-text-muted);
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+}
+
 .active-filters {
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 10px;
-  border: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.8rem 1rem;
+  background: var(--cf-green-xlight);
+  border-radius: var(--cf-r-md);
+  margin-top: 1rem;
+}
+.filter-tag {
+  background: var(--cf-white);
+  color: var(--cf-green);
+  border: 1px solid var(--cf-green-light);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.clear-all {
+  font-size: 0.72rem;
+  color: var(--cf-text-muted);
+  text-decoration: underline;
+  background: none; border: none;
+  cursor: pointer;
 }
 
-.products-grid {
-  animation: fadeIn 0.5s ease-in;
+/* GRID */
+.products-grid { animation: fadeInUp 0.6s var(--cf-ease) both; }
+
+/* STATES */
+.cf-spinner { color: var(--cf-green); }
+
+.empty-state, .error-state {
+  padding: 5rem 1rem;
+  text-align: center;
+}
+.empty-icon, .error-icon {
+  font-size: 4rem;
+  color: var(--cf-cream);
+  margin-bottom: 1.5rem;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* QUICK ACTIONS */
+.quick-actions-card {
+  background: var(--cf-cream);
+  border: 1px dashed var(--cf-border-mid);
+  border-radius: var(--cf-r-xl);
+  padding: 3rem 2rem;
 }
+.qa-title { font-family: var(--cf-sans); font-size: 1.6rem; font-weight: 600; color: var(--cf-text-dark); }
 
-.loading-spinner {
-  padding: 3rem 0;
-}
-
-.error-state, .empty-state {
-  padding: 4rem 1rem;
-}
-
-.quick-actions .card {
-  border-radius: 15px;
-}
-
-/* Responsividade */
+/* RESPONSIVO */
 @media (max-width: 768px) {
-  .products-header {
-    border-radius: 0 0 15px 15px;
-    padding: 2rem 0;
-  }
-
-  .products-header h1 {
-    font-size: 1.8rem;
-  }
-
-  .search-input {
-    font-size: 0.9rem;
-  }
+  .products-header { padding: 2.5rem 0; text-align: center; }
+  .products-header .col-md-4 { margin-top: 1.5rem; }
 }
 </style>

@@ -1,102 +1,159 @@
 <template>
-  <div class="user-dashboard">
-    <div class="dashboard-header">
-      <h1>Meu Painel</h1>
-      <p>Bem-vindo de volta, {{ userName }}!</p>
-    </div>
-
-    <div class="dashboard-grid">
-      <!-- Resumo Rápido -->
-      <div class="dashboard-card">
-        <h3>📊 Resumo</h3>
-        <div class="stats">
-          <div class="stat-item">
-            <span class="stat-number">{{ ordersCount }}</span>
-            <span class="stat-label">Pedidos</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">{{ pendingOrders }}</span>
-            <span class="stat-label">Pendentes</span>
-          </div>
-        </div>
+  <div class="dashboard-page">
+    <div class="container py-lg-5 py-4">
+      
+      <!-- Welcome Header -->
+      <div class="header-wrap mb-5 fade-in-up">
+        <span class="section-eyebrow">Acesso Restrito</span>
+        <h1 class="section-title">Bem-vindo, <em>{{ userName }}</em></h1>
+        <p class="section-desc">Gerencie seus pedidos, prescrições e dados de saúde em um só lugar.</p>
       </div>
 
-      <!-- Pedidos Recentes -->
-      <div class="dashboard-card">
-        <h3>📦 Pedidos Recentes</h3>
-        <div v-if="recentOrders.length > 0" class="recent-orders">
-          <div v-for="order in recentOrders" :key="order.id" class="order-item">
-            <div class="order-info">
-              <strong>#{{ order.id }}</strong>
-              <span class="order-status" :class="order.status">
-                {{ getStatusText(order.status) }}
-              </span>
+      <div class="row g-4">
+        <!-- Main Stats -->
+        <div class="col-lg-12 fade-in-up">
+          <div class="cf-stats-row">
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-box-open"></i></div>
+              <div class="stat-data">
+                <span class="stat-val">{{ ordersCount }}</span>
+                <span class="stat-label">Total de Pedidos</span>
+              </div>
             </div>
-            <div class="order-actions">
-              <button 
-                @click="trackOrder(order.id)" 
-                class="track-btn"
-                v-if="order.status !== 'delivered'"
-              >
-                📍 Rastrear
-              </button>
-              <router-link 
-                :to="`/tracking/${order.id}`" 
-                class="details-btn"
-              >
-                🔍 Detalhes
-              </router-link>
+            <div class="stat-card">
+              <div class="stat-icon icon-gold"><i class="fa-solid fa-clock-rotate-left"></i></div>
+              <div class="stat-data">
+                <span class="stat-val">{{ pendingOrders }}</span>
+                <span class="stat-label">Em Andamento</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon icon-green"><i class="fa-solid fa-file-prescription"></i></div>
+              <div class="stat-data">
+                <span class="stat-val">3</span>
+                <span class="stat-label">Receitas Ativas</span>
+              </div>
+            </div>
+            <div class="stat-card">
+               <div class="stat-icon icon-premium"><i class="fa-solid fa-shield-heart"></i></div>
+               <div class="stat-data">
+                 <span class="stat-val">Premium</span>
+                 <span class="stat-label">Plano Health+</span>
+               </div>
             </div>
           </div>
         </div>
-        <div v-else class="no-orders">
-          <p>Nenhum pedido recente</p>
-          <router-link to="/products" class="shop-btn">
-            🛒 Fazer Compras
-          </router-link>
-        </div>
-      </div>
 
-      <!-- Rastreamento Ativo -->
-      <div class="dashboard-card">
-        <h3>🚚 Rastreamento Ativo</h3>
-        <div v-if="activeTracking" class="active-tracking">
-          <div class="tracking-info">
-            <p><strong>Pedido:</strong> #{{ activeTracking.orderId }}</p>
-            <p><strong>Status:</strong> {{ getStatusText(activeTracking.status) }}</p>
-            <p><strong>Localização:</strong> {{ activeTracking.currentLocation }}</p>
-            <p><strong>Previsão:</strong> {{ formatDate(activeTracking.estimatedDelivery) }}</p>
+        <!-- Recent Activity & Tracking -->
+        <div class="col-lg-8 fade-in-up" style="animation-delay: 0.1s">
+          <!-- Active Tracking -->
+          <div class="cf-dashboard-card mb-4 overflow-hidden">
+            <div class="card-header-cf">
+              <i class="fa-solid fa-truck-fast"></i>
+              <span>Rastreamento em Tempo Real</span>
+            </div>
+            <div v-if="activeTracking" class="p-4 bg-sage-tint">
+               <div class="row align-items-center">
+                 <div class="col-md-7">
+                    <h5 class="tracking-order-id mb-1">Pedido #{{ activeTracking.orderId }}</h5>
+                    <p class="small text-muted mb-3">{{ activeTracking.currentLocation }}</p>
+                    <div class="tracking-progress-mini mb-2">
+                       <div class="progress-bar-cf" style="width: 65%"></div>
+                    </div>
+                    <span class="cf-badge badge-warning">A caminho da entrega</span>
+                 </div>
+                 <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                    <button @click="viewFullTracking(activeTracking.orderId)" class="btn btn-primary btn-sm">
+                       Ver Mapa Completo
+                       <i class="fa-solid fa-map-location-dot ms-2"></i>
+                    </button>
+                 </div>
+               </div>
+            </div>
+            <div v-else class="p-5 text-center">
+               <i class="fa-solid fa-box-archive fa-2x mb-3 text-faint"></i>
+               <p class="text-muted mb-0">Nenhum pedido em trânsito no momento.</p>
+            </div>
           </div>
-          <button 
-            @click="viewFullTracking(activeTracking.orderId)" 
-            class="full-tracking-btn"
-          >
-            📋 Ver Rastreamento Completo
-          </button>
+
+          <!-- Recent Orders -->
+          <div class="cf-dashboard-card">
+            <div class="card-header-cf">
+              <i class="fa-solid fa-receipt"></i>
+              <span>Últimos Pedidos</span>
+              <router-link to="/orders" class="ms-auto small-link">Ver todos</router-link>
+            </div>
+            <div class="p-0">
+               <div class="table-responsive">
+                 <table class="table cf-table mb-0">
+                   <thead>
+                     <tr>
+                        <th>ID</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th class="text-end">Total</th>
+                        <th></th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     <tr v-for="order in recentOrders" :key="order.id">
+                        <td class="order-id">#{{ order.id }}</td>
+                        <td class="order-date">{{ formatDate(order.date) }}</td>
+                        <td>
+                           <span :class="order.status" class="cf-badge-dot">
+                             {{ getStatusText(order.status) }}
+                           </span>
+                        </td>
+                        <td class="text-end fw-bold text-dark">R$ {{ order.total.toFixed(2).replace('.', ',') }}</td>
+                        <td class="text-end">
+                           <router-link :to="`/tracking/${order.id}`" class="icon-action">
+                             <i class="fa-solid fa-chevron-right"></i>
+                           </router-link>
+                        </td>
+                     </tr>
+                   </tbody>
+                 </table>
+               </div>
+            </div>
+          </div>
         </div>
-        <div v-else class="no-tracking">
-          <p>Nenhum pedido em transporte no momento</p>
+
+        <!-- Sidebar Actions -->
+        <div class="col-lg-4 fade-in-up" style="animation-delay: 0.2s">
+          <div class="cf-dashboard-card mb-4">
+             <div class="p-4">
+                <h5 class="section-title-sm mb-4">Acesso Rápido</h5>
+                <div class="quick-nav">
+                   <router-link to="/products" class="q-link">
+                      <i class="fa-solid fa-store"></i>
+                      Ir para a Loja
+                   </router-link>
+                   <router-link to="/profile" class="q-link">
+                      <i class="fa-solid fa-user-pen"></i>
+                      Editar Perfil
+                   </router-link>
+                   <router-link to="/prescriptions" class="q-link">
+                      <i class="fa-solid fa-file-medical"></i>
+                      Receitas Médicas
+                   </router-link>
+                   <router-link to="/support" class="q-link">
+                      <i class="fa-solid fa-headset"></i>
+                      Suporte ClickFarma
+                   </router-link>
+                </div>
+             </div>
+          </div>
+
+          <div class="health-tip-card p-4">
+             <div class="d-flex gap-3 align-items-center mb-3">
+                <i class="fa-solid fa-star-of-life text-gold"></i>
+                <h6 class="mb-0 fw-bold">Dica de Saúde</h6>
+             </div>
+             <p class="small mb-0 text-muted">Lembre-se de manter seus exames em dia. Clientes ClickFarma Premium têm 15% de desconto em laboratórios parceiros.</p>
+          </div>
         </div>
       </div>
 
-      <!-- Ações Rápidas -->
-      <div class="dashboard-card">
-        <h3>⚡ Ações Rápidas</h3>
-        <div class="quick-actions">
-          <router-link to="/products" class="quick-action">
-            🛍️ Continuar Comprando
-          </router-link>
-          <router-link to="/orders" class="quick-action">
-            📋 Ver Todos os Pedidos
-          </router-link>
-          <router-link to="/profile" class="quick-action">
-            👤 Meu Perfil
-          </router-link>
-          <router-link to="/addresses" class="quick-action">
-            📍 Meus Endereços
-          </router-link>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -114,14 +171,12 @@ export default {
   computed: {
     userName() {
       const user = this.$store.state.user;
-      return user ? user.name : 'Usuário';
+      return user ? user.name : 'Visitante';
     },
-    ordersCount() {
-      return this.recentOrders.length;
-    },
+    ordersCount() { return this.recentOrders.length; },
     pendingOrders() {
       return this.recentOrders.filter(order => 
-        order.status !== 'delivered' && order.status !== 'cancelled'
+        ['processing', 'confirmed', 'shipped', 'out_for_delivery'].includes(order.status)
       ).length;
     }
   },
@@ -132,305 +187,91 @@ export default {
     async loadDashboardData() {
       this.loading = true;
       try {
-        // Carrega pedidos recentes (mock data por enquanto)
         await this.loadRecentOrders();
-        
-        // Carrega rastreamento ativo
         await this.loadActiveTracking();
       } catch (error) {
-        console.error('Erro ao carregar dashboard:', error);
+        console.error(error);
       } finally {
         this.loading = false;
       }
     },
-
     async loadRecentOrders() {
-      // Mock data - substitua por chamada real à API
+      // Mock data aligned with ClickFarma
       this.recentOrders = [
-        {
-          id: 'ORD-ABC123',
-          date: new Date().toISOString(),
-          total: 156.90,
-          status: 'out_for_delivery',
-          paymentMethod: 'credit_card'
-        },
-        {
-          id: 'ORD-DEF456',
-          date: new Date(Date.now() - 86400000).toISOString(),
-          total: 89.50,
-          status: 'delivered',
-          paymentMethod: 'pix'
-        },
-        {
-          id: 'ORD-GHI789',
-          date: new Date(Date.now() - 172800000).toISOString(),
-          total: 234.75,
-          status: 'processing',
-          paymentMethod: 'boleto'
-        }
+        { id: 'ORD-CF8291', date: new Date().toISOString(), total: 156.90, status: 'out_for_delivery' },
+        { id: 'ORD-CF7721', date: new Date(Date.now() - 86400000).toISOString(), total: 89.50, status: 'delivered' },
+        { id: 'ORD-CF6540', date: new Date(Date.now() - 172800000).toISOString(), total: 234.75, status: 'processing' }
       ];
     },
-
     async loadActiveTracking() {
-      try {
-        // Encontra o primeiro pedido que não foi entregue
-        const activeOrder = this.recentOrders.find(order => 
-          order.status !== 'delivered' && order.status !== 'cancelled'
-        );
-
-        if (activeOrder) {
-          this.activeTracking = await this.$store.dispatch(
-            'fetchRealTimeTracking', 
-            activeOrder.id
-          );
-          this.activeTracking.orderId = activeOrder.id;
-        }
-      } catch (error) {
-        console.error('Erro ao carregar rastreamento ativo:', error);
+      const active = this.recentOrders.find(o => o.status === 'out_for_delivery');
+      if (active) {
+        this.activeTracking = {
+          orderId: active.id,
+          status: 'out_for_delivery',
+          currentLocation: 'Centro de Distribuição Regional - Recife/PE',
+          estimatedDelivery: new Date(Date.now() + 3600000).toISOString()
+        };
       }
     },
-
-    async trackOrder(orderId) {
-      try {
-        const tracking = await this.$store.dispatch('fetchRealTimeTracking', orderId);
-        alert(`📍 Pedido ${orderId}\nLocalização: ${tracking.currentLocation}\nStatus: ${this.getStatusText(tracking.status)}`);
-      } catch (error) {
-        console.error('Erro no rastreamento rápido:', error);
-        alert('Erro ao carregar rastreamento');
-      }
-    },
-
-    viewFullTracking(orderId) {
-      this.$router.push(`/tracking/${orderId}`);
-    },
-
+    viewFullTracking(orderId) { this.$router.push(`/tracking/${orderId}`); },
     getStatusText(status) {
-      const statusMap = {
-        'pending': 'Pendente',
-        'confirmed': 'Confirmado',
-        'processing': 'Processando',
-        'shipped': 'Enviado',
-        'out_for_delivery': 'Saiu para Entrega',
-        'delivered': 'Entregue',
-        'cancelled': 'Cancelado'
-      };
-      return statusMap[status] || status;
+      const map = { 'processing': 'Processando', 'confirmed': 'Confirmado', 'shipped': 'Enviado', 'out_for_delivery': 'Em Entrega', 'delivered': 'Entregue', 'cancelled': 'Cancelado' };
+      return map[status] || status;
     },
-
-    formatDate(dateString) {
-      if (!dateString) return 'N/A';
-      return new Date(dateString).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
+    formatDate(dateString) { return new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }); }
   }
 }
 </script>
 
 <style scoped>
-.user-dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
+.dashboard-page { background: var(--cf-white); min-height: 90vh; }
 
-.dashboard-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
+.section-desc { color: var(--cf-text-muted); font-size: 1.1rem; font-weight: 300; max-width: 600px; }
 
-.dashboard-header h1 {
-  color: #2c3e50;
-  margin-bottom: 10px;
-}
+/* STATS ROW */
+.cf-stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.stat-card { background: var(--cf-white); border: 1px solid var(--cf-border); border-radius: var(--cf-r-xl); padding: 1.75rem; display: flex; align-items: center; gap: 1.5rem; transition: all 250ms; }
+.stat-card:hover { border-color: var(--cf-gold); transform: translateY(-3px); box-shadow: var(--cf-shadow-sm); }
+.stat-icon { width: 50px; height: 50px; background: var(--cf-sage-tint); color: var(--cf-green); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.stat-icon.icon-gold { background: var(--cf-gold-light); color: var(--cf-gold); }
+.stat-icon.icon-premium { background: var(--cf-cream); color: var(--cf-gold); }
+.stat-val { font-family: var(--cf-sans); font-size: 1.8rem; font-weight: 600; color: var(--cf-text-dark); line-height: 1; display: block; }
+.stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--cf-text-faint); font-weight: 600; }
 
-.dashboard-header p {
-  color: #7f8c8d;
-  font-size: 1.1em;
-}
+/* DASHBOARD CARDS */
+.cf-dashboard-card { background: var(--cf-white); border: 1px solid var(--cf-border); border-radius: var(--cf-r-xl); }
+.card-header-cf { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--cf-border); display: flex; align-items: center; gap: 12px; font-weight: 600; color: var(--cf-text-dark); }
+.card-header-cf i { color: var(--cf-green-mid); }
+.small-link { color: var(--cf-gold); text-decoration: none; font-weight: 500; font-size: 0.85rem; }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
+.bg-sage-tint { background: var(--cf-sage-tint); }
+.tracking-order-id { font-family: var(--cf-sans); font-size: 1.25rem; font-weight: 600; color: var(--cf-green); }
+.tracking-progress-mini { height: 6px; background: rgba(0,0,0,0.05); border-radius: 100px; overflow: hidden; }
+.progress-bar-cf { height: 100%; background: var(--cf-green); border-radius: 100px; }
 
-.dashboard-card {
-  background: white;
-  border: 1px solid #e1e8ed;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
+/* TABLE */
+.cf-table th { background: var(--cf-ivory); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cf-text-faint); padding: 12px 1.5rem; border: none; }
+.cf-table td { padding: 1rem 1.5rem; vertical-align: middle; border-bottom: 1px solid var(--cf-ivory); }
+.order-id { font-weight: 600; color: var(--cf-text-dark); font-size: 0.9rem; }
+.order-date { font-size: 0.85rem; color: var(--cf-text-muted); }
+.icon-action { color: var(--cf-text-faint); transition: color 200ms; }
+.icon-action:hover { color: var(--cf-green); }
 
-.dashboard-card h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: #2c3e50;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 8px;
-}
+/* BADGE DOT */
+.cf-badge-dot { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 500; color: var(--cf-text-mid); }
+.cf-badge-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+.delivered::before { background: var(--cf-green); }
+.out_for_delivery::before { background: var(--cf-gold); }
+.processing::before { background: var(--cf-green-mid); }
 
-.stats {
-  display: flex;
-  justify-content: space-around;
-  text-align: center;
-}
+/* QUICK NAV */
+.q-link { display: flex; align-items: center; gap: 12px; padding: 1rem; background: var(--cf-ivory); border-radius: var(--cf-r-md); margin-bottom: 0.75rem; text-decoration: none; color: var(--cf-text-dark); font-weight: 500; font-size: 0.9rem; transition: all 200ms; border: 1px solid transparent; }
+.q-link i { width: 20px; color: var(--cf-green-mid); font-size: 1.1rem; }
+.q-link:hover { background: white; border-color: var(--cf-border); transform: translateX(5px); color: var(--cf-green); }
 
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+.health-tip-card { background: var(--cf-green-dark); color: white; border-radius: var(--cf-r-xl); }
+.text-gold { color: var(--cf-gold) !important; }
 
-.stat-number {
-  font-size: 2em;
-  font-weight: bold;
-  color: #3498db;
-}
-
-.stat-label {
-  color: #7f8c8d;
-  font-size: 0.9em;
-}
-
-.recent-orders {
-  space-y: 10px;
-}
-
-.order-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #ecf0f1;
-}
-
-.order-item:last-child {
-  border-bottom: none;
-}
-
-.order-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.order-status {
-  font-size: 0.8em;
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-top: 4px;
-}
-
-.order-status.processing {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.order-status.shipped {
-  background: #cce7ff;
-  color: #004085;
-}
-
-.order-status.out_for_delivery {
-  background: #d4edda;
-  color: #155724;
-}
-
-.order-status.delivered {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-
-.order-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.track-btn, .details-btn, .full-tracking-btn {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  text-decoration: none;
-  font-size: 0.8em;
-  text-align: center;
-}
-
-.track-btn {
-  background: #27ae60;
-  color: white;
-}
-
-.details-btn {
-  background: #3498db;
-  color: white;
-}
-
-.full-tracking-btn {
-  background: #e74c3c;
-  color: white;
-  width: 100%;
-  margin-top: 10px;
-}
-
-.no-orders, .no-tracking {
-  text-align: center;
-  padding: 20px;
-  color: #7f8c8d;
-}
-
-.shop-btn {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 8px 16px;
-  background: #9b59b6;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-}
-
-.tracking-info p {
-  margin: 5px 0;
-  color: #2c3e50;
-}
-
-.quick-actions {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
-
-.quick-action {
-  display: block;
-  padding: 12px;
-  background: #f8f9fa;
-  border: 1px solid #e1e8ed;
-  border-radius: 8px;
-  text-decoration: none;
-  color: #2c3e50;
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-.quick-action:hover {
-  background: #3498db;
-  color: white;
-  transform: translateY(-2px);
-}
-
-@media (max-width: 768px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .user-dashboard {
-    padding: 10px;
-  }
-}
+.section-title-sm { font-family: var(--cf-sans); font-size: 1.4rem; font-weight: 600; color: var(--cf-text-dark); }
 </style>

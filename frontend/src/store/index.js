@@ -326,7 +326,10 @@ export default createStore({
     adminOrders: [],
     adminPrescriptions: [],
     adminUsers: [],
-    orderTracking: {}
+    orderTracking: {},
+    // Modal Quick View
+    quickViewProduct: null,
+    isQuickViewOpen: false
   },
 
   getters: {
@@ -342,7 +345,9 @@ export default createStore({
     adminOrders: (state) => state.adminOrders,
     adminPrescriptions: (state) => state.adminPrescriptions,
     adminUsers: (state) => state.adminUsers,
-    getOrderTracking: (state) => (orderId) => state.orderTracking[orderId]
+    getOrderTracking: (state) => (orderId) => state.orderTracking[orderId],
+    quickViewProduct: (state) => state.quickViewProduct,
+    isQuickViewOpen: (state) => state.isQuickViewOpen
   },
 
   mutations: {
@@ -419,6 +424,15 @@ export default createStore({
       } catch (error) {
         console.error('Erro ao salvar pedido no localStorage:', error);
       }
+    },
+    // Quick View Mutations
+    OPEN_QUICK_VIEW(state, product) {
+      state.quickViewProduct = product;
+      state.isQuickViewOpen = true;
+    },
+    CLOSE_QUICK_VIEW(state) {
+      state.isQuickViewOpen = false;
+      // Não limpamos o produto imediatamente para evitar saltos na animação
     }
   },
 
@@ -498,12 +512,78 @@ export default createStore({
     async fetchProducts({ commit }) {
       try {
         const mockProducts = [
-          { id: 1, name: 'Paracetamol 500mg', price: 12.90, category: 'Medicamentos', description: 'Analgésico e antitérmico', inStock: true },
-          { id: 2, name: 'Dipirona 500mg', price: 8.50, category: 'Medicamentos', description: 'Analgésico e antitérmico', inStock: true },
-          { id: 3, name: 'Shampoo Anti-Caspa', price: 24.90, category: 'Higiene', description: 'Shampoo para controle de caspa', inStock: true },
-          { id: 4, name: 'Vitamina C 1000mg', price: 45.00, category: 'Vitaminas', description: 'Suplemento de vitamina C', inStock: true },
-          { id: 5, name: 'Protetor Solar FPS 50', price: 32.90, category: 'Cosméticos', description: 'Protetor solar facial', inStock: false },
-          { id: 6, name: 'Fralda P - 30 unidades', price: 28.90, category: 'Maternidade', description: 'Fraldas para bebê', inStock: true }
+          { 
+            id: 1, 
+            name: 'Elixir Botanics - Tônico Restaurador', 
+            price: 89.90, 
+            category: 'Medicamentos', 
+            description: 'Tônico à base de ervas para restauração da vitalidade cutânea.',
+            longDescription: 'O Elixir Botanics é formulado com extratos botânicos de alta pureza, desenhado para restaurar o equilíbrio natural da pele. Sua fórmula hipoalergênica garante absorção rápida e resultados visíveis em poucos dias de uso contínuo.',
+            inStock: true,
+            estoque: 15,
+            images: ['https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800'],
+            specifications: { 'Volume': '50ml', 'Origem': 'França', 'Tipo': 'Tônico' }
+          },
+          { 
+            id: 2, 
+            name: 'Serene Botanics - Creme Radiance Repair', 
+            price: 145.50, 
+            category: 'Cosméticos', 
+            description: 'Creme hidratante de luxo com extratos calmantes e reparadores.',
+            longDescription: 'O Radiance Repair da Serene Botanics combina a ciência moderna com a sabedoria ancestral das ervas. Com textura aveludada, este creme nutre profundamente, combatendo os sinais de fadiga e estresse ambiental.',
+            inStock: true,
+            estoque: 8,
+            images: ['https://images.unsplash.com/photo-1598440467795-464a92119435?q=80&w=800'],
+            specifications: { 'Peso': '50g', 'Textura': 'Aveludada', 'Hipoalergênico': 'Sim' }
+          },
+          { 
+            id: 3, 
+            name: 'Shampoo Anti-Caspa Scalp Relief', 
+            price: 24.90, 
+            category: 'Higiene', 
+            description: 'Shampoo para controle de caspa e alívio de coceira no couro cabeludo.',
+            longDescription: 'Desenvolvido por dermatologistas, o Scalp Relief atua diretamente na raiz do problema, controlando a descamação enquanto mantém o brilho natural dos fios. Aroma suave de menta e lavanda.',
+            inStock: true,
+            estoque: 45,
+            images: ['https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800'],
+            specifications: { 'Volume': '250ml', 'Fragrância': 'Menta', 'PH': 'Neutro' }
+          },
+          { 
+            id: 4, 
+            name: 'Vitamina C 1000mg Lipossomal', 
+            price: 65.00, 
+            category: 'Vitaminas', 
+            description: 'Suplemento de vitamina C com tecnologia de absorção superior.',
+            longDescription: 'A vitamina C lipossomal garante que os nutrientes cheguem intactos às células, proporcionando um suporte imunológico muito mais eficiente que as fórmulas tradicionais. Antioxidante potente.',
+            inStock: true,
+            estoque: 12,
+            images: ['https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800'],
+            specifications: { 'Doses': '60 caps', 'Pureza': '99%', 'Livre de Glúten': 'Sim' }
+          },
+          { 
+            id: 5, 
+            name: 'Protetor Solar FPS 50 Aqua Fluid', 
+            price: 32.90, 
+            category: 'Cosméticos', 
+            description: 'Protetor solar facial toque seco com ácido hialurônico.',
+            longDescription: 'Proteção máxima contra raios UVA/UVB combinada com a hidratação intensiva do ácido hialurônico. Ideal para todos os tipos de pele, especialmente as oleosas devido ao seu toque ultra-seco.',
+            inStock: false,
+            estoque: 0,
+            images: ['https://images.unsplash.com/photo-1598440467795-464a92119435?q=80&w=800'],
+            specifications: { 'FPS': '50', 'Filtro': 'Físico/Químico', 'Toque': 'Seco' }
+          },
+          { 
+            id: 6, 
+            name: 'Fralda P Comfort Baby - 30 und', 
+            price: 48.90, 
+            category: 'Maternidade', 
+            description: 'Fraldas ultra absorventes para o máximo conforto do seu bebê.',
+            longDescription: 'Com camadas de proteção extra e elásticos ultra macios, a Comfort Baby garante noites de sono tranquilas e derme sempre sequinha. Recomendada por pediatras.',
+            inStock: true,
+            estoque: 20,
+            images: ['https://images.unsplash.com/photo-1622325067200-a6198f3b259d?q=80&w=800'],
+            specifications: { 'Tamanho': 'P', 'Quantidade': '30', 'Absorção': '12h' }
+          }
         ];
         
         commit('SET_PRODUCTS', mockProducts);
@@ -774,6 +854,12 @@ export default createStore({
         console.error('Erro ao atualizar estoque:', error);
         throw error;
       }
+    },
+    openQuickView({ commit }, product) {
+      commit('OPEN_QUICK_VIEW', product);
+    },
+    closeQuickView({ commit }) {
+      commit('CLOSE_QUICK_VIEW');
     }
   }
 });

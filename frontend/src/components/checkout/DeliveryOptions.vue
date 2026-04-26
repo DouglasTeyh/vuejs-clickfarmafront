@@ -1,7 +1,7 @@
 <template>
   <div class="delivery-options">
     <div class="card">
-      <div class="card-header bg-primary text-white">
+      <div class="card-header cf-header text-white">
         <h5 class="mb-0">
           <i class="fas fa-truck me-2"></i>Opções de Entrega
         </h5>
@@ -28,7 +28,7 @@
                   </small>
                 </div>
                 <div class="text-end">
-                  <span class="fw-bold text-primary" v-if="deliveryPrice > 0">
+                  <span class="fw-bold cf-text-green" v-if="deliveryPrice > 0">
                     R$ {{ deliveryPrice.toFixed(2) }}
                   </span>
                   <span class="fw-bold text-success" v-else>
@@ -89,7 +89,7 @@
         <!-- Informações de Entrega -->
         <div class="delivery-info mt-4 p-3 bg-light rounded">
           <h6 class="mb-2">
-            <i class="fas fa-info-circle me-2 text-primary"></i>Informações Importantes
+            <i class="fas fa-info-circle me-2 cf-text-green"></i>Informações Importantes
           </h6>
           <ul class="list-unstyled mb-0 small">
             <li v-if="selectedOption === 'delivery'">
@@ -231,11 +231,14 @@ export default {
 }
 
 .form-check-input:checked + .form-check-label {
-  border-color: #0d6efd;
-  background-color: #f8f9fa;
+  border-color: var(--cf-green);
+  background-color: var(--cf-green-xlight);
 }
 
 .delivery-info {
-  border-left: 4px solid #0d6efd;
+  border-left: 4px solid var(--cf-green);
 }
+
+.cf-header { background: var(--cf-green); }
+.cf-text-green { color: var(--cf-green); }
 </style>

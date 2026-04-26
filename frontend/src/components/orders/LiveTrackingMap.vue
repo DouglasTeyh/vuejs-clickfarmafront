@@ -416,7 +416,7 @@ export default {
       ]
       
       this.routeLine = L.polyline(routeCoordinates, {
-        color: '#007bff',
+        color: 'var(--cf-green)',
         weight: 4,
         opacity: 0.7,
         dashArray: '10, 10'
@@ -516,11 +516,11 @@ export default {
   font-weight: bold;
 }
 
-.status-confirmed { background: #17a2b8; color: white; }
-.status-processing { background: #ffc107; color: #000; }
-.status-shipped { background: #fd7e14; color: white; }
-.status-delivery { background: #007bff; color: white; }
-.status-delivered { background: #28a745; color: white; }
+.status-confirmed { background: var(--cf-green-mid); color: white; }
+.status-processing { background: var(--cf-gold); color: #000; }
+.status-shipped { background: var(--cf-gold-hover); color: white; }
+.status-delivery { background: var(--cf-green); color: white; }
+.status-delivered { background: var(--cf-green-dark); color: white; }
 
 .progress-container {
   height: 8px;
@@ -532,7 +532,7 @@ export default {
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #28a745, #007bff);
+  background: linear-gradient(90deg, var(--cf-green-mid), var(--cf-green));
   border-radius: 4px;
   transition: width 0.5s ease;
 }
@@ -586,7 +586,7 @@ export default {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--cf-green-dark), var(--cf-green));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -648,7 +648,7 @@ export default {
 
 .detail-value {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--cf-text-dark);
 }
 
 .btn {
@@ -657,7 +657,7 @@ export default {
 
 /* Estilos para os marcadores do mapa */
 .driver-marker {
-  background: #007bff;
+  background: var(--cf-green);
   border: 3px solid white;
   border-radius: 50%;
   width: 30px;
@@ -672,7 +672,7 @@ export default {
 }
 
 .destination-marker {
-  background: #28a745;
+  background: var(--cf-green);
   border: 3px solid white;
   border-radius: 50%;
   width: 25px;

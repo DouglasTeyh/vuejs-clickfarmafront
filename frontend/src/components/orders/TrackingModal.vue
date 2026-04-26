@@ -39,7 +39,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-outline-primary" @click="refreshTracking">
+          <button class="btn cf-btn-outline-green" @click="refreshTracking">
             <i class="fas fa-sync-alt me-2" :class="{ 'fa-spin': loading }"></i>
             Atualizar
           </button>
@@ -115,6 +115,9 @@ export default {
 }
 
 .tracking-details {
-  border-left: 4px solid #007bff;
+  border-left: 4px solid var(--cf-green);
 }
+
+.cf-btn-outline-green { border-color: var(--cf-green); color: var(--cf-green); }
+.cf-btn-outline-green:hover { background: var(--cf-green); color: white; }
 </style>

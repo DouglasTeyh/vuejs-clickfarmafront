@@ -391,7 +391,7 @@ export default {
 <style scoped>
 .order-confirmation-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: var(--cf-ivory);
   padding: 2rem 0;
 }
 
@@ -402,8 +402,9 @@ export default {
 
 .confirmation-header {
   padding: 2rem 0;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 12px;
+  background: var(--cf-white);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-r-lg);
   margin-bottom: 2rem;
 }
 
@@ -420,9 +421,9 @@ export default {
 }
 
 .card {
-  border: 1px solid #e9ecef;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  border: 1px solid var(--cf-border);
+  box-shadow: var(--cf-shadow-sm);
+  transition: all 0.3s var(--cf-ease);
 }
 
 .card:hover {
@@ -430,33 +431,33 @@ export default {
 }
 
 .card-header {
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 2px solid var(--cf-border);
 }
 
 .btn-primary {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+  background-color: var(--cf-green);
+  border-color: var(--cf-green);
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.3s var(--cf-ease);
 }
 
 .btn-primary:hover {
-  background-color: #0b5ed7;
-  border-color: #0b5ed7;
+  background-color: var(--cf-green-dark);
+  border-color: var(--cf-green-dark);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  box-shadow: var(--cf-shadow-md);
 }
 
 .btn-outline-primary:hover {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+  background-color: var(--cf-green);
+  border-color: var(--cf-green);
   color: white;
   transform: translateY(-2px);
 }
 
 .btn-outline-secondary:hover {
-  background-color: #6c757d;
-  border-color: #6c757d;
+  background-color: var(--cf-text-muted);
+  border-color: var(--cf-text-muted);
   color: white;
   transform: translateY(-2px);
 }
@@ -468,20 +469,20 @@ export default {
 
 .order-number {
   font-size: 1.2rem;
-  background-color: #f0f7ff;
+  background-color: var(--cf-green-xlight);
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: var(--cf-r-lg);
   display: inline-block;
-  border: 2px solid #0d6efd;
+  border: 2px solid var(--cf-green);
   margin-top: 1rem;
 }
 
 .order-number button {
-  transition: all 0.3s ease;
+  transition: all 0.3s var(--cf-ease);
 }
 
 .order-number button:hover {
-  background-color: #0d6efd;
+  background-color: var(--cf-green);
   color: white;
   transform: scale(1.05);
 }
@@ -509,12 +510,12 @@ export default {
   
   .confirmation-header {
     background: white;
-    border: 2px solid #333;
+    border: 2px solid var(--cf-text-dark);
   }
   
   .card {
     page-break-inside: avoid;
-    border: 1px solid #333;
+    border: 1px solid var(--cf-text-dark);
   }
 }
 </style>

@@ -2,7 +2,7 @@
   <div class="cf-product-card" :class="{ 'is-unavailable': !product.inStock }">
 
     <!-- Área visual do produto -->
-    <router-link :to="`/products/${product.id}`" class="cf-card-image" tabindex="-1">
+    <div class="cf-card-image" @click="showQuickView" style="cursor: pointer;">
 
       <!-- Fundo sage com ícone de categoria -->
       <div class="cf-product-visual">
@@ -22,17 +22,17 @@
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
       </button>
-    </router-link>
+    </div>
 
     <!-- Informações do produto -->
     <div class="cf-card-body">
 
       <span class="cf-category-label">{{ product.category }}</span>
 
-      <router-link :to="`/products/${product.id}`" class="cf-card-link">
+      <div class="cf-card-link" @click="showQuickView" style="cursor: pointer;">
         <h3 class="cf-product-name">{{ product.name }}</h3>
         <p class="cf-product-desc">{{ product.description }}</p>
-      </router-link>
+      </div>
 
       <!-- Preço + botão -->
       <div class="cf-card-foot">
@@ -45,7 +45,7 @@
             class="cf-add-btn"
             :disabled="!product.inStock || addingToCart"
             :class="{ 'is-added': addedToCart }"
-            @click="handleAddToCart"
+            @click.stop="handleAddToCart"
         >
           <span v-if="addingToCart" class="spinner-border spinner-border-sm"></span>
           <svg v-else-if="addedToCart" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -63,6 +63,8 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 export default {
   name: 'ProductCard',
   props: {
@@ -86,8 +88,12 @@ export default {
     }
   },
   methods: {
+    ...mapActions(['openQuickView']),
     getCategoryIcon(cat) {
       return { 'Medicamentos':'💊','Cosméticos':'🧴','Higiene':'🚿','Vitaminas':'🌿','Maternidade':'👶' }[cat] || '📦'
+    },
+    showQuickView() {
+      this.openQuickView(this.product)
     },
     async handleAddToCart(e) {
       e.stopPropagation()
@@ -219,9 +225,9 @@ export default {
 .cf-card-link { text-decoration: none; color: inherit; }
 
 .cf-product-name {
-  font-family: var(--cf-serif);
+  font-family: var(--cf-sans);
   font-size: 1.1rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--cf-text-dark);
   line-height: 1.25;
   margin: 0.2rem 0 0.3rem;
@@ -260,12 +266,11 @@ export default {
 }
 
 .cf-price {
-  font-family: var(--cf-serif);
+  font-family: var(--cf-sans);
   font-size: 1.45rem;
   font-weight: 500;
   color: var(--cf-text-dark);
   line-height: 1;
-  letter-spacing: -0.01em;
 }
 
 .cf-installment {

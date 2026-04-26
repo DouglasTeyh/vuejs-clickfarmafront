@@ -6,12 +6,20 @@
     </main>
     <!-- Botão flutuante -->
     <div class="gemini-floating-btn" @click="toggleChat">
-      <i class="fas fa-brain"></i>
+      <i class="fa-solid fa-robot"></i>
     </div>
     <!-- Chat -->
     <div v-if="isChatOpen" class="gemini-modal">
       <GeminiChat @close="toggleChat" />
     </div>
+    
+    <!-- Modal de Visualização de Produto -->
+    <ProductQuickView 
+      :isOpen="isQuickViewOpen" 
+      :product="quickViewProduct"
+      @close="closeQuickView"
+    />
+
     <Footer />
   </div>
 </template>
@@ -20,20 +28,27 @@
 import Header from '@/components/common/Header.vue'
 import Footer from '@/components/common/Footer.vue'
 import GeminiChat from '@/components/gemini/GeminiChat.vue'
+import ProductQuickView from '@/components/products/ProductQuickView.vue'
+import { mapState, mapActions } from 'vuex'
 
 export default {
   name: 'App',
   components: {
     Header,
     Footer,
-    GeminiChat
+    GeminiChat,
+    ProductQuickView
   },
   data() {
     return {
       isChatOpen: false
     }
   },
+  computed: {
+    ...mapState(['isQuickViewOpen', 'quickViewProduct'])
+  },
   methods: {
+    ...mapActions(['closeQuickView']),
     toggleChat() {
       this.isChatOpen = !this.isChatOpen
     }
@@ -42,33 +57,40 @@ export default {
 </script>
 
 <style>
+/* Reset global e background base do ClickFarma */
+body {
+  background-color: var(--cf-ivory) !important;
+}
+
 .main-content {
   min-height: calc(100vh - 160px);
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: var(--cf-ivory);
 }
 
 .gemini-floating-btn {
   position: fixed;
   bottom: 80px;
   right: 20px;
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, #0056A0, #00B4D8);
+  width: 58px;
+  height: 58px;
+  background: var(--cf-green);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0, 86, 160, 0.3);
-  transition: all 250ms ease-in-out;
-  z-index: 999;
+  box-shadow: var(--cf-shadow-md);
+  transition: all 300ms var(--cf-ease);
+  z-index: 9999;
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  border: 4px solid var(--cf-white);
 }
 
 .gemini-floating-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 12px 32px rgba(0, 86, 160, 0.4);
+  transform: scale(1.08) translateY(-3px);
+  background: var(--cf-green-dark);
+  box-shadow: var(--cf-shadow-lg);
 }
 
 .gemini-modal {
@@ -76,19 +98,20 @@ export default {
   bottom: 150px;
   right: 20px;
   width: 380px;
-  height: 600px;
-  z-index: 1000;
-  border-radius: 12px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  height: min(600px, 80vh);
+  z-index: 10000;
+  border-radius: var(--cf-r-xl);
+  box-shadow: var(--cf-shadow-lg);
   overflow: hidden;
-  animation: slideInUp 300ms ease-in-out;
-  background: white;
+  animation: slideInUp 400ms var(--cf-ease);
+  background: var(--cf-white);
+  border: 1px solid var(--cf-border);
 }
 
 @keyframes slideInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;

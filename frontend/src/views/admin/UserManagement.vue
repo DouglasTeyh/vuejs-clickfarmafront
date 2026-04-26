@@ -112,21 +112,21 @@ export default {
 
 <style scoped>
 .status-active {
-  color: #27ae60;
+  color: var(--cf-green);
   font-weight: bold;
 }
 
 .status-inactive {
-  color: #7f8c8d;
+  color: var(--cf-text-muted);
 }
 
 .btn-warning {
-  background: #f39c12;
+  background: var(--cf-gold);
   color: white;
 }
 
 .btn-success {
-  background: #27ae60;
+  background: var(--cf-green);
   color: white;
 }
 

@@ -287,6 +287,6 @@ export default {
 
 <style scoped>
 .tracking-info {
-  border-left: 4px solid #007bff;
+  border-left: 4px solid var(--cf-green);
 }
 </style>

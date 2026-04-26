@@ -16,7 +16,7 @@ export default {
 
 <style scoped>
 .empty-cart {
-  background-color: #f8f9fa;
+  background-color: var(--cf-sage-tint);
   border-radius: 0.5rem;
 }
 

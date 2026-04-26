@@ -1,10 +1,10 @@
 <template>
-  <div class="container mt-5">
+  <div class="container py-5">
     <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card">
+      <div class="col-md-7 col-lg-6">
+        <div class="card fade-in-up">
           <div class="card-header">
-            <h3 class="text-center">👤 Criar Conta</h3>
+            <h3 class="text-center mb-0">Criar sua Conta</h3>
           </div>
           <div class="card-body">
             
@@ -330,6 +330,13 @@ export default {
 </script>
 
 <style scoped>
+.container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .shake {
   animation: shake 0.5s ease-in-out;
 }
@@ -341,33 +348,94 @@ export default {
 }
 
 .password-strength {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .progress {
-  background-color: #e9ecef;
+  background-color: var(--cf-cream);
+  border-radius: 100px;
 }
 
 .invalid-feedback {
   display: block;
+  font-size: 0.75rem;
+  color: var(--cf-danger);
 }
 
 .alert {
-  border: none;
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--cf-r-md);
+  font-size: 0.85rem;
 }
+.alert-success { background: var(--cf-green-xlight); border-color: var(--cf-green-light); color: var(--cf-green); }
+.alert-info { background: var(--cf-gold-light); border-color: rgba(184,149,80,0.1); color: var(--cf-gold); }
 
 .card {
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-r-xl);
+  box-shadow: var(--cf-shadow-lg);
+  overflow: hidden;
+}
+
+.card-header {
+  background: var(--cf-white) !important;
+  border-bottom: 1px solid var(--cf-border) !important;
+  padding: 1.5rem;
+}
+
+.card-header h3 {
+  font-family: var(--cf-sans);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--cf-text-dark);
+}
+
+.card-body {
+  padding: 2rem;
+  background: var(--cf-white);
+}
+
+.form-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--cf-text-muted);
+  font-weight: 500;
+}
+
+.form-control {
+  border-radius: var(--cf-r-md);
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--cf-border-mid);
+  transition: all 0.2s var(--cf-ease);
+}
+
+.form-control:focus {
+  border-color: var(--cf-green);
+  box-shadow: 0 0 0 4px rgba(42,92,69,0.08);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: var(--cf-green);
   border: none;
-  border-radius: 8px;
-  padding: 12px;
-  font-weight: 600;
+  border-radius: var(--cf-r-md);
+  padding: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  transition: all 0.2s var(--cf-ease);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--cf-green-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--cf-shadow-md);
+}
+
+.text-primary, .router-link {
+  color: var(--cf-green);
+  text-decoration: none;
 }
 </style>
