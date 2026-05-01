@@ -33,8 +33,8 @@ export default {
 <style scoped>
 .admin-sidebar {
   width: 250px;
-  background: #2c3e50;
-  color: white;
+  background: var(--cf-green-dark);
+  color: var(--cf-white);
   height: 100vh;
   position: fixed;
   left: 0;
@@ -43,7 +43,7 @@ export default {
 
 .sidebar-header {
   padding: 20px;
-  border-bottom: 1px solid #34495e;
+  border-bottom: 1px solid var(--cf-green);
   text-align: center;
 }
 
@@ -66,14 +66,14 @@ export default {
 }
 
 .nav-item:hover {
-  background: #34495e;
-  color: white;
-  border-left-color: #3498db;
+  background: var(--cf-green);
+  color: var(--cf-white);
+  border-left-color: var(--cf-gold);
 }
 
 .nav-item.router-link-active {
-  background: #34495e;
-  color: white;
-  border-left-color: #3498db;
+  background: var(--cf-green);
+  color: var(--cf-white);
+  border-left-color: var(--cf-gold);
 }
 </style>

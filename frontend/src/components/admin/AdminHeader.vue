@@ -66,7 +66,7 @@ export default {
 .header-left h1 {
   margin: 0;
   font-size: 1.5rem;
-  color: #2c3e50;
+  color: var(--cf-text-dark);
 }
 
 .header-right {
@@ -76,11 +76,11 @@ export default {
 }
 
 .user-info {
-  color: #7f8c8d;
+  color: var(--cf-text-muted);
 }
 
 .logout-btn {
-  background: #e74c3c;
+  background: var(--cf-danger);
   color: white;
   border: none;
   padding: 8px 16px;

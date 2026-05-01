@@ -109,8 +109,8 @@ export default {
 }
 
 .step.active .step-icon {
-  border-color: #0d6efd;
-  background-color: #0d6efd;
+  border-color: var(--cf-green);
+  background-color: var(--cf-green);
 }
 
 .step.active .step-number {
@@ -118,13 +118,13 @@ export default {
 }
 
 .step.active .step-label {
-  color: #0d6efd;
+  color: var(--cf-green);
   font-weight: 600;
 }
 
 .step.completed .step-icon {
-  border-color: #198754;
-  background-color: #198754;
+  border-color: var(--cf-green-mid);
+  background-color: var(--cf-green-mid);
 }
 
 .step.completed .completed-icon {
@@ -132,7 +132,7 @@ export default {
 }
 
 .step.completed .step-label {
-  color: #198754;
+  color: var(--cf-green-mid);
 }
 
 .step.disabled .step-icon {

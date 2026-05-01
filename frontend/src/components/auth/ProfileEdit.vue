@@ -1,7 +1,7 @@
 <template>
   <div class="profile-edit">
     <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
+      <div class="spinner-border cf-text-green" role="status">
         <span class="visually-hidden">Carregando...</span>
       </div>
     </div>
@@ -63,7 +63,7 @@
               <button type="button" class="btn btn-outline-secondary" @click="resetForm">
                 Cancelar
               </button>
-              <button type="submit" class="btn btn-primary" :disabled="updating">
+              <button type="submit" class="btn btn-cf-green" :disabled="updating">
                 <span v-if="updating" class="spinner-border spinner-border-sm me-1" role="status"></span>
                 {{ updating ? 'Salvando...' : 'Salvar Alterações' }}
               </button>
@@ -92,7 +92,7 @@
                 </div>
                 
                 <div class="d-flex justify-content-end gap-2 mt-4">
-                  <button type="submit" class="btn btn-primary" :disabled="changingPassword">
+                  <button type="submit" class="btn btn-cf-green" :disabled="changingPassword">
                     <span v-if="changingPassword" class="spinner-border spinner-border-sm me-1" role="status"></span>
                     {{ changingPassword ? 'Alterando...' : 'Alterar Senha' }}
                   </button>
@@ -190,9 +190,14 @@ export default {
 }
 
 .nav-tabs .nav-link.active {
-  color: #0d6efd;
+  color: var(--cf-green);
   font-weight: 600;
+  border-bottom: 2px solid var(--cf-green);
 }
+
+.btn-cf-green { background: var(--cf-green); color: white; border: none; }
+.btn-cf-green:hover { background: var(--cf-green-dark); }
+.cf-text-green { color: var(--cf-green); }
 
 .form-label {
   font-weight: 500;

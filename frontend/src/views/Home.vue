@@ -1,34 +1,93 @@
 <template>
-  <div class="home">
+  <div class="home fade-in-up">
     <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
+      <div class="spinner-border cf-spinner" role="status">
         <span class="visually-hidden">Carregando...</span>
       </div>
     </div>
 
     <div v-else>
       <!-- Hero Section -->
-      <section class="hero-section text-white py-5">
-        <div class="container">
-          <div class="row align-items-center min-vh-50">
+      <section class="hero-section">
+        <div class="container h-100">
+          <div class="row align-items-center h-100">
             <div class="col-lg-6">
-              <h1 class="hero-title mb-4">Sua saúde em primeiro lugar</h1>
-              <p class="hero-subtitle mb-4">Encontre os melhores medicamentos e produtos com entrega rápida e preços justos.</p>
-              <div class="d-flex gap-3 flex-wrap">
-                <router-link to="/products" class="btn btn-primary btn-lg px-4 py-3">🛍️ Ver Produtos</router-link>
-                <router-link to="/promotions" class="btn btn-outline-light btn-lg px-4 py-3">💰 Promoções</router-link>
+              <div class="hero-content py-5">
+                <span class="hero-badge animate__animated animate__fadeInDown">
+                  <i class="fas fa-sparkles me-2"></i>Sua saúde, nossa prioridade
+                </span>
+                <h1 class="hero-title mb-4 animate__animated animate__fadeInLeft">Sua saúde, cuidada com <span class="text-gradient">inteligência</span></h1>
+                <p class="hero-subtitle mb-5 animate__animated animate__fadeInLeft" style="animation-delay: 0.1s">
+                  Encontre medicamentos, dermocosméticos e itens de higiene com a agilidade que você precisa e a segurança que você merece.
+                </p>
+                
+                <div class="hero-actions d-flex gap-3 animate__animated animate__fadeInLeft" style="animation-delay: 0.2s">
+                  <router-link to="/products" class="btn btn-primary btn-lg px-5 rounded-pill shadow-lg">
+                    Explorar Agora
+                  </router-link>
+                  <button @click="scrollToProducts" class="btn btn-outline-dark btn-lg px-4 rounded-pill">
+                    Categorias
+                  </button>
+                </div>
               </div>
             </div>
-            <div class="col-lg-6 text-center mt-4 mt-lg-0">
+            <div class="col-lg-6 d-none d-lg-block animate__animated animate__fadeInRight">
               <div class="hero-visual">
-                <div class="floating-pills">
-                  <span class="pill pill-1">💊</span>
-                  <span class="pill pill-2">🧴</span>
-                  <span class="pill pill-3">🌡️</span>
-                  <span class="pill pill-4">💊</span>
+                <img src="/images/medica-header.webp" alt="Dra. ClickFarma" class="hero-img">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI Recommendations (Conditional) -->
+      <section v-if="userRecommendations.length > 0" class="recommendations-section py-5">
+        <div class="container">
+          <div class="ai-banner mb-5 p-4 rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+              <div class="ai-icon-pulse"><i class="fas fa-robot"></i></div>
+              <div>
+                <h4 class="mb-0 fw-bold">Recomendados para Você</h4>
+                <p class="mb-0 text-muted small">Nossa IA analisou seu histórico para sugerir estes produtos.</p>
+              </div>
+            </div>
+            <div class="d-none d-md-block">
+              <span class="badge bg-white text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                Powered by Gemini 1.5 Pro
+              </span>
+            </div>
+          </div>
+
+          <div class="cf-horizontal-scroll">
+            <div class="cf-scroll-content">
+              <div v-for="product in recommendedProductsList" :key="'rec-'+product.id" class="cf-product-card-horizontal">
+                <ProductCard :product="product" @add-to-cart="handleAddToCart" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seções por Categoria -->
+      <section id="category-sections" class="products-sections py-5 bg-light">
+        <div class="container">
+          <div v-for="cat in categories" :key="cat" class="category-row mb-5">
+            <div class="d-flex justify-content-between align-items-end mb-4 px-2">
+              <div class="d-flex align-items-center gap-3">
+                <div>
+                  <h3 class="category-title mb-0">{{ cat }}</h3>
+                  <div class="cf-h-line"></div>
                 </div>
-                <div class="delivery-bike">
-                  <span class="bike-icon">🚚</span>
+              </div>
+              <router-link :to="`/products?category=${cat}`" class="text-decoration-none fw-bold text-primary small">
+                Ver Tudo <i class="fas fa-arrow-right ms-1"></i>
+              </router-link>
+            </div>
+
+            <div class="cf-horizontal-scroll">
+              <div class="cf-scroll-content">
+                <div v-for="product in getProdutosPorCategoria(cat)" :key="product.id" class="cf-product-card-horizontal">
+                  <ProductCard :product="product" @add-to-cart="handleAddToCart" />
                 </div>
               </div>
             </div>
@@ -38,49 +97,14 @@
 
       <!-- Features Section -->
       <section class="features-section py-5">
-        <div class="container">
-          <div class="row text-center mb-5">
-            <div class="col-12">
-              <h2 class="section-title mb-3">Por que escolher a ClickFarma?</h2>
-              <p class="section-subtitle">Tudo que você precisa para sua saúde e bem-estar</p>
-            </div>
-          </div>
+        <div class="container py-lg-4">
           <div class="row g-4">
             <div class="col-md-4" v-for="f in features" :key="f.title">
-              <div class="feature-card card border-0 h-100 text-center p-4">
-                <div class="feature-icon-wrapper mb-3">
-                  <span class="feature-icon">{{ f.icon }}</span>
-                </div>
-                <h4 class="feature-title">{{ f.title }}</h4>
-                <p class="feature-text">{{ f.text }}</p>
-                <div class="mt-3">
-                  <small class="feature-badge">{{ f.badge }}</small>
-                </div>
+              <div class="cf-feature-box text-center">
+                <div class="feature-icon-blob">{{ f.icon }}</div>
+                <h3 class="feature-h">{{ f.title }}</h3>
+                <p class="feature-p">{{ f.text }}</p>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Categories Section -->
-      <section class="categories-section py-5">
-        <div class="container">
-          <div class="row text-center mb-5">
-            <div class="col-12">
-              <h2 class="section-title mb-3">Categorias em Destaque</h2>
-              <p class="section-subtitle">Encontre tudo que você precisa por categoria</p>
-            </div>
-          </div>
-          <div class="row g-3">
-            <div v-for="(cat, i) in categories" :key="cat" class="col-md-2 col-6">
-              <router-link to="/products" class="text-decoration-none">
-                <div class="category-card card border-0 h-100 text-center p-3">
-                  <div class="category-icon mb-2">
-                    <span class="category-emoji" :class="`category-${i+1}`">{{ getCategoryIcon(cat) }}</span>
-                  </div>
-                  <h6 class="category-name fw-semibold mb-0 small">{{ cat }}</h6>
-                </div>
-              </router-link>
             </div>
           </div>
         </div>
@@ -90,228 +114,235 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
+import api from '@/services/api'
+import ProductCard from '@/components/products/ProductCard.vue'
 
 export default {
   name: 'Home',
+  components: {
+    ProductCard
+  },
   data() {
     return {
-      loading: false,
+      loading: true,
+      allProducts: [],
+      userRecommendations: [],
       features: [
-        { icon: '🚚', title: 'Entrega Rápida', text: 'Receba em até 2 horas na região metropolitana.', badge: '⏱️ Entrega Expressa' },
-        { icon: '💳', title: 'Pagamento Seguro', text: 'Diversas formas de pagamento com total segurança.', badge: '🔒 100% Seguro' },
-        { icon: '👨‍⚕️', title: 'Farmácia Confiável', text: 'Profissionais qualificados 24 horas.', badge: '📞 Atendimento Online' }
+        { icon: '🚚', title: 'Entrega Expressa', text: 'Receba seus produtos em até 2 horas em sua residência.' },
+        { icon: '🤖', title: 'IA ClickFarma', text: 'Nosso agente inteligente ajuda você a encontrar o melhor produto.' },
+        { icon: '💊', title: 'Procedência', text: 'Trabalhamos apenas com farmácias certificadas e produtos originais.' }
       ]
     }
   },
-  computed: { ...mapGetters(['categories']) },
+  computed: {
+    ...mapState(['products']),
+    ...mapGetters(['cartItemsCount']),
+    categories() {
+      // Retorna apenas as categorias que possuem ao menos um produto
+      const allCats = this.$store.getters.categories;
+      return allCats.filter(cat => 
+        this.allProducts.some(p => p.categoriaNome === cat || p.categoria === cat)
+      );
+    },
+    recommendedProductsList() {
+      if (!this.userRecommendations || this.userRecommendations.length === 0) return [];
+      // Filtra os produtos reais que estão na lista de IDs recomendados pela IA
+      return this.allProducts
+        .filter(p => this.userRecommendations.includes(p.id))
+        .sort((a, b) => this.userRecommendations.indexOf(a.id) - this.userRecommendations.indexOf(b.id))
+        .slice(0, 10);
+    }
+  },
+  async mounted() {
+    await this.initHome();
+  },
   methods: {
-    getCategoryIcon(cat) {
-      const icons = { 'Medicamentos': '💊', 'Cosméticos': '🧴', 'Higiene': '🚿', 'Vitaminas': '🌿', 'Maternidade': '👶', 'Bebês': '🍼' };
-      return icons[cat] || '📦';
+    ...mapActions(['addToCart', 'fetchCategories']),
+    async initHome() {
+      this.loading = true;
+      try {
+        // Carregar produtos e categorias reais em paralelo
+        await Promise.all([
+          this.fetchProductsList(),
+          this.fetchCategories()
+        ]);
+
+        // Tentar recomendações se logado
+        const rawUser = localStorage.getItem('user');
+        if (rawUser) {
+          const user = JSON.parse(rawUser);
+          const resRec = await api.get(`/gemini/recomendacoes?usuarioId=${user.id}`);
+          if (resRec.data && resRec.data.recomendacoes) {
+             this.userRecommendations = resRec.data.recomendacoes;
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao inicializar Home:', err);
+      } finally {
+        this.loading = false;
+      }
+    },
+    async fetchProductsList() {
+      try {
+        const resP = await api.get('/produtos');
+        this.allProducts = resP.data;
+      } catch (err) {
+        console.error('Erro ao buscar produtos:', err);
+        this.allProducts = this.products; // Fallback
+      }
+    },
+    scrollToProducts() {
+      const el = document.getElementById('category-sections');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    },
+    getProdutosPorCategoria(cat) {
+      let lista = this.allProducts.filter(p => p.categoriaNome === cat || p.categoria === cat);
+      
+      // Se tiver recomendações, ordena
+      if (this.userRecommendations.length > 0) {
+        lista.sort((a, b) => {
+          const idxA = this.userRecommendations.indexOf(a.id);
+          const idxB = this.userRecommendations.indexOf(b.id);
+          if (idxA === -1 && idxB === -1) return 0;
+          if (idxA === -1) return 1;
+          if (idxB === -1) return -1;
+          return idxA - idxB;
+        });
+      }
+      return lista.slice(0, 12);
+    },
+    handleAddToCart(product) {
+      this.addToCart(product);
+      alert('Produto adicionado ao carrinho!');
     }
   }
 }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
-
-.hero-section {
-  background: linear-gradient(135deg, #0056A0 0%, #00B4D8 100%);
-  overflow: hidden;
+.home {
+  overflow-x: hidden;
+  width: 100%;
   position: relative;
+  background: #fff;
 }
 
-.hero-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="rgba(255,255,255,0.05)" d="M100 0L200 200H0L100 0z"/></svg>');
-  background-size: 30px;
-  opacity: 0.1;
+/* HERO PREMIUM */
+.hero-section {
+  position: relative;
+  min-height: 85vh;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
 }
-
-.hero-title {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 3.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  background: linear-gradient(135deg, #ffffff, #e0f2fe);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero-subtitle {
-  font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.min-vh-50 {
-  min-height: 60vh;
-}
-
-.section-title {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2.5rem;
-  font-weight: 600;
-  color: #0056A0;
-  letter-spacing: -0.02em;
-}
-
-.section-subtitle {
-  color: #475569;
-  font-size: 1.1rem;
-}
-
-.feature-card {
-  transition: all 250ms ease-in-out;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.feature-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 32px rgba(0, 86, 160, 0.12);
-  border-color: #0056A0;
-}
-
-.feature-icon-wrapper {
-  width: 80px;
-  height: 80px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(0, 86, 160, 0.1), rgba(0, 180, 216, 0.1));
+.hero-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  padding: 8px 16px;
+  background: rgba(42,92,69,0.06);
+  color: var(--cf-green);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
 }
-
-.feature-icon {
-  font-size: 2.5rem;
+.hero-title {
+  font-size: clamp(2.5rem, 6vw, 4.2rem);
+  color: #0f172a;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
-
-.feature-title {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.5rem;
-  color: #0056A0;
+.text-gradient {
+  background: linear-gradient(135deg, var(--cf-green) 0%, #3d7a5e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
-
-.feature-text {
-  color: #475569;
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: #64748b;
+  max-width: 540px;
   line-height: 1.6;
 }
-
-.feature-badge {
-  background: linear-gradient(135deg, #2E8B57, #22c55e);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-}
-
-.category-card {
-  transition: all 250ms ease-in-out;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  background: white;
-}
-
-.category-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 24px rgba(0, 86, 160, 0.12);
-  border-color: #0056A0;
-}
-
-.category-emoji {
-  font-size: 2.5rem;
-  display: block;
-}
-
-.category-name {
-  font-size: 0.95rem;
-  color: #0056A0;
-  font-weight: 600;
-}
-
-.hero-visual {
+.hero-visual { position: relative; z-index: 2; }
+.hero-img {
+  width: 100%;
+  border-radius: 30px;
   position: relative;
-  height: 300px;
+  z-index: 2;
 }
 
-.floating-pills {
-  position: relative;
-  height: 200px;
+
+/* RECOMMENDATIONS */
+.ai-banner {
+  background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+  border-left: 5px solid var(--cf-green) !important;
+}
+.ai-icon-pulse {
+  width: 48px; height: 48px;
+  background: var(--cf-green);
+  color: #fff;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 0 0 0 rgba(42,92,69,0.4);
+  animation: ai-pulse 2s infinite;
+}
+@keyframes ai-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(42,92,69,0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(42,92,69,0); }
+  100% { box-shadow: 0 0 0 0 rgba(42,92,69,0); }
 }
 
-.pill {
-  position: absolute;
-  font-size: 2.5rem;
-  animation: float 3s infinite;
+/* CARDS */
+.premium-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0,0,0,0.03) !important;
 }
-
-.pill-1 { top: 20px; left: 50px; }
-.pill-2 { top: 60px; right: 80px; }
-.pill-3 { bottom: 40px; left: 80px; }
-.pill-4 { bottom: 20px; right: 50px; }
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+.premium-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.1) !important;
 }
-
-.delivery-bike {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+.card-img-wrap {
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  padding: 1.5rem;
 }
+.card-img-wrap img { max-height: 100%; width: auto; object-fit: contain; }
 
-.bike-icon {
-  font-size: 4rem;
-  animation: move 4s infinite;
-}
-
-@keyframes move {
-  0%, 100% { transform: translateX(-10px); }
-  50% { transform: translateX(10px); }
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #0056A0, #00B4D8);
-  color: white;
-  border: none;
+.category-title {
+  font-family: 'Fraunces', serif;
+  font-size: 2.2rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: var(--cf-text-dark);
+  margin-bottom: 0;
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 86, 160, 0.4);
-  color: white;
-}
+.cf-h-line { width: 40px; height: 3px; background: var(--cf-green); border-radius: 2px; margin-top: 4px; }
 
-.btn-outline-light {
-  border: 2px solid white;
-  color: white;
-  font-weight: 600;
+/* Scroll Horizontal */
+.cf-horizontal-scroll {
+  overflow-x: auto;
+  padding: 10px 0 25px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+.cf-horizontal-scroll::-webkit-scrollbar { display: none; }
+.cf-scroll-content { display: flex; gap: 20px; width: max-content; padding: 0 5px; }
+.cf-product-card-horizontal { width: 280px; }
 
-.btn-outline-light:hover {
-  background: white;
-  color: #0056A0;
-  transform: translateY(-2px);
-}
-
-.spinner-border.text-primary {
-  color: #0056A0 !important;
+@media (max-width: 991px) {
+  .hero-section { min-height: 60vh; padding: 60px 0; }
+  .hero-title { font-size: 2.8rem; }
+  .cf-product-card-horizontal { width: 240px; }
 }
 </style>

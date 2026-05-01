@@ -14,8 +14,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PagamentoService {
@@ -50,17 +53,14 @@ public class PagamentoService {
         try {
             log.info("💰 Criando pagamento para pedido: {} - Valor: R$ {}", pedidoId, valorTotal);
 
-            // Criar item da preferência
-            List<PreferenceItemRequest> items = new ArrayList<>();
+    @Transactional
+    public Map<String, Object> gerarPagamentoFarmacia(Long farmaciaId, String periodo) {
+        Farmacia farmacia = farmaciaRepository.findById(farmaciaId)
+                .orElseThrow(() -> new RuntimeException("Farmácia não encontrada"));
 
-            PreferenceItemRequest item = PreferenceItemRequest.builder()
-                    .title("Pedido ClickFarma #" + pedidoId)
-                    .description("Produtos da ClickFarma")
-                    .quantity(1)
-                    .unitPrice(BigDecimal.valueOf(valorTotal))
-                    .currencyId("BRL")
-                    .build();
-            items.add(item);
+        YearMonth ym = YearMonth.parse(periodo, DateTimeFormatter.ofPattern("yyyy-MM"));
+        LocalDateTime inicio = ym.atDay(1).atStartOfDay();
+        LocalDateTime fim = ym.atEndOfMonth().atTime(23, 59, 59);
 
             // Configurar URLs de retorno
             String baseFront = frontendUrl != null ? frontendUrl.replaceAll("/+$", "") : "http://localhost:8081";
@@ -92,13 +92,24 @@ public class PagamentoService {
                     .notificationUrl(notification)
                     .build();
 
-            // Criar preferência
-            PreferenceClient client = new PreferenceClient();
-            Preference preference = client.create(preferenceRequest);
+        Pagamento p = new Pagamento();
+        p.setTipo(Pagamento.TipoPagamento.FARMACIA);
+        p.setFarmacia(farmacia);
+        p.setValorBruto(valorBruto);
+        p.setValorTaxa(taxa);
+        p.setValorLiquido(liquido);
+        p.setChavePix(farmacia.getChavePix());
+        p.setTipoChavePix(farmacia.getTipoChavePix());
+        p.setReferenciaPeriodo(periodo);
+        p.setStatus(Pagamento.StatusPagamento.PENDENTE);
 
-            log.info("✅ Link gerado: {}", preference.getInitPoint());
+        return toMap(pagamentoRepository.save(p));
+    }
 
-            return preference.getInitPoint();
+    @Transactional
+    public Map<String, Object> gerarPagamentoMotoboy(Long motoboyId, String periodo) {
+        Motoboy motoboy = motoboyRepository.findById(motoboyId)
+                .orElseThrow(() -> new RuntimeException("Motoboy não encontrado"));
 
         } catch (MPApiException e) {
             log.error("❌ Erro ao criar pagamento (MPApiException). status={} content={}",
@@ -112,6 +123,7 @@ public class PagamentoService {
             log.error("❌ Erro ao criar pagamento: {}", e.getMessage(), e);
             throw new RuntimeException("Erro ao gerar link de pagamento: " + e.getMessage());
         }
+        return m;
     }
 
     private String normalizeNotificationUrl(String raw) {

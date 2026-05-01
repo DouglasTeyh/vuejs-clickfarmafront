@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 
 @Service
 public class OCRService {
+    private static final Logger log = LoggerFactory.getLogger(OCRService.class);
 
     private static final Logger log = LoggerFactory.getLogger(OCRService.class);
 
@@ -52,10 +53,12 @@ public class OCRService {
     public Mono<String> extrairTextoDeImagem(String imagemBase64) {
         log.info("Iniciando OCR na imagem via OCR Space API");
 
-        // Remove qualquer prefixo data:image que possa ter vindo junto
-        String imagemLimpa = imagemBase64;
-        if (imagemBase64.contains(",")) {
-            imagemLimpa = imagemBase64.substring(imagemBase64.indexOf(",") + 1);
+        String activeApiKey = (apiKey != null && !apiKey.isEmpty() && !apiKey.equals("your_ocr_api_key_here")) ? apiKey : "helloworld";
+
+        // Assegura prefixo data:image para o OCR Space
+        String dataUrl = imagemBase64;
+        if (!dataUrl.startsWith("data:image")) {
+            dataUrl = "data:image/jpeg;base64," + imagemBase64;
         }
 
         String payloadBase64 = imagemLimpa;
@@ -133,5 +136,9 @@ public class OCRService {
                     log.error("Falha na comunicação com OCR Space API", e);
                     return Mono.just("Erro de conexão: " + e.getMessage());
                 });
+        } catch (Exception e) {
+            log.error("Erro ao codificar URL", e);
+            return Mono.just("Erro ao processar a imagem localmente: " + e.getMessage());
+        }
     }
 }

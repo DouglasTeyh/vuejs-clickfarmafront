@@ -249,16 +249,17 @@ export default {
 
 <style scoped>
 .prescription-details {
-  background-color: #f8f9fa;
+  background-color: var(--cf-ivory);
   padding: 10px;
-  border-radius: 5px;
+  border-radius: var(--cf-r-md);
   margin-top: 5px;
-  border-left: 4px solid #0d6efd;
+  border-left: 4px solid var(--cf-green);
 }
 
 .btn-info {
-  background-color: #0dcaf0;
-  border-color: #0dcaf0;
+  background-color: var(--cf-green-light);
+  border-color: var(--cf-green-light);
+  color: var(--cf-green);
 }
 
 /* Transição suave para os elementos com v-show */

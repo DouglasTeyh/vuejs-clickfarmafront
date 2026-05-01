@@ -317,7 +317,7 @@ export default createStore({
     user: null,
     products: [],
     cart: [],
-    categories: ['Medicamentos', 'Cosméticos', 'Higiene', 'Vitaminas', 'Maternidade'],
+    categories: [],
     authToken: localStorage.getItem('authToken') || null,
     authChecked: false,
     lastOrder: null,
@@ -326,7 +326,10 @@ export default createStore({
     adminOrders: [],
     adminPrescriptions: [],
     adminUsers: [],
-    orderTracking: {}
+    orderTracking: {},
+    // Modal Quick View
+    quickViewProduct: null,
+    isQuickViewOpen: false
   },
 
   getters: {
@@ -342,7 +345,9 @@ export default createStore({
     adminOrders: (state) => state.adminOrders,
     adminPrescriptions: (state) => state.adminPrescriptions,
     adminUsers: (state) => state.adminUsers,
-    getOrderTracking: (state) => (orderId) => state.orderTracking[orderId]
+    getOrderTracking: (state) => (orderId) => state.orderTracking[orderId],
+    quickViewProduct: (state) => state.quickViewProduct,
+    isQuickViewOpen: (state) => state.isQuickViewOpen
   },
 
   mutations: {
@@ -365,6 +370,9 @@ export default createStore({
     },
     SET_PRODUCTS(state, products) {
       state.products = products;
+    },
+    SET_CATEGORIES(state, categories) {
+      state.categories = categories;
     },
     ADD_TO_CART(state, product) {
       const existingItem = state.cart.find(item => item.id === product.id);
@@ -419,18 +427,40 @@ export default createStore({
       } catch (error) {
         console.error('Erro ao salvar pedido no localStorage:', error);
       }
+    },
+    // Quick View Mutations
+    OPEN_QUICK_VIEW(state, product) {
+      state.quickViewProduct = product;
+      state.isQuickViewOpen = true;
+    },
+    CLOSE_QUICK_VIEW(state) {
+      state.isQuickViewOpen = false;
+      // Não limpamos o produto imediatamente para evitar saltos na animação
+    },
+    SET_CART(state, cart) {
+      state.cart = cart;
     }
   },
 
   actions: {
-    async checkAuthStatus({ commit }) {
+    async checkAuthStatus({ commit, dispatch }) {
       try {
         console.log('🔐 Verificando status de autenticação...');
         const token = localStorage.getItem('authToken');
         if (token) {
-          const user = JSON.parse(localStorage.getItem('user') || 'null');
+          let user = null;
+          const rawUser = localStorage.getItem('user');
+          if (rawUser && rawUser !== 'undefined') {
+            try {
+              user = JSON.parse(rawUser);
+            } catch (e) {
+              console.error('Erro ao parsear usuário no store:', e);
+            }
+          }
           commit('SET_USER', user);
           console.log('✅ Usuário autenticado:', user);
+          // Carregar sacola do banco
+          dispatch('loadCartFromBackend');
         } else {
           console.log('🔒 Usuário não autenticado');
         }
@@ -497,6 +527,24 @@ export default createStore({
 
     async fetchProducts({ commit }) {
       try {
+<<<<<<< main
+        console.log('📡 Buscando produtos da API backend...');
+        const api = require('../services/api').default;
+        const response = await api.get('/produtos');
+        
+        const mappedProducts = response.data.map(p => ({
+          id: p.id,
+          name: p.nome,
+          price: p.preco,
+          category: p.categoriaNome || 'Geral',
+          description: p.descricao,
+          inStock: p.estoque !== null ? p.estoque > 0 : true,
+          estoque: p.estoque !== null ? p.estoque : 10,
+          images: [p.imagemUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800']
+        }));
+        
+        commit('SET_PRODUCTS', mappedProducts);
+=======
         const mockProducts = [
           { id: 1, name: 'Paracetamol 500mg', price: 12.90, category: 'Medicamentos', description: 'Analgésico e antitérmico', inStock: true },
           { id: 2, name: 'Dipirona 500mg', price: 8.50, category: 'Medicamentos', description: 'Analgésico e antitérmico', inStock: true },
@@ -507,12 +555,33 @@ export default createStore({
         ];
 
         commit('SET_PRODUCTS', mockProducts);
+>>>>>>> main
       } catch (error) {
-        console.error('Erro ao buscar produtos:', error);
+        console.error('❌ Erro ao carregar produtos:', error);
       }
     },
 
+    async fetchCategories({ commit }) {
+      try {
+        console.log('📡 Buscando categorias da API...');
+        const api = require('../services/api').default;
+        const response = await api.get('/categorias');
+        // Extrai apenas os nomes das categorias se necessário, ou armazena o objeto completo
+        const categories = response.data.map(c => c.nome || c);
+        commit('SET_CATEGORIES', categories);
+      } catch (error) {
+        console.error('❌ Erro ao carregar categorias:', error);
+        // Fallback caso falhe
+        commit('SET_CATEGORIES', ['Medicamentos', 'Cosméticos', 'Higiene', 'Vitaminas', 'Maternidade']);
+      }
+    },
+<<<<<<< main
+    
+    async addToCart({ commit, state, dispatch }, product) {
+=======
+
     addToCart({ commit, state }, product) {
+>>>>>>> main
       console.log('🛒 Action addToCart chamada para:', product.name);
 
       const existingItem = state.cart.find(item => item.id === product.id);
@@ -527,14 +596,41 @@ export default createStore({
         console.log('🆕 Novo produto adicionado ao carrinho');
         commit('ADD_TO_CART', { ...product, quantity: 1 });
       }
+
+      // Sincronizar com o backend se estiver logado
+      if (state.authToken && state.user) {
+        try {
+          const api = (await import('@/services/api')).default;
+          await api.post('/sacola/adicionar', {
+            usuarioId: state.user.id,
+            produtoId: product.id,
+            quantidade: 1
+          });
+        } catch (e) { console.error('Erro ao sincronizar sacola:', e); }
+      }
     },
+<<<<<<< main
+    
+    async removeFromCart({ commit, state }, productId) {
+=======
 
     removeFromCart({ commit }, productId) {
+>>>>>>> main
       commit('REMOVE_FROM_CART', productId);
       console.log('🗑️ Produto removido do carrinho:', productId);
+
+      // No backend, a lógica de remover um item específico da sacola
+      // Geralmente precisamos do ID do SacolaItem ou remover por produtoId
+      // Vou assumir que o controller tem DELETE /sacola/remover-produto/{usuarioId}/{produtoId} ou similar
+      // Para simplificar agora, vou apenas registrar que foi removido.
     },
+<<<<<<< main
+    
+    async updateCartQuantity({ commit, state }, payload) {
+=======
 
     updateCartQuantity({ commit }, payload) {
+>>>>>>> main
       commit('UPDATE_CART_QUANTITY', payload);
       console.log('📦 Quantidade atualizada:', payload);
     },
@@ -543,6 +639,25 @@ export default createStore({
       commit('CLEAR_CART');
       console.log('🛒 Carrinho limpo');
     },
+<<<<<<< main
+    
+    async loadCartFromBackend({ commit, state }) {
+      if (!state.user) return;
+      try {
+        const api = (await import('@/services/api')).default;
+        const { data } = await api.get(`/sacola/usuario/${state.user.id}`);
+        const cart = data.map(item => ({
+          ...item.produto,
+          quantity: item.quantidade,
+          id: item.produto.id,
+          name: item.produto.nome,
+          price: item.produto.preco
+        }));
+        commit('SET_CART', cart);
+      } catch (e) { console.error('Erro ao carregar sacola:', e); }
+    },
+=======
+>>>>>>> main
 
     async processPayment({ commit, state }, paymentData) {
       try {
@@ -774,6 +889,12 @@ export default createStore({
         console.error('Erro ao atualizar estoque:', error);
         throw error;
       }
+    },
+    openQuickView({ commit }, product) {
+      commit('OPEN_QUICK_VIEW', product);
+    },
+    closeQuickView({ commit }) {
+      commit('CLOSE_QUICK_VIEW');
     }
   }
 });

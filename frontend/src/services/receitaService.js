@@ -1,3 +1,7 @@
+<<<<<<< main
+// Usa o proxy do vue.config.js em dev e o mesmo origin em produção
+const API_URL = '/api/receita';
+=======
 // Configuração da URL da API
 // Para desenvolvimento local: http://localhost:8080/api/receita
 // Para produção: /api/receita (proxy do servidor)
@@ -27,6 +31,7 @@ const getApiUrl = () => {
 
 const normalizeBaseUrl = (url) => String(url || '').replace(/\/+$/, '');
 const API_URL = normalizeBaseUrl(getApiUrl());
+>>>>>>> main
 
 class ReceitaService {
     /**

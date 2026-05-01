@@ -16,10 +16,17 @@ public class GeminiController {
     private AiRouterService aiRouterService;
 
     @PostMapping("/chat")
-    public Mono<Map<String, String>> chat(@RequestBody Map<String, String> request) {
-        String mensagem = request.get("message");
-        return aiRouterService.chat(mensagem)
-                .map(resposta -> Map.of("response", resposta));
+    public Mono<Map<String, String>> chat(@RequestBody Map<String, Object> request) {
+        if (request.containsKey("messages")) {
+            @SuppressWarnings("unchecked")
+            java.util.List<Map<String, String>> messages = (java.util.List<Map<String, String>>) request.get("messages");
+            return aiRouterService.chatWithHistory(messages)
+                    .map(resposta -> Map.of("response", resposta));
+        } else {
+            String mensagem = (String) request.get("message");
+            return aiRouterService.chat(mensagem)
+                    .map(resposta -> Map.of("response", resposta));
+        }
     }
 
     @PostMapping("/wellness")
@@ -46,5 +53,11 @@ public class GeminiController {
 
         return aiRouterService.analyzeCart(itemsList, request.getTotalPrice())
                 .map(resposta -> Map.of("analysis", resposta));
+    }
+
+    @GetMapping("/recomendacoes")
+    public Mono<Map<String, Object>> recomendacoes(@RequestParam(required = false) Long usuarioId) {
+        return aiRouterService.getRecommendations(usuarioId)
+                .map(resposta -> Map.of("recomendacoes", resposta));
     }
 }

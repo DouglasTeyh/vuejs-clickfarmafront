@@ -3,7 +3,7 @@
     <div class="card">
       <div class="card-body text-center">
         <div class="profile-avatar mb-3">
-          <i class="fas fa-user-circle fa-3x text-primary"></i>
+          <i class="fas fa-user-circle fa-3x cf-text-green"></i>
         </div>
         <h5>{{ user.name }}</h5>
         <p class="text-muted small">{{ user.email }}</p>
@@ -53,11 +53,13 @@ export default {
 
 .list-group-item:hover,
 .list-group-item.active {
-  background-color: #f8f9fa;
-  color: #0d6efd;
+  background-color: var(--cf-ivory);
+  color: var(--cf-green);
 }
 
 .list-group-item.active {
-  border-left: 3px solid #0d6efd;
+  border-left: 3px solid var(--cf-green);
 }
+
+.cf-text-green { color: var(--cf-green); }
 </style>

@@ -1,55 +1,65 @@
 <template>
-  <div class="order-summary p-4 bg-white rounded shadow-sm border">
-    <h4 class="mb-4 font-weight-bold">Resumo do Pedido</h4>
+  <div class="order-summary-card">
+    <h4 class="summary-title mb-4">Resumo do Pedido</h4>
 
     <!-- BARRA DE FRETE GRÁTIS -->
-    <div class="free-shipping-container mb-4">
+    <div class="shipping-nudge mb-4" :class="{ 'is-free': ganhouFrete }">
       <div class="d-flex justify-content-between mb-2">
-        <span class="small font-weight-bold text-muted">
-          {{ ganhouFrete ? '🎉 Frete Grátis Garantido!' : `Faltam R$ ${faltaQuanto.toFixed(2)} para Frete Grátis` }}
+        <span class="nudge-text">
+          <i class="fa-solid" :class="ganhouFrete ? 'fa-truck-fast' : 'fa-truck-arrow-right'"></i>
+          {{ ganhouFrete ? 'Frete Grátis Garantido!' : `Faltam R$ ${faltaQuanto.toFixed(2).replace('.', ',')} para Frete Grátis` }}
         </span>
-        <span class="small font-weight-bold">{{ porcentagem }}%</span>
+        <span class="nudge-percent">{{ porcentagem }}%</span>
       </div>
-      <div class="progress" style="height: 10px; border-radius: 10px;">
+      <div class="cf-progress">
         <div
-            class="progress-bar progress-bar-striped progress-bar-animated"
-            role="progressbar"
-            :class="ganhouFrete ? 'bg-success' : 'bg-primary'"
+            class="cf-progress-inner"
             :style="{ width: porcentagem + '%' }"
         ></div>
       </div>
     </div>
 
     <!-- VALORES DETALHADOS -->
-    <div class="summary-details mb-4">
-      <div class="d-flex justify-content-between mb-2">
-        <span class="text-muted">Subtotal ({{ itemsCount }} itens):</span>
-        <span>R$ {{ total.toFixed(2) }}</span>
+    <div class="summary-list mb-4">
+      <div class="summary-row d-flex justify-content-between mb-3">
+        <span class="summary-label">Subtotal ({{ itemsCount }} itens)</span>
+        <span class="summary-val">R$ {{ total.toFixed(2).replace('.', ',') }}</span>
       </div>
 
-      <div class="d-flex justify-content-between mb-2">
-        <span class="text-muted">Frete:</span>
-        <span :class="ganhouFrete ? 'text-success font-weight-bold' : 'text-muted'">
-          {{ ganhouFrete ? 'GRÁTIS' : 'R$ ' + valorFretePadrao.toFixed(2) }}
+      <div class="summary-row d-flex justify-content-between mb-3">
+        <span class="summary-label">Frete Estimado</span>
+        <span class="summary-val" :class="{ 'text-green': ganhouFrete }">
+          {{ ganhouFrete ? 'GRÁTIS' : 'R$ ' + valorFretePadrao.toFixed(2).replace('.', ',') }}
         </span>
       </div>
 
-      <hr>
+      <div class="cf-divider my-4"></div>
 
-      <div class="d-flex justify-content-between mt-3">
-        <h5 class="font-weight-bold">Total Final:</h5>
-        <h5 class="font-weight-bold text-primary">R$ {{ totalFinal.toFixed(2) }}</h5>
+      <div class="d-flex justify-content-between align-items-end mt-3">
+        <div class="total-label-wrap">
+          <span class="total-eyebrow">Valor total</span>
+          <h4 class="total-label mb-0">Total Final</h4>
+        </div>
+        <h4 class="total-amount mb-0">R$ {{ totalFinal.toFixed(2).replace('.', ',') }}</h4>
       </div>
     </div>
 
     <!-- BOTÃO DE AÇÃO -->
     <router-link
         to="/checkout"
-        class="btn btn-primary btn-block btn-lg py-3 shadow-sm"
+        class="btn btn-primary btn-checkout w-100 py-3"
         :class="{ 'disabled': itemsCount === 0 }"
     >
       Finalizar Compra
+      <i class="fa-solid fa-arrow-right ms-2 mt-1"></i>
     </router-link>
+    
+    <div class="text-center mt-3">
+      <span class="secure-checkout text-muted">
+        <i class="fa-solid fa-shield-halved me-1"></i>
+        Checkout 100% Seguro
+      </span>
+    </div>
   </div>
 </template>
 
@@ -62,8 +72,8 @@ export default {
   },
   data() {
     return {
-      threshold: 150.00, // Meta para frete grátis
-      valorFretePadrao: 15.00 // Valor do frete se não atingir a meta
+      threshold: 150.00,
+      valorFretePadrao: 15.00
     }
   },
   computed: {
@@ -86,9 +96,47 @@ export default {
 </script>
 
 <style scoped>
-.order-summary { border-color: #f1f1f1 !important; }
-.progress { background-color: #f8f9fa; }
-.btn-primary { background-color: #2c3e50; border: none; }
-.btn-primary:hover { background-color: #34495e; transform: translateY(-1px); }
-.disabled { pointer-events: none; opacity: 0.6; }
+.order-summary-card {
+  padding: 2rem;
+  background: var(--cf-ivory);
+  border-radius: var(--cf-r-xl);
+  border: 1px solid var(--cf-border);
+}
+
+.summary-title { font-family: var(--cf-sans); font-size: 1.5rem; font-weight: 600; color: var(--cf-text-dark); }
+
+.shipping-nudge {
+  padding: 1rem;
+  background: var(--cf-white);
+  border-radius: var(--cf-r-md);
+  border: 1px solid var(--cf-border);
+}
+.nudge-text { font-size: 0.72rem; font-weight: 500; color: var(--cf-text-mid); }
+.nudge-percent { font-size: 0.75rem; font-weight: 600; color: var(--cf-green); }
+
+.cf-progress {
+  height: 6px;
+  background: var(--cf-green-light);
+  border-radius: 100px;
+  overflow: hidden;
+}
+.cf-progress-inner {
+  height: 100%;
+  background: var(--cf-green);
+  transition: width 0.6s var(--cf-ease);
+}
+.is-free .cf-progress-inner { background: var(--cf-gold); }
+.text-green { color: var(--cf-green); font-weight: 600; }
+
+.summary-label { font-size: 0.88rem; color: var(--cf-text-muted); }
+.summary-val { font-size: 0.95rem; font-weight: 500; color: var(--cf-text-dark); font-family: var(--cf-sans); }
+
+.total-eyebrow { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cf-gold); display: block; font-weight: 600; }
+.total-label { font-family: var(--cf-sans); font-size: 1.2rem; font-weight: 600; }
+.total-amount { font-family: var(--cf-sans); font-size: 1.8rem; font-weight: 600; color: var(--cf-green); }
+
+.btn-checkout { font-size: 0.85rem; letter-spacing: 0.08em; display: flex; align-items: center; justify-content: center; }
+.secure-checkout { font-size: 0.68rem; letter-spacing: 0.05em; opacity: 0.7; }
+
+.disabled { pointer-events: none; opacity: 0.4; filter: grayscale(1); }
 </style>

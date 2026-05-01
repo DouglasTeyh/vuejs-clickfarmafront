@@ -20,6 +20,7 @@ import java.util.Map;
 @RequestMapping("/api/receita")
 @CrossOrigin(origins = {"http://localhost", "http://localhost:8080", "http://localhost:8081", "http://localhost:8082"})
 public class ReceitaController {
+    private static final Logger log = LoggerFactory.getLogger(ReceitaController.class);
 
     private static final Logger log = LoggerFactory.getLogger(ReceitaController.class);
 
@@ -36,9 +37,11 @@ public class ReceitaController {
      * Processa uma receita médica extraindo medicamentos via IA
      * Tenta OCR Space primeiro (mais preciso), depois Tesseract como fallback
      */
+
+
     @PostMapping("/processar")
     public Mono<ResponseEntity<Map<String, Object>>> processarReceita(@RequestBody ReceitaRequestDTO request) {
-        log.info("Recebida requisição para processar receita: {}", request.getNomeArquivo());
+        log.info("Recebida requisição para processar receita no OCRSpace...");
 
         if (request.getImagemBase64() == null || request.getImagemBase64().isEmpty()) {
             Map<String, Object> errorResponse = new HashMap<>();
@@ -47,6 +50,42 @@ public class ReceitaController {
             return Mono.just(ResponseEntity.badRequest().body(errorResponse));
         }
 
+<<<<<<< main
+        return ocrService.extrairTextoDeImagem(request.getImagemBase64())
+                .flatMap(textoLido -> {
+                    if (textoLido.startsWith("Erro")) {
+                        log.warn("OCR Space falhou. Tentando Tesseract local...");
+                        String textoTesseract = tesseractOCRService.extrairTexto(request.getImagemBase64());
+                        if (textoTesseract.startsWith("Erro")) {
+                            Map<String, Object> errorResponse = new HashMap<>();
+                            errorResponse.put("sucesso", false);
+                            errorResponse.put("erro", "Falha nos dois OCRs: " + textoLido + " | " + textoTesseract);
+                            return Mono.just(ResponseEntity.badRequest().body(errorResponse));
+                        }
+                        return groqProcessadorReceitaService.processarReceita(textoTesseract)
+                            .map(medicamentos -> {
+                                Map<String, Object> response = new HashMap<>();
+                                response.put("sucesso", true);
+                                response.put("medicamentos", medicamentos.getMedicamentos());
+                                return ResponseEntity.ok(response);
+                            });
+                    }
+                    log.info("✅ Texto lido pelo OCR: {}", textoLido);
+                    return groqProcessadorReceitaService.processarReceita(textoLido)
+                        .map(medicamentos -> {
+                            Map<String, Object> response = new HashMap<>();
+                            response.put("sucesso", true);
+                            response.put("medicamentos", medicamentos.getMedicamentos());
+                            return ResponseEntity.ok(response);
+                        });
+                })
+                .onErrorResume(erro -> {
+                    log.error("Erro geral no processamento", erro);
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("sucesso", false);
+                    errorResponse.put("erro", "Erro ao processar imagem visualmente: " + erro.getMessage());
+                    return Mono.just(ResponseEntity.internalServerError().body(errorResponse));
+=======
         // OCR Space (rede) + Tesseract (CPU/bloqueante). Rodamos em paralelo e tiramos o Tesseract do thread de I/O.
         log.info("Tentando OCR Space API...");
 
@@ -112,6 +151,7 @@ public class ReceitaController {
                                 }
                                 return processarTextoComGroq(textoTesseract);
                             });
+>>>>>>> main
                 });
     }
 

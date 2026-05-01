@@ -14,9 +14,9 @@
             <label class="form-label">Upload da Receita *</label>
             <div class="file-upload-area" @click="triggerFileInput" @dragover="handleDragOver" @drop="handleDrop">
               <div class="text-center">
-                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                <i class="fas fa-cloud-upload-alt fa-3x cf-text-green mb-3"></i>
                 <p class="mb-2">Arraste e solte o arquivo aqui ou</p>
-                <button type="button" class="btn btn-outline-primary">
+                <button type="button" class="btn cf-btn-outline-green">
                   Selecione o arquivo
                 </button>
                 <input 
@@ -120,7 +120,7 @@
             <button type="button" class="btn btn-secondary" @click="$emit('cancel')">
               Cancelar
             </button>
-            <button type="submit" class="btn btn-primary" :disabled="uploading || !selectedFile">
+            <button type="submit" class="btn cf-btn-green" :disabled="uploading || !selectedFile">
               <span v-if="uploading" class="spinner-border spinner-border-sm me-1"></span>
               {{ uploading ? 'Enviando...' : (editing ? 'Atualizar' : 'Enviar Receita') }}
             </button>
@@ -294,14 +294,20 @@ export default {
 }
 
 .file-upload-area:hover {
-  border-color: #0d6efd;
-  background-color: #f8f9fa;
+  border-color: var(--cf-green);
+  background-color: var(--cf-green-xlight);
 }
 
 .file-upload-area.dragging {
-  border-color: #0d6efd;
-  background-color: #e3f2fd;
+  border-color: var(--cf-green);
+  background-color: var(--cf-green-light);
 }
+
+.cf-text-green { color: var(--cf-green); }
+.cf-btn-green { background: var(--cf-green); color: white; }
+.cf-btn-green:hover { background: var(--cf-green-dark); }
+.cf-btn-outline-green { border-color: var(--cf-green); color: var(--cf-green); }
+.cf-btn-outline-green:hover { background: var(--cf-green); color: white; }
 
 .selected-file {
   animation: fadeIn 0.3s ease;

@@ -171,11 +171,11 @@ export default {
 
 <style scoped>
 .cart-ai-advisor {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--cf-green-dark), var(--cf-green));
   border-radius: 12px;
   margin-bottom: 2rem;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+  box-shadow: var(--cf-shadow-md);
 }
 
 .advisor-header {
@@ -254,7 +254,7 @@ export default {
 
 .btn-analyze,
 .btn-reanalyze {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--cf-gold);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -271,7 +271,7 @@ export default {
 .btn-analyze:hover:not(:disabled),
 .btn-reanalyze:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(184,149,80, 0.4);
 }
 
 .btn-analyze:disabled {
@@ -294,7 +294,7 @@ export default {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid var(--cf-gold);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -309,7 +309,7 @@ export default {
 }
 
 .loading-section p {
-  color: #667eea;
+  color: var(--cf-green);
   font-weight: 600;
   margin: 0;
 }
@@ -344,7 +344,7 @@ export default {
 .analysis-content :deep(h4),
 .analysis-content :deep(h5),
 .analysis-content :deep(h6) {
-  color: #667eea;
+  color: var(--cf-green);
   margin-top: 15px;
   margin-bottom: 10px;
   font-weight: 600;
@@ -363,7 +363,7 @@ export default {
 }
 
 .analysis-content :deep(strong) {
-  color: #667eea;
+  color: var(--cf-green);
   font-weight: 600;
 }
 

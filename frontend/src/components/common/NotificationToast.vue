@@ -111,24 +111,24 @@ export default {
 }
 
 .toast-success {
-  border-left: 4px solid #28a745;
+  border-left: 4px solid var(--cf-green);
 }
 
 .toast-error {
-  border-left: 4px solid #dc3545;
+  border-left: 4px solid var(--cf-danger);
 }
 
 .toast-warning {
-  border-left: 4px solid #ffc107;
+  border-left: 4px solid var(--cf-gold);
 }
 
 .toast-info {
-  border-left: 4px solid #17a2b8;
+  border-left: 4px solid var(--cf-green-mid);
 }
 
 .toast-header {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
+  background-color: var(--cf-ivory);
+  border-bottom: 1px solid var(--cf-border);
 }
 
 .toast-body {

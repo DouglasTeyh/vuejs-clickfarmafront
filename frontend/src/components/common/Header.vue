@@ -22,11 +22,7 @@
         <!-- Logo -->
         <router-link to="/" class="navbar-brand me-4">
           <div class="brand-logo">
-            <div class="logo-cross">
-              <span class="cross-h"></span>
-              <span class="cross-v"></span>
-            </div>
-            <span class="brand-name">Click<em>Farma</em></span>
+            <img src="/images/Logotipo.svg" alt="ClickFarma" class="brand-img">
           </div>
         </router-link>
 
@@ -47,31 +43,36 @@
             <li class="nav-item">
               <router-link to="/promotions" class="nav-link cf-nav-link">
                 Promoções
-                <span class="promo-pill">OFF</span>
+                <span class="promo-pill">-20% OFF</span>
               </router-link>
             </li>
             <li class="nav-item">
               <router-link to="/track-order" class="nav-link cf-nav-link">Rastrear</router-link>
             </li>
-            <li class="nav-item">
-              <router-link to="/prescriptions/upload" class="nav-link cf-nav-link">
-                📸 Ler Receita
-              </router-link>
-            </li>
-            <li class="nav-item">
-              <router-link to="/about" class="nav-link cf-nav-link">Sobre</router-link>
-            </li>
+          <!-- Links removidos: Ler Receita e Sobre -->
           </ul>
 
           <!-- Ações -->
           <div class="navbar-actions d-flex align-items-center gap-2">
 
             <!-- Busca -->
-            <button class="cf-icon-btn" aria-label="Buscar">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/>
-              </svg>
-            </button>
+            <div class="search-container position-relative">
+              <input 
+                type="text" 
+                class="form-control cf-search-input" 
+                placeholder="Buscar produtos..." 
+                v-model="searchQuery"
+                @keyup.enter="handleSearch"
+                :class="{ 'expanded': isSearchOpen }"
+                @focus="isSearchOpen = true"
+                @blur="closeSearchDelay"
+              >
+              <button class="cf-icon-btn search-submit-btn" @click="handleSearch" aria-label="Buscar">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/>
+                </svg>
+              </button>
+            </div>
 
             <!-- Carrinho -->
             <router-link :to="{ name: 'Checkout', params: { cart: JSON.stringify(cart) } }" class="cf-icon-btn cf-cart position-relative" aria-label="Carrinho">
@@ -125,6 +126,12 @@
 import { mapGetters, mapActions } from 'vuex'
 export default {
   name: 'Header',
+  data() {
+    return {
+      searchQuery: '',
+      isSearchOpen: false
+    }
+  },
   computed: {
     ...mapGetters(['isAuthenticated', 'cartItemsCount', 'user', 'cart']),
     userInitials() {
@@ -134,16 +141,39 @@ export default {
   },
   methods: {
     ...mapActions(['logout']),
-    async handleLogout() { await this.logout(); this.$router.push('/') }
+    async handleLogout() { await this.logout(); this.$router.push('/') },
+    handleSearch() {
+      if (this.searchQuery.trim()) {
+        this.$router.push({ path: '/products', query: { q: this.searchQuery.trim() } })
+        this.searchQuery = ''
+        this.isSearchOpen = false
+      } else {
+        this.isSearchOpen = !this.isSearchOpen
+      }
+    },
+    closeSearchDelay() {
+      setTimeout(() => {
+        this.isSearchOpen = false
+      }, 200)
+    }
   }
 }
 </script>
 
 <style scoped>
+/* ---- STICKY HEADER ---- */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1001;
+  width: 100%;
+  background: var(--cf-white);
+}
+
 /* ---- TOP STRIP ---- */
 .top-strip {
-  background: var(--cf-green-xlight);
-  border-bottom: 1px solid var(--cf-green-light);
+  background: var(--cf-white);
+  border-bottom: 1px solid var(--cf-border);
   color: var(--cf-green);
   font-size: 0.68rem;
   font-weight: 400;
@@ -154,10 +184,9 @@ export default {
 /* ---- NAVBAR ---- */
 .navbar-main {
   background: var(--cf-white);
-  border-bottom: 1px solid var(--cf-border);
+  border-bottom: none;
   padding: 0;
   min-height: 66px;
-  box-shadow: var(--cf-shadow-xs);
 }
 
 /* ---- LOGO ---- */
@@ -168,44 +197,10 @@ export default {
   text-decoration: none;
 }
 
-.logo-cross {
-  width: 24px;
-  height: 24px;
-  position: relative;
-  flex-shrink: 0;
-}
-.cross-h, .cross-v {
-  position: absolute;
-  background: var(--cf-green);
-  border-radius: 2px;
-}
-.cross-h {
-  width: 100%;
-  height: 4px;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-}
-.cross-v {
-  width: 4px;
-  height: 100%;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-}
-
-.brand-name {
-  font-family: var(--cf-serif);
-  font-size: 1.5rem;
-  font-weight: 400;
-  color: var(--cf-text-dark);
-  letter-spacing: 0;
-  line-height: 1;
-  text-decoration: none;
-}
-.brand-name em {
-  font-style: italic;
-  color: var(--cf-green);
+.brand-img {
+  max-height: 56px;
+  width: auto;
+  display: block;
 }
 
 /* ---- NAV LINKS ---- */
@@ -243,8 +238,47 @@ export default {
   line-height: 1.2;
 }
 
-/* ---- ÍCONES ---- */
+/* ---- SEARCH ---- */
+.search-container {
+  display: flex;
+  align-items: center;
+}
+
+.cf-search-input {
+  width: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+  transition: all 300ms var(--cf-ease);
+  background: var(--cf-ivory);
+  border-radius: var(--cf-r-md);
+  font-size: 0.85rem;
+}
+
+.cf-search-input.expanded {
+  width: 200px;
+  padding: 0.4rem 2.2rem 0.4rem 1rem;
+  opacity: 1;
+  border: 1px solid var(--cf-border);
+}
+
+.cf-search-input:focus {
+  border-color: var(--cf-green);
+  box-shadow: 0 0 0 2px rgba(42,92,69,0.1);
+  outline: none;
+}
+
+.search-submit-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  z-index: 2;
+}
+
 .cf-icon-btn {
+
   width: 38px;
   height: 38px;
   display: flex;
@@ -389,11 +423,11 @@ export default {
 }
 .cf-dropdown-fullname {
   display: block;
-  font-family: var(--cf-serif);
-  font-size: 1rem;
-  font-weight: 400;
+  font-family: var(--cf-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
   color: var(--cf-text-dark);
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .cf-dd-item {
@@ -442,15 +476,43 @@ export default {
   .navbar-collapse {
     background: var(--cf-white);
     border-top: 1px solid var(--cf-border);
-    padding: 0.75rem 0 1rem;
+    padding: 1rem 0;
     margin-top: 0.5rem;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: var(--cf-shadow-md);
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
   .navbar-actions {
-    padding-top: 0.75rem;
+    padding-top: 1rem;
     border-top: 1px solid var(--cf-border);
-    margin-top: 0.5rem;
-    flex-wrap: wrap;
-    gap: 8px !important;
+    margin-top: 1rem;
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px !important;
   }
+  .cf-search-input.expanded {
+    width: 100%;
+  }
+  .search-container {
+    width: 100%;
+  }
+  .cf-btn-ghost, .cf-btn-solid {
+    width: 100%;
+    text-align: center;
+  }
+  .cf-user-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .top-strip { font-size: 0.6rem; }
+  .brand-img { max-height: 44px; }
 }
 </style>

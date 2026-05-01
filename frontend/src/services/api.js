@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Configuração definitiva: URL completa do backend.
+// Usa o proxy do vue.config.js em dev, e o mesmo origin em produção
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: '/api',
     headers: {
         'Content-Type': 'application/json'
     }
@@ -11,10 +11,15 @@ const api = axios.create({
 // Interceptor para adicionar token JWT (se existir)
 api.interceptors.request.use(
     (config) => {
+<<<<<<< main
+        const token = localStorage.getItem('authToken');
+        if (token) {
+=======
         // O projeto usa 'authToken' em varios pontos (store/login). Mantemos compatibilidade com 'access_token'.
         const token = localStorage.getItem('authToken') || localStorage.getItem('access_token');
         // Só anexa se parecer um JWT real (3 partes separadas por '.').
         if (token && token.split('.').length === 3) {
+>>>>>>> main
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -31,10 +36,12 @@ api.interceptors.response.use(
     },
     (error) => {
         if (error.response?.status === 401) {
-            localStorage.removeItem('access_token');
+            localStorage.removeItem('authToken');
             localStorage.removeItem('user');
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+            // Só redireciona se não estiver na página de login
+            const publicPages = ['/login', '/admin/login', '/pharmacy/login'];
+            if (!publicPages.includes(window.location.pathname)) {
+                // window.location.href = '/login'; // Desativado temporariamente para não atrapalhar o debug
             }
         }
         return Promise.reject(error);

@@ -1,22 +1,28 @@
 <template>
-  <div class="container mt-4">
-    <h2 class="page-title">🛒 Meu Carrinho</h2>
+  <div class="cart-page">
+    <div class="container py-lg-5 py-4">
+      <div class="text-center mb-5 fade-in-up">
+        <span class="section-eyebrow">Seu Pedido</span>
+        <h1 class="section-title">Meu <em>Carrinho</em></h1>
+      </div>
 
-    <!-- Carrinho vazio -->
-    <EmptyCart v-if="cart.length === 0" />
+      <!-- Carrinho vazio -->
+      <div v-if="cart.length === 0" class="fade-in-up">
+        <EmptyCart />
+      </div>
 
-    <!-- Carrinho com itens -->
-    <div v-else>
-      <!-- Consultor de IA -->
-      <CartAIAdvisor
-          :cartItems="cart"
-          :cartTotal="cartTotal"
-      />
+      <!-- Carrinho com itens -->
+      <div v-else class="row g-4">
+        <div class="col-lg-8 fade-in-up">
+          <!-- Consultor de IA -->
+          <div class="mb-4">
+            <CartAIAdvisor
+                :cartItems="cart"
+                :cartTotal="cartTotal"
+            />
+          </div>
 
-      <div class="row">
-        <!-- Lista de itens -->
-        <div class="col-md-8">
-          <div class="cart-items">
+          <div class="cart-items-list">
             <CartItem
                 v-for="item in cart"
                 :key="item.id"
@@ -28,11 +34,13 @@
         </div>
 
         <!-- Resumo do pedido -->
-        <div class="col-md-4">
-          <OrderSummary
-              :items-count="cartItemsCount"
-              :total="cartTotal"
-          />
+        <div class="col-lg-4 fade-in-up" style="animation-delay: 0.15s">
+          <div class="sticky-top" style="top: 100px;">
+            <OrderSummary
+                :items-count="cartItemsCount"
+                :total="cartTotal"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -70,13 +78,14 @@ export default {
 </script>
 
 <style scoped>
-.page-title {
-  margin-bottom: 1.5rem;
-  color: #2c3e50;
-  font-weight: 600;
+.cart-page {
+  background: var(--cf-white);
+  min-height: 80vh;
 }
 
-.cart-items {
-  margin-bottom: 2rem;
+.cart-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 </style>

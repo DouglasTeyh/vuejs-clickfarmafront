@@ -17,7 +17,7 @@
         <div class="col-md-4">
           <h5 class="item-name">{{ item.name }}</h5>
           <p class="text-muted item-description">{{ truncatedDescription }}</p>
-          <span class="badge bg-secondary">{{ item.category }}</span>
+          <span class="badge cf-badge-gold">{{ item.category }}</span>
         </div>
         
         <!-- Quantidade -->
@@ -124,13 +124,13 @@ export default {
 .item-image {
   max-height: 80px;
   object-fit: cover;
-  background-color: #f8f9fa;
+  background-color: var(--cf-green-xlight);
   padding: 4px;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--cf-border);
 }
 
 .item-name {
-  color: #2c3e50;
+  color: var(--cf-text-dark);
   margin-bottom: 0.5rem;
 }
 
@@ -147,7 +147,7 @@ export default {
 .item-total {
   font-size: 1.1rem;
   margin-bottom: 0.2rem;
-  color: #28a745;
+  color: var(--cf-green);
 }
 
 .item-unit-price {
@@ -158,4 +158,6 @@ export default {
 .badge {
   font-size: 0.7rem;
 }
+
+.cf-badge-gold { background: var(--cf-gold-light); color: var(--cf-gold); }
 </style>

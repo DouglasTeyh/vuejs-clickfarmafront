@@ -1,182 +1,126 @@
-[file name]: Orders.vue
-[file content begin]
 <template>
   <div class="orders-page">
-    <div class="container mt-4">
+    <div class="container py-lg-5 py-4">
+      
       <!-- Cabeçalho -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">📦 Meus Pedidos</h2>
+      <div class="header-wrap d-flex justify-content-between align-items-end mb-5 fade-in-up">
+        <div class="title-group">
+          <span class="section-eyebrow">Minhas Compras</span>
+          <h1 class="section-title mb-0">Meus <em>Pedidos</em></h1>
+        </div>
         <div class="d-flex gap-2">
-          <button class="btn btn-outline-primary" @click="refreshOrders">
-            <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
-          </button>
-          <button 
-            v-if="hasOrders" 
-            class="btn btn-outline-danger" 
-            @click="clearAllOrders" 
-            title="Limpar todos os pedidos"
-          >
-            <i class="fas fa-trash"></i>
+          <button class="btn btn-outline-primary btn-refresh" @click="refreshOrders">
+            <i class="fa-solid fa-arrows-rotate" :class="{ 'fa-spin': loading }"></i>
           </button>
         </div>
       </div>
 
       <!-- Estado Vazio -->
-      <div v-if="!hasOrders && !loading" class="text-center py-5">
-        <div class="empty-state">
-          <i class="fas fa-box-open fa-5x text-muted mb-4"></i>
-          <h3 class="mb-3">Nenhum pedido realizado</h3>
-          <p class="text-muted mb-4">
-            Você ainda não fez nenhuma compra. Que tal explorar nossos produtos?
+      <div v-if="!hasOrders && !loading" class="text-center py-5 fade-in-up">
+        <div class="empty-state-box">
+          <div class="empty-icon-wrap mb-4">
+               <i class="fa-solid fa-box-open"></i>
+          </div>
+          <h3 class="section-title-sm mb-3">Nenhum pedido realizado</h3>
+          <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">
+            Sua lista de compras está vazia. Que tal conferir nossas ofertas e garantir sua saúde hoje mesmo?
           </p>
           <router-link to="/products" class="btn btn-primary btn-lg">
-            <i class="fas fa-shopping-bag me-2"></i>Explorar Produtos
+            Ver Catálogo de Produtos
+            <i class="fa-solid fa-arrow-right ms-2 mt-1"></i>
           </router-link>
         </div>
       </div>
 
-
-      <div v-else>
-        <div class="alert alert-info d-flex justify-content-between align-items-center">
-          <div>
-            <strong>{{ validOrders.length }}</strong> pedido(s) encontrado(s)
+      <div v-else class="row g-4">
+        <div class="col-lg-8 fade-in-up">
+            
+          <div class="order-stats-bar mb-4 p-3 d-flex justify-content-between align-items-center">
+             <span class="stats-text"><strong>{{ validOrders.length }}</strong> pedidos encontrados no seu histórico</span>
+             <button v-if="hasOrders" class="btn-clear text-danger" @click="clearAllOrders">Limpar Tudo</button>
           </div>
-          <button v-if="hasOrders" class="btn btn-sm btn-outline-info" @click="clearAllOrders">
-            <i class="fas fa-trash me-1"></i>Limpar Tudo
-          </button>
+
+          <!-- Loading -->
+          <div v-if="loading" class="text-center py-5">
+            <div class="spinner-border text-green-mid" role="status"></div>
+            <p class="mt-3 text-muted">Buscando seus dados...</p>
+          </div>
+
+          <!-- Lista de Pedidos -->
+          <div v-for="order in validOrders" :key="order.id" class="cf-order-card mb-4">
+            <div class="order-header d-flex justify-content-between p-4">
+               <div class="id-group">
+                  <span class="order-id">Pedido #{{ order.id }}</span>
+                  <div class="order-meta d-flex gap-3">
+                     <span><i class="fa-solid fa-calendar-day me-1"></i> {{ formatDate(order.date) }}</span>
+                     <span><i class="fa-solid fa-cart-shopping me-1"></i> {{ order.items.length }} itens</span>
+                  </div>
+               </div>
+               <div class="text-end">
+                  <span :class="statusClass(order.status)" class="cf-badge mb-2 d-inline-block">
+                    {{ statusText(order.status) }}
+                  </span>
+                  <h4 class="order-total-val mb-0">R$ {{ getOrderTotal(order) }}</h4>
+               </div>
+            </div>
+
+            <div class="order-body p-4 pt-0">
+               <!-- Itens (Compacto) -->
+               <div class="order-items-preview mb-4">
+                  <div v-for="item in order.items" :key="item.id" class="d-flex align-items-center py-2 border-bottom-cf">
+                     <div class="item-visual-sm me-3">
+                        📦
+                     </div>
+                     <div class="flex-grow-1">
+                        <h6 class="item-name-sm mb-0">{{ item.name }}</h6>
+                        <span class="item-meta-sm">Qtd: {{ item.quantity }} × R$ {{ item.price.toFixed(2).replace('.', ',') }}</span>
+                     </div>
+                     <span class="item-sub-total">R$ {{ (item.price * item.quantity).toFixed(2).replace('.', ',') }}</span>
+                  </div>
+               </div>
+
+               <!-- Ações -->
+               <div class="d-flex gap-3 mt-4">
+                  <button class="btn btn-outline-primary btn-sm flex-grow-1" @click="viewOrderDetails(order)">
+                    <i class="fa-solid fa-circle-info me-2"></i>Ver Detalhes
+                  </button>
+                  <button class="btn btn-primary btn-sm flex-grow-1" @click="trackOrder(order)">
+                    <i class="fa-solid fa-truck-ramp-box me-2"></i>Rastrear
+                  </button>
+               </div>
+            </div>
+          </div>
         </div>
 
-        <div class="row">
-          <div class="col-lg-8">
-            <!-- Loading -->
-            <div v-if="loading" class="text-center py-4">
-              <div class="spinner-border text-primary"></div>
-              <p class="mt-2 text-muted">Carregando pedidos...</p>
+        <!-- Sidebar de Resumo -->
+        <div class="col-lg-4 fade-in-up" style="animation-delay: 0.1s">
+          <div class="cf-summary-card">
+            <h4 class="summary-title mb-4">Giro das Compras</h4>
+            <div class="stats-grid">
+               <div class="stat-box">
+                  <span class="stat-label">Total de Gastos</span>
+                  <p class="stat-val-lg text-green">R$ {{ totalSpent.replace('.', ',') }}</p>
+               </div>
+               <div class="stat-box mt-3">
+                  <span class="stat-label">Ticket Médio</span>
+                  <p class="stat-val">R$ {{ averageOrderValue.replace('.', ',') }}</p>
+               </div>
+            </div>
+            
+            <div class="cf-divider my-4"></div>
+            
+            <div class="status-summary">
+               <h6 class="summary-subtitle mb-3">Status dos Pedidos</h6>
+               <div v-for="status in orderStatusCount" :key="status.type" class="status-row mb-2">
+                  <span class="status-label">{{ status.label }}</span>
+                  <span :class="statusClass(status.type)" class="cf-mini-badge">{{ status.count }}</span>
+               </div>
             </div>
 
-            <!-- Pedidos Reais do Usuário -->
-            <div v-for="order in validOrders" :key="order.id" class="card mb-4">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <div>
-                    <h5 class="card-title mb-1">Pedido #{{ order.id }}</h5>
-                    <p class="text-muted small mb-0">
-                      <i class="fas fa-calendar me-1"></i>
-                      {{ formatDate(order.date) }}
-                    </p>
-                    <p class="text-muted small mb-0">
-                      <i class="fas fa-shopping-bag me-1"></i>
-                      {{ order.items.length }} item(ns)
-                    </p>
-                    <p class="text-muted small mb-0">
-                      <i class="fas fa-truck me-1"></i>
-                      {{ getDeliveryTypeText(order.deliveryType) }}
-                    </p>
-                  </div>
-                  <div class="text-end">
-                    <span :class="statusClass(order.status)" class="badge mb-2">
-                      {{ statusText(order.status) }}
-                    </span>
-                    <p class="h4 text-primary mb-0">R$ {{ getOrderTotal(order) }}</p>
-                  </div>
-                </div>
-
-                <!-- Itens do Pedido -->
-                <div class="mb-3">
-                  <div v-for="item in order.items" :key="item.id" class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <div class="d-flex align-items-center">
-                      <img :src="getItemImage(item)" :alt="item.name" class="rounded me-3" width="40" height="40">
-                      <div>
-                        <h6 class="mb-0 small">{{ item.name }}</h6>
-                        <small class="text-muted">Qtd: {{ item.quantity }} × R$ {{ item.price.toFixed(2) }}</small>
-                      </div>
-                    </div>
-                    <span class="fw-bold">R$ {{ (item.price * item.quantity).toFixed(2) }}</span>
-                  </div>
-                </div>
-
-                <!-- Informações de Entrega -->
-                <div class="delivery-info mb-3 p-3 bg-light rounded">
-                  <h6 class="mb-2">
-                    <i class="fas fa-map-marker-alt me-1"></i>
-                    {{ order.deliveryType === 'delivery' ? 'Entrega em:' : 'Retirada em:' }}
-                  </h6>
-                  <p class="small mb-1" v-if="order.deliveryType === 'delivery' && order.deliveryInfo">
-                    {{ order.deliveryInfo.street }}, {{ order.deliveryInfo.number }} - 
-                    {{ order.deliveryInfo.neighborhood }}, {{ order.deliveryInfo.city }}
-                  </p>
-                  <p class="small mb-1" v-else-if="order.deliveryType === 'pickup' && order.deliveryInfo">
-                    {{ order.deliveryInfo.name || 'ClickFarma' }} - 
-                    {{ order.deliveryInfo.address || order.deliveryInfo.street }}
-                  </p>
-                </div>
-
-                <!-- Ações -->
-                <div class="d-flex gap-2">
-                  <button class="btn btn-outline-primary btn-sm" @click="viewOrderDetails(order)">
-                    <i class="fas fa-eye me-1"></i>Detalhes
-                  </button>
-                  
-                  <button 
-                    class="btn btn-outline-success btn-sm" 
-                    @click="trackOrder(order)"
-                  >
-                    <i class="fas fa-shipping-fast me-1"></i>Rastrear
-                  </button>
-                  
-                  <button 
-                    v-if="order.status === 'confirmed' || order.status === 'processing'" 
-                    class="btn btn-outline-danger btn-sm" 
-                    @click="cancelOrder(order)"
-                  >
-                    <i class="fas fa-times me-1"></i>Cancelar
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sidebar de Resumo -->
-          <div class="col-lg-4">
-            <div class="card">
-              <div class="card-header">
-                <h6 class="mb-0">📊 Resumo dos Pedidos</h6>
-              </div>
-              <div class="card-body">
-                <div class="small">
-                  <p><strong>Total de pedidos:</strong> {{ validOrders.length }}</p>
-                  <p><strong>Último pedido:</strong> {{ lastOrderDate }}</p>
-                  <p><strong>Valor médio:</strong> R$ {{ averageOrderValue }}</p>
-                  <p><strong>Total gasto:</strong> R$ {{ totalSpent }}</p>
-                  
-                  <!-- Status dos Pedidos -->
-                  <div class="mt-3">
-                    <h6 class="mb-2">Status dos Pedidos:</h6>
-                    <div v-for="status in orderStatusCount" :key="status.type" class="d-flex justify-content-between small mb-1">
-                      <span>{{ status.label }}:</span>
-                      <span class="badge" :class="statusClass(status.type)">{{ status.count }}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <hr>
-                
-                <!-- Ações Rápidas -->
-                <div class="text-center">
-                  <router-link to="/products" class="btn btn-primary btn-sm w-100 mb-2">
-                    <i class="fas fa-plus me-1"></i>Fazer Novo Pedido
-                  </router-link>
-                  <button 
-                    v-if="hasOrders" 
-                    class="btn btn-warning btn-sm w-100" 
-                    @click="clearAllOrders"
-                  >
-                    <i class="fas fa-broom me-1"></i>Limpar Todos os Pedidos
-                  </button>
-                  <small class="text-muted d-block mt-1">Remove todos os pedidos da lista</small>
-                </div>
-              </div>
-            </div>
+            <router-link to="/products" class="btn btn-primary w-100 mt-5">
+              Fazer Novo Pedido
+              <i class="fa-solid fa-plus ms-1"></i>
+            </router-link>
           </div>
         </div>
       </div>
@@ -194,47 +138,25 @@ export default {
     }
   },
   computed: {
-    hasOrders() {
-      return this.validOrders.length > 0
-    },
-    
+    hasOrders() { return this.validOrders.length > 0 },
     validOrders() {
-      // Filtra apenas pedidos válidos e ordena por data (mais recente primeiro)
       return this.orders
         .filter(order => this.isValidOrder(order))
         .sort((a, b) => new Date(b.date) - new Date(a.date))
     },
-    
-    lastOrderDate() {
-      if (this.validOrders.length === 0) return 'N/A'
-      return this.formatDate(this.validOrders[0].date)
-    },
-    
     averageOrderValue() {
-      if (this.validOrders.length === 0) return '0.00'
-      const total = this.validOrders.reduce((sum, order) => {
-        return sum + this.calculateOrderTotal(order)
-      }, 0)
+      if (this.validOrders.length === 0) return '0,00'
+      const total = this.validOrders.reduce((sum, order) => sum + this.calculateOrderTotal(order), 0)
       return (total / this.validOrders.length).toFixed(2)
     },
-    
     totalSpent() {
-      const total = this.validOrders.reduce((sum, order) => {
-        return sum + this.calculateOrderTotal(order)
-      }, 0)
-      return total.toFixed(2)
+      return this.validOrders.reduce((sum, order) => sum + this.calculateOrderTotal(order), 0).toFixed(2)
     },
-    
     orderStatusCount() {
       const statusCount = {}
-      
       this.validOrders.forEach(order => {
-        if (!statusCount[order.status]) {
-          statusCount[order.status] = 0
-        }
-        statusCount[order.status]++
+        statusCount[order.status] = (statusCount[order.status] || 0) + 1
       })
-      
       return Object.keys(statusCount).map(status => ({
         type: status,
         label: this.statusText(status),
@@ -243,217 +165,76 @@ export default {
     }
   },
   methods: {
-    isValidOrder(order) {
-      // VALIDAÇÃO RIGOROSA - apenas pedidos reais
-      return order && 
-             order.id && 
-             order.id.startsWith('ORD-') && // Deve começar com ORD-
-             order.items && 
-             Array.isArray(order.items) && 
-             order.items.length > 0 &&
-             order.date &&
-             order.total !== undefined &&
-             order.total !== null &&
-             order.total > 0 && // Total deve ser maior que zero
-             order.paymentMethod && // Deve ter método de pagamento
-             order.deliveryType // Deve ter tipo de entrega
-    },
-    
-    formatDate(dateString) {
-      if (!dateString) return 'Data não disponível'
-      try {
-        return new Date(dateString).toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      } catch (error) {
-        return 'Data inválida'
-      }
-    },
-    
+    isValidOrder(order) { return order && order.id && order.items && order.date; },
+    formatDate(dateString) { return dateString ? new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'; },
     statusClass(status) {
-      const statusClasses = {
-        'confirmed': 'bg-primary',
-        'processing': 'bg-info',
-        'shipped': 'bg-warning',
-        'out_for_delivery': 'bg-warning text-dark',
-        'delivered': 'bg-success',
-        'cancelled': 'bg-danger'
-      }
-      return statusClasses[status] || 'bg-secondary'
+      const classes = { 'confirmed': 'badge-warning', 'processing': 'badge-warning', 'shipped': 'badge-success', 'delivered': 'badge-success', 'cancelled': 'badge-danger' };
+      return classes[status] || 'badge-secondary';
     },
-    
     statusText(status) {
-      const statusTexts = {
-        'confirmed': 'Confirmado',
-        'processing': 'Processando',
-        'shipped': 'Enviado',
-        'out_for_delivery': 'Saiu para Entrega',
-        'delivered': 'Entregue',
-        'cancelled': 'Cancelado'
-      }
-      return statusTexts[status] || status
+      const texts = { 'confirmed': 'Confirmado', 'processing': 'Em Preparo', 'shipped': 'Enviado', 'delivered': 'Entregue', 'cancelled': 'Cancelado' };
+      return texts[status] || status;
     },
-    
-    getDeliveryTypeText(deliveryType) {
-      return deliveryType === 'delivery' ? 'Entrega' : 'Retirada'
-    },
-    
-    calculateOrderTotal(order) {
-      if (order.total !== null && order.total !== undefined && !isNaN(order.total)) {
-        return parseFloat(order.total)
-      }
-      
-      if (order.items && order.items.length > 0) {
-        return order.items.reduce((sum, item) => {
-          const price = parseFloat(item.price) || 0
-          const quantity = parseInt(item.quantity) || 0
-          return sum + (price * quantity)
-        }, 0)
-      }
-      
-      return 0
-    },
-    
-    getOrderTotal(order) {
-      return this.calculateOrderTotal(order).toFixed(2)
-    },
-    
-    getItemImage(item) {
-      return item.image || 'https://via.placeholder.com/40x40?text=Produto'
-    },
-    
-    async refreshOrders() {
-      this.loading = true
-      try {
-        await this.loadOrders()
-        setTimeout(() => {
-          this.loading = false
-        }, 500)
-      } catch (error) {
-        console.error('Erro ao atualizar pedidos:', error)
-        this.loading = false
-      }
-    },
-    
-    viewOrderDetails(order) {
-      // Navega para a página de detalhes do pedido
-      this.$router.push(`/tracking/${order.id}`)
-    },
-    
-    trackOrder(order) {
-      // Navega para a página de rastreamento
-      this.$router.push(`/tracking/${order.id}`)
-    },
-    
-    cancelOrder(order) {
-      if (confirm(`Tem certeza que deseja cancelar o pedido #${order.id}?`)) {
-        order.status = 'cancelled'
-        this.saveOrdersToStorage()
-        alert('Pedido cancelado com sucesso!')
-      }
-    },
-    
-    clearAllOrders() {
-      if (confirm('TEM CERTEZA que deseja remover TODOS os pedidos?\nEsta ação não pode ser desfeita.')) {
-        this.orders = []
-        this.saveOrdersToStorage()
-        alert('Todos os pedidos foram removidos!')
-      }
-    },
-    
+    calculateOrderTotal(order) { return order.total || order.items.reduce((s, i) => s + (i.price * i.quantity), 0); },
+    getOrderTotal(order) { return this.calculateOrderTotal(order).toFixed(2).replace('.', ','); },
+    async refreshOrders() { this.loading = true; setTimeout(() => { this.loadOrders(); this.loading = false; }, 800); },
+    viewOrderDetails(order) { this.$router.push(`/tracking/${order.id}`); },
+    trackOrder(order) { this.$router.push(`/tracking/${order.id}`); },
+    clearAllOrders() { if(confirm('Remover histórico?')) { this.orders = []; localStorage.removeItem('userOrders'); } },
     loadOrders() {
-      console.log('🔄 Buscando pedidos reais do usuário...')
-      
-      const savedOrders = localStorage.getItem('userOrders')
-      
-      if (!savedOrders) {
-        console.log('✅ Nenhum pedido encontrado - estado inicial limpo')
-        this.orders = []
-        return
-      }
-      
-      try {
-        const parsedOrders = JSON.parse(savedOrders)
-        console.log('📦 Pedidos brutos encontrados:', parsedOrders.length)
-        
-        // FILTRAGEM RIGOROSA - apenas pedidos válidos
-        this.orders = parsedOrders.filter(order => this.isValidOrder(order))
-        console.log('✅ Pedidos válidos após filtro:', this.orders.length)
-        
-        if (this.orders.length !== parsedOrders.length) {
-          console.log('🧹 Pedidos inválidos removidos:', parsedOrders.length - this.orders.length)
-          this.saveOrdersToStorage()
-        }
-        
-      } catch (error) {
-        console.error('❌ Erro ao carregar pedidos:', error)
-        this.orders = []
-        localStorage.removeItem('userOrders')
-      }
-    },
-    
-    saveOrdersToStorage() {
-      if (this.orders.length > 0) {
-        localStorage.setItem('userOrders', JSON.stringify(this.orders))
-        console.log('💾 Pedidos válidos salvos:', this.orders.length)
-      } else {
-        localStorage.removeItem('userOrders')
-        console.log('🗑️ localStorage limpo - nenhum pedido válido')
-      }
+      const saved = localStorage.getItem('userOrders');
+      if (saved) this.orders = JSON.parse(saved);
     }
   },
-  
-  mounted() {
-    this.loadOrders()
-    console.log('🎯 Estado atual dos pedidos:')
-    console.log('- Pedidos carregados:', this.orders.length)
-    console.log('- Pedidos válidos:', this.validOrders.length)
-    
-    // Log detalhado dos pedidos
-    this.validOrders.forEach((order, index) => {
-      console.log(`📦 Pedido ${index + 1}:`, {
-        id: order.id,
-        status: order.status,
-        total: order.total,
-        items: order.items.length,
-        date: order.date
-      })
-    })
-  }
+  mounted() { this.loadOrders(); }
 }
 </script>
 
 <style scoped>
-.orders-page {
-  min-height: 80vh;
-  background-color: #f8f9fa;
-}
+.orders-page { background: var(--cf-white); min-height: 90vh; }
 
-.empty-state {
-  padding: 3rem 1rem;
-}
+.header-wrap { border-bottom: 1px solid var(--cf-border); padding-bottom: 1.5rem; }
 
-.card {
-  border: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-}
+/* EMPTY STATE */
+.empty-state-box { padding: 4rem 2rem; background: var(--cf-ivory); border-radius: var(--cf-r-xl); border: 1px solid var(--cf-border); }
+.empty-icon-wrap { width: 100px; height: 100px; background: white; border-radius: 50%; color: var(--cf-text-faint); display: flex; align-items: center; justify-content: center; font-size: 3rem; margin: 0 auto; box-shadow: var(--cf-shadow-sm); }
+.section-title-sm { font-family: var(--cf-sans); font-size: 1.8rem; font-weight: 600; color: var(--cf-text-dark); }
 
-.card:hover {
-  transform: translateY(-2px);
-}
+/* ORDER CARD */
+.order-stats-bar { background: var(--cf-green-xlight); border-radius: var(--cf-r-md); border: 1px solid var(--cf-border); }
+.stats-text { font-size: 0.85rem; color: var(--cf-green-dark); }
+.btn-clear { background: transparent; border: none; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
 
-.delivery-info {
-  border-left: 4px solid #007bff;
-}
+.cf-order-card { background: white; border: 1px solid var(--cf-border); border-radius: var(--cf-r-lg); overflow: hidden; transition: all 250ms; }
+.cf-order-card:hover { border-color: var(--cf-gold); transform: translateY(-2px); box-shadow: var(--cf-shadow-md); }
+.order-header { border-bottom: 1px solid var(--cf-ivory); }
+.order-id { font-family: var(--cf-sans); font-size: 1.4rem; font-weight: 600; color: var(--cf-text-dark); display: block; }
+.order-meta { font-size: 0.75rem; color: var(--cf-text-muted); }
+.order-total-val { font-family: var(--cf-sans); font-size: 1.6rem; color: var(--cf-green); font-weight: 600; }
 
-.badge {
-  font-size: 0.7em;
-  padding: 0.4em 0.6em;
-}
+.item-visual-sm { width: 40px; height: 40px; background: var(--cf-ivory); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.item-name-sm { font-size: 0.9rem; color: var(--cf-text-dark); font-weight: 500; }
+.item-meta-sm { font-size: 0.75rem; color: var(--cf-text-faint); }
+.item-sub-total { font-family: var(--cf-sans); font-size: 0.95rem; font-weight: 600; color: var(--cf-text-dark); }
+.border-bottom-cf { border-bottom: 1px solid var(--cf-border); }
+
+/* SUMMARY CARD */
+.cf-summary-card { background: var(--cf-ivory); border: 1px solid var(--cf-border); border-radius: var(--cf-r-xl); padding: 2rem; position: sticky; top: 100px; }
+.summary-title { font-family: var(--cf-sans); font-size: 1.5rem; font-weight: 600; color: var(--cf-text-dark); }
+.stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cf-text-faint); font-weight: 600; display: block; }
+.stat-val-lg { font-size: 2rem; font-weight: 600; font-family: var(--cf-sans); }
+.stat-val { font-size: 1.2rem; font-weight: 500; color: var(--cf-text-dark); font-family: var(--cf-sans); }
+
+.summary-subtitle { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cf-text-faint); font-weight: 600; margin-top: 1rem; }
+.status-row { display: flex; justify-content: space-between; align-items: center; }
+.status-label { font-size: 0.85rem; color: var(--cf-text-mid); }
+.cf-mini-badge { padding: 2px 8px; border-radius: 100px; font-size: 0.65rem; font-weight: 600; }
+
+.cf-badge { font-size: 0.65rem; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.badge-warning { background: var(--cf-gold-light); color: var(--cf-gold); }
+.badge-success { background: var(--cf-green-light); color: var(--cf-green); }
+.badge-danger { background: #F9EDED; color: var(--cf-danger); }
+.badge-secondary { background: var(--cf-cream); color: var(--cf-text-muted); }
+
+.text-green { color: var(--cf-green) !important; }
 </style>
-[file content end]
