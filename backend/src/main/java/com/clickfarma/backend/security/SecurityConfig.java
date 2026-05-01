@@ -36,6 +36,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/telegram/webhook").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/email/teste/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/produtos/**", "/api/categorias/**").permitAll()
                         .requestMatchers("/api/gemini/**", "/api/receita/**").permitAll() // AI and OCR features usually public or handled via API key
                         .requestMatchers(
@@ -52,6 +54,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/farmacias/**", "/api/motoboys/**").authenticated()
                         .requestMatchers("/api/pagamentos/**", "/api/historico/**").authenticated()
                         .requestMatchers("/api/pedidos/**").authenticated()
+                        // Para o fluxo academico/demo: permitir consulta de rastreio (se desejado manter público)
+                        .requestMatchers(HttpMethod.GET, "/api/rastreios/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
