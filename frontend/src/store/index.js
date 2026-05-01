@@ -329,7 +329,10 @@ export default createStore({
     orderTracking: {},
     // Modal Quick View
     quickViewProduct: null,
-    isQuickViewOpen: false
+    isQuickViewOpen: false,
+    // Auth Modal
+    isAuthModalOpen: false,
+    authModalMode: 'login'
   },
 
   getters: {
@@ -347,7 +350,9 @@ export default createStore({
     adminUsers: (state) => state.adminUsers,
     getOrderTracking: (state) => (orderId) => state.orderTracking[orderId],
     quickViewProduct: (state) => state.quickViewProduct,
-    isQuickViewOpen: (state) => state.isQuickViewOpen
+    isQuickViewOpen: (state) => state.isQuickViewOpen,
+    isAuthModalOpen: (state) => state.isAuthModalOpen,
+    authModalMode: (state) => state.authModalMode
   },
 
   mutations: {
@@ -437,8 +442,16 @@ export default createStore({
       state.isQuickViewOpen = false;
       // Não limpamos o produto imediatamente para evitar saltos na animação
     },
-    SET_CART(state, cart) {
+    setCart(state, cart) {
       state.cart = cart;
+    },
+    // Auth Modal Mutations
+    OPEN_AUTH_MODAL(state, mode = 'login') {
+      state.authModalMode = mode;
+      state.isAuthModalOpen = true;
+    },
+    CLOSE_AUTH_MODAL(state) {
+      state.isAuthModalOpen = false;
     }
   },
 
@@ -471,31 +484,52 @@ export default createStore({
       }
     },
 
-    async login({ commit }, credentials) {
+    async login({ commit, dispatch }, credentials) {
       try {
-        const response = await new Promise(resolve => setTimeout(() => {
-          resolve({
-            data: {
-              user: {
-                id: 1,
-                name: credentials.name || credentials.email,
-                email: credentials.email,
-                role: 'user'
-              },
-              token: 'mock-token-' + Math.random().toString(36).substr(2)
-            }
-          });
-        }, 1000));
+        console.log('🔐 Realizando login no backend:', credentials.email);
+        
+        // Chamada real ao serviço de autenticação
+        const response = await authService.login(credentials);
+        const data = response.data;
 
-        commit('SET_USER', response.data.user);
-        commit('SET_AUTH_TOKEN', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        // Se o backend retornar sucesso
+        commit('SET_USER', {
+          id: data.id,
+          name: data.nome,
+          email: data.email,
+          role: data.role
+        });
+        commit('SET_AUTH_TOKEN', data.token);
+        
+        localStorage.setItem('user', JSON.stringify({
+          id: data.id,
+          name: data.nome,
+          email: data.email,
+          role: data.role
+        }));
+
         console.log('✅ Login realizado com sucesso');
-        return response.data;
+        
+        // Sincronizar sacola após login
+        dispatch('loadCartFromBackend');
+        
+        return data;
       } catch (error) {
-        console.error('❌ Erro no login:', error);
-        throw error.response ? error.response.data : { message: 'Erro de conexão' };
+        console.error('❌ Erro no login:', error.response?.data || error.message);
+        throw error.response?.data || { message: 'Email ou senha inválidos' };
       }
+    },
+
+    openLoginModal({ commit }) {
+      commit('OPEN_AUTH_MODAL', 'login');
+    },
+
+    openRegisterModal({ commit }) {
+      commit('OPEN_AUTH_MODAL', 'register');
+    },
+
+    closeAuthModal({ commit }) {
+      commit('CLOSE_AUTH_MODAL');
     },
 
     // ⬇️⬇️⬇️ ACTION REGISTER CORRIGIDA ⬇️⬇️⬇️

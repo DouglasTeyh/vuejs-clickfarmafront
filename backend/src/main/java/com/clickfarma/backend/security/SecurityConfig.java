@@ -35,11 +35,9 @@ public class SecurityConfig {
                 // Desabilita o CSRF para todas as APIs (Stateless JWT)
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/farmacias/**", "/api/motoboys/**", "/api/dashboard/**").permitAll()
-                        .requestMatchers("/api/produtos/**", "/api/categorias/**", "/api/gemini/**", "/api/receita/**").permitAll()
-                        .requestMatchers("/api/pagamentos/**", "/api/historico/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/pedidos/**").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/pedidos/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/produtos/**", "/api/categorias/**").permitAll()
+                        .requestMatchers("/api/gemini/**", "/api/receita/**").permitAll() // AI and OCR features usually public or handled via API key
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -48,8 +46,12 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/pedidos").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios").permitAll()
+                        // Sensitive endpoints require authentication
+                        .requestMatchers("/api/dashboard/**", "/api/usuarios/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/farmacias/register", "/api/motoboys/register").permitAll()
+                        .requestMatchers("/api/farmacias/**", "/api/motoboys/**").authenticated()
+                        .requestMatchers("/api/pagamentos/**", "/api/historico/**").authenticated()
+                        .requestMatchers("/api/pedidos/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

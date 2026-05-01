@@ -89,8 +89,8 @@
 
             <!-- Não autenticado -->
             <template v-if="!isAuthenticated">
-              <router-link to="/login" class="cf-btn-ghost">Entrar</router-link>
-              <router-link to="/register" class="cf-btn-solid">Cadastrar</router-link>
+              <button @click="openLoginModal" class="cf-btn-ghost">Entrar</button>
+              <button @click="openRegisterModal" class="cf-btn-solid">Cadastrar</button>
             </template>
 
             <!-- Autenticado -->
@@ -140,7 +140,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['logout']),
+    ...mapActions(['logout', 'openLoginModal', 'openRegisterModal']),
     async handleLogout() { await this.logout(); this.$router.push('/') },
     handleSearch() {
       if (this.searchQuery.trim()) {
@@ -163,7 +163,7 @@ export default {
 <style scoped>
 /* ---- STICKY HEADER ---- */
 header {
-  position: sticky;
+  position: fixed;
   top: 0;
   z-index: 1001;
   width: 100%;

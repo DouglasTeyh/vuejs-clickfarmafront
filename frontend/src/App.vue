@@ -3,7 +3,7 @@
     <!-- Header e chatbot APENAS fora dos painéis -->
     <template v-if="!isDashboardRoute">
       <Header />
-      <main class="main-content">
+      <main class="main-content" :class="{ 'blur-bg': isAuthModalOpen }">
         <router-view />
       </main>
       <div v-show="!isChatOpen" class="gemini-floating-btn" @click="toggleChat">
@@ -16,6 +16,11 @@
         :isOpen="isQuickViewOpen"
         :product="quickViewProduct"
         @close="closeQuickView"
+      />
+      <AuthModal 
+        :isOpen="isAuthModalOpen"
+        :initialMode="authModalMode"
+        @close="closeAuthModal"
       />
       <Footer />
     </template>
@@ -32,16 +37,17 @@ import Header from '@/components/common/Header.vue'
 import Footer from '@/components/common/Footer.vue'
 import GeminiChat from '@/components/gemini/GeminiChat.vue'
 import ProductQuickView from '@/components/products/ProductQuickView.vue'
+import AuthModal from '@/components/auth/AuthModal.vue'
 import { mapState, mapActions } from 'vuex'
 
 export default {
   name: 'App',
-  components: { Header, Footer, GeminiChat, ProductQuickView },
+  components: { Header, Footer, GeminiChat, ProductQuickView, AuthModal },
   data() {
     return { isChatOpen: false };
   },
   computed: {
-    ...mapState(['isQuickViewOpen', 'quickViewProduct']),
+    ...mapState(['isQuickViewOpen', 'quickViewProduct', 'isAuthModalOpen', 'authModalMode']),
     isDashboardRoute() {
       const path = this.$route.path;
       return path.startsWith('/admin') || 
@@ -55,7 +61,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['closeQuickView']),
+    ...mapActions(['closeQuickView', 'closeAuthModal']),
     toggleChat() { this.isChatOpen = !this.isChatOpen; }
   }
 }
@@ -63,7 +69,18 @@ export default {
 
 <style>
 body { background-color: var(--cf-ivory) !important; }
-.main-content { min-height: calc(100vh - 160px); background: var(--cf-ivory); }
+.main-content { 
+  min-height: calc(100vh - 160px); 
+  background: var(--cf-ivory);
+  padding-top: 110px; /* Offset for fixed header */
+  transition: filter 0.3s ease;
+}
+
+.main-content.blur-bg {
+  filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+}
 
 .gemini-floating-btn {
   position: fixed; bottom: 25px; right: 25px;
