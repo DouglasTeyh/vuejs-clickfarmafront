@@ -4,7 +4,7 @@
       
       <div class="header-wrap mb-5 fade-in-up">
         <span class="section-eyebrow">Minha Conta</span>
-        <h1 class="section-title">Olá, <em>{{ profile.name || 'Usuário' }}</em></h1>
+        <h1 class="section-title">Olá, <em>{{ profile.nome || 'Usuário' }}</em></h1>
       </div>
 
       <div class="row g-4">
@@ -19,14 +19,6 @@
               >
                 <i class="fa-solid fa-user-gear"></i>
                 Dados Pessoais
-              </button>
-              <button 
-                @click="activeSection = 'addresses'"
-                class="nav-link-cf"
-                :class="{ active: activeSection === 'addresses' }"
-              >
-                <i class="fa-solid fa-location-dot"></i>
-                Meus Endereços
               </button>
               <button 
                 @click="activeSection = 'security'"
@@ -53,6 +45,11 @@
                <span class="stats-label">Nível de Fidelidade</span>
                <div class="fidelity-badge">Cliente Premium</div>
             </div>
+            
+            <button @click="handleLogout" class="btn btn-outline-danger w-100 mt-4">
+              <i class="fa-solid fa-right-from-bracket me-2"></i>
+              Sair da Conta
+            </button>
           </div>
         </div>
 
@@ -65,134 +62,176 @@
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="section-title-sm">Dados Pessoais</h3>
                 <button 
-                  @click="toggleEditMode('personal')"
+                  @click="toggleEditMode"
                   class="btn btn-sm"
-                  :class="editMode.personal ? 'btn-outline-danger' : 'btn-outline-primary'"
+                  :class="isEditing ? 'btn-outline-danger' : 'btn-outline-primary'"
                 >
-                  <i class="fa-solid" :class="editMode.personal ? 'fa-xmark' : 'fa-pen-to-square'"></i>
-                  {{ editMode.personal ? 'Cancelar' : 'Editar' }}
+                  <i class="fa-solid" :class="isEditing ? 'fa-xmark' : 'fa-pen-to-square'"></i>
+                  {{ isEditing ? 'Cancelar' : 'Editar Perfil' }}
                 </button>
               </div>
 
-              <form @submit.prevent="updateProfile" class="cf-form">
+              <form @submit.prevent="handleUpdateProfile" class="cf-form">
                 <div class="row g-4">
                   <div class="col-md-6">
                     <label class="form-label">Nome Completo</label>
                     <input 
-                      v-model="profile.name" 
+                      v-model="profile.nome" 
                       type="text" 
                       class="form-control" 
-                      :disabled="!editMode.personal"
+                      :disabled="!isEditing"
+                      required
                     >
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label">E-mail</label>
+                    <label class="form-label">E-mail (Não editável)</label>
                     <input 
                       v-model="profile.email" 
                       type="email" 
                       class="form-control" 
-                      :disabled="!editMode.personal"
+                      disabled
                     >
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Telefone celular</label>
                     <input 
-                      v-model="profile.phone" 
+                      v-model="profile.telefone" 
                       type="tel" 
                       class="form-control"
-                      :disabled="!editMode.personal"
+                      :disabled="!isEditing"
                       placeholder="(00) 00000-0000"
                     >
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label">Data de Nascimento</label>
+                    <label class="form-label">CPF (Não editável)</label>
                     <input 
-                      v-model="profile.birthDate" 
-                      type="date" 
+                      v-model="profile.cpf" 
+                      type="text" 
                       class="form-control"
-                      :disabled="!editMode.personal"
+                      disabled
                     >
                   </div>
-                  <div class="col-md-12">
-                     <label class="form-label">CPF (Apenas leitura)</label>
-                     <input 
-                       v-model="profile.cpf" 
-                       type="text" 
-                       class="form-control"
-                       disabled
-                     >
+
+                  <div class="col-12 mt-4">
+                    <h5 class="text-muted border-bottom pb-2 mb-3">Endereço</h5>
                   </div>
+
+                  <div class="col-md-4">
+                    <label class="form-label">CEP</label>
+                    <div class="input-group">
+                      <input 
+                        v-model="profile.cep" 
+                        @blur="lookupCep"
+                        type="text" 
+                        class="form-control"
+                        :disabled="!isEditing"
+                        maxlength="9"
+                        placeholder="00000-000"
+                      >
+                      <span v-if="loadingCep" class="input-group-text bg-white">
+                        <i class="fa-solid fa-spinner fa-spin text-primary"></i>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="col-md-8">
+                    <label class="form-label">Logradouro</label>
+                    <input 
+                      v-model="profile.logradouro" 
+                      type="text" 
+                      class="form-control"
+                      :disabled="!isEditing"
+                    >
+                  </div>
+
+                  <div class="col-md-3">
+                    <label class="form-label">Número</label>
+                    <input 
+                      v-model="profile.numero" 
+                      type="text" 
+                      class="form-control"
+                      :disabled="!isEditing"
+                    >
+                  </div>
+
+                  <div class="col-md-5">
+                    <label class="form-label">Bairro</label>
+                    <input 
+                      v-model="profile.bairro" 
+                      type="text" 
+                      class="form-control"
+                      :disabled="!isEditing"
+                    >
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="form-label">Complemento</label>
+                    <input 
+                      v-model="profile.complemento" 
+                      type="text" 
+                      class="form-control"
+                      :disabled="!isEditing"
+                    >
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Cidade (Preenchido via CEP)</label>
+                    <input 
+                      v-model="profile.cidade" 
+                      type="text" 
+                      class="form-control"
+                      disabled
+                    >
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Estado (Preenchido via CEP)</label>
+                    <input 
+                      v-model="profile.estado" 
+                      type="text" 
+                      class="form-control"
+                      disabled
+                    >
+                  </div>
+                  
+                  <!-- Campos específicos para Farmácia -->
+                  <template v-if="userRole === 'PHARMACY'">
+                    <div class="col-12 mt-4">
+                      <h5 class="text-muted border-bottom pb-2 mb-3">Dados Profissionais (Farmácia)</h5>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">CNPJ (Não editável)</label>
+                      <input 
+                        v-model="profile.cnpj" 
+                        type="text" 
+                        class="form-control"
+                        disabled
+                      >
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Chave PIX (Para Recebimento)</label>
+                      <input 
+                        v-model="profile.chavePix" 
+                        type="text" 
+                        class="form-control"
+                        :disabled="!isEditing"
+                        placeholder="Email, CPF, Telefone ou Aleatória"
+                      >
+                    </div>
+                  </template>
                 </div>
 
-                <div v-if="editMode.personal" class="mt-5 d-flex gap-3">
-                  <button type="submit" class="btn btn-primary px-5">
-                    <i class="fa-solid fa-floppy-disk me-2"></i>
+                <div v-if="isEditing" class="mt-5 d-flex gap-3">
+                  <button type="submit" class="btn btn-primary px-5" :disabled="isSaving">
+                    <i v-if="isSaving" class="fa-solid fa-spinner fa-spin me-2"></i>
+                    <i v-else class="fa-solid fa-floppy-disk me-2"></i>
                     Salvar Alterações
+                  </button>
+                  <button type="button" @click="cancelEdit" class="btn btn-light px-4">
+                    Descartar
                   </button>
                 </div>
               </form>
-            </div>
-
-            <!-- SEÇÃO ENDEREÇOS -->
-            <div v-show="activeSection === 'addresses'" class="section-content">
-              <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="section-title-sm">Meus Endereços</h3>
-                <button 
-                  v-if="!showAddAddressForm"
-                  @click="showAddAddressForm = true"
-                  class="btn btn-sm btn-primary"
-                >
-                  <i class="fa-solid fa-plus me-1"></i>
-                  Novo Endereço
-                </button>
-              </div>
-
-              <div class="addresses-grid" v-if="!showAddAddressForm">
-                <div v-for="address in addresses" :key="address.id" class="cf-address-card">
-                  <div class="d-flex justify-content-between">
-                    <div class="address-icon-wrap">
-                      <i class="fa-solid fa-house-user"></i>
-                    </div>
-                    <div class="address-actions">
-                      <button class="icon-btn"><i class="fa-solid fa-pen"></i></button>
-                      <button class="icon-btn text-danger"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                  </div>
-                  <h5 class="address-nick mt-3">{{ address.nickname }}</h5>
-                  <p class="address-text">{{ address.street }}, {{ address.number }}</p>
-                  <p class="address-text">{{ address.neighborhood }} - {{ address.city }}/{{ address.state }}</p>
-                  <p class="address-text mb-3">CEP: {{ address.zipCode }}</p>
-                  <span v-if="address.isDefault" class="cf-badge badge-success">Padrão</span>
-                </div>
-              </div>
-
-              <div v-else class="cf-form-box fade-in">
-                 <h4 class="form-box-title mb-4">Adicionar Endereço</h4>
-                 <form @submit.prevent="addAddress">
-                    <div class="row g-3">
-                       <div class="col-md-6">
-                         <label class="form-label">Apelido (ex: Casa)</label>
-                         <input v-model="newAddress.nickname" type="text" class="form-control" placeholder="Trabalho, Casa da Mãe...">
-                       </div>
-                       <div class="col-md-6">
-                         <label class="form-label">CEP</label>
-                         <input v-model="newAddress.zipCode" type="text" class="form-control">
-                       </div>
-                       <div class="col-md-10">
-                         <label class="form-label">Logradouro</label>
-                         <input v-model="newAddress.street" type="text" class="form-control">
-                       </div>
-                       <div class="col-md-2">
-                         <label class="form-label">Núm.</label>
-                         <input v-model="newAddress.number" type="text" class="form-control">
-                       </div>
-                    </div>
-                    <div class="mt-4 d-flex gap-2">
-                      <button type="submit" class="btn btn-primary">Salvar</button>
-                      <button type="button" class="btn btn-outline-primary" @click="cancelAddAddress">Cancelar</button>
-                    </div>
-                 </form>
-              </div>
             </div>
 
             <!-- SEÇÃO SEGURANÇA -->
@@ -202,20 +241,23 @@
                  <div class="col-md-12">
                    <div class="cf-form-box">
                       <h4 class="form-box-title mb-3">Alterar Senha</h4>
-                      <form @submit.prevent="changePassword">
+                      <form @submit.prevent="handleChangePassword">
                         <div class="mb-3">
                           <label class="form-label">Senha Atual</label>
-                          <input v-model="passwordForm.currentPassword" type="password" class="form-control">
+                          <input v-model="passwordForm.currentPassword" type="password" class="form-control" required>
                         </div>
                         <div class="mb-3">
                           <label class="form-label">Nova Senha</label>
-                          <input v-model="passwordForm.newPassword" type="password" class="form-control">
+                          <input v-model="passwordForm.newPassword" type="password" class="form-control" required minlength="6">
                         </div>
                         <div class="mb-4">
                           <label class="form-label">Confirmar Nova Senha</label>
-                          <input v-model="passwordForm.confirmPassword" type="password" class="form-control">
+                          <input v-model="passwordForm.confirmPassword" type="password" class="form-control" required>
                         </div>
-                        <button type="submit" class="btn btn-primary px-4">Atualizar Senha</button>
+                        <button type="submit" class="btn btn-primary px-4" :disabled="isChangingPassword">
+                          <i v-if="isChangingPassword" class="fa-solid fa-spinner fa-spin me-2"></i>
+                          Atualizar Senha
+                        </button>
                       </form>
                    </div>
                  </div>
@@ -230,46 +272,177 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex';
+import { cepService } from '@/services/cepService';
+import authService from '@/services/auth';
 
 export default {
   name: 'Profile',
   data() {
     return {
       activeSection: 'personal',
-      editMode: { personal: false },
-      showAddAddressForm: false,
-      profile: { name: '', email: '', phone: '', birthDate: '', cpf: '123.456.789-00' },
-      addresses: [
-        { id: 1, nickname: 'CasaPrincipal', street: 'Rua das Flores', number: '123', neighborhood: 'Centro', city: 'São Paulo', state: 'SP', zipCode: '01234-567', isDefault: true }
-      ],
-      newAddress: { nickname: '', street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' },
-      passwordForm: { currentPassword: '', newPassword: '', confirmPassword: '' },
-      memberSince: 'Janeiro de 2024'
+      isEditing: false,
+      isSaving: false,
+      isChangingPassword: false,
+      loadingCep: false,
+      profile: {
+        nome: '',
+        email: '',
+        telefone: '',
+        cpf: '',
+        cep: '',
+        logradouro: '',
+        numero: '',
+        bairro: '',
+        complemento: '',
+        cidade: '',
+        estado: '',
+        cnpj: '',
+        chavePix: ''
+      },
+      originalProfile: null,
+      passwordForm: {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      },
+      memberSince: ''
+    };
+  },
+  computed: {
+    ...mapState(['user']),
+    userRole() {
+      return this.user?.role?.toUpperCase() || 'USER';
     }
   },
-  computed: { ...mapState(['user']) },
-  mounted() {
-    if (this.user) {
-      this.profile.name = this.user.name || '';
-      this.profile.email = this.user.email || '';
-    }
+  async mounted() {
+    await this.loadProfileData();
   },
   methods: {
-    toggleEditMode(section) { this.editMode[section] = !this.editMode[section]; },
-    updateProfile() { alert('Perfil atualizado!'); this.editMode.personal = false; },
-    addAddress() {
-      this.addresses.push({ id: Date.now(), ...this.newAddress, isDefault: false });
-      this.cancelAddAddress();
+    ...mapActions(['logout']),
+    
+    async loadProfileData() {
+      try {
+        const response = await authService.getProfile();
+        const data = response.data;
+        
+        this.profile = {
+          nome: data.nome || '',
+          email: data.email || '',
+          telefone: data.telefone || '',
+          cpf: data.cpf || '',
+          cep: data.cep || '',
+          logradouro: data.logradouro || '',
+          numero: data.numero || '',
+          bairro: data.bairro || '',
+          complemento: data.complemento || '',
+          cidade: data.cidade || '',
+          estado: data.estado || '',
+          cnpj: data.cnpj || '',
+          chavePix: data.chavePix || ''
+        };
+        
+        this.originalProfile = { ...this.profile };
+        
+        if (data.dataCadastro) {
+          const date = new Date(data.dataCadastro);
+          this.memberSince = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        } else {
+          this.memberSince = 'Recentemente';
+        }
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+      }
     },
-    cancelAddAddress() { this.showAddAddressForm = false; this.newAddress = { nickname: '', street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '' }; },
-    changePassword() {
-      if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) return alert('Senhas não coincidem');
-      alert('Senha alterada!');
-      this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+
+    toggleEditMode() {
+      if (this.isEditing) {
+        this.cancelEdit();
+      } else {
+        this.isEditing = true;
+      }
+    },
+
+    cancelEdit() {
+      this.profile = { ...this.originalProfile };
+      this.isEditing = false;
+    },
+
+    async lookupCep() {
+      const cep = this.profile.cep?.replace(/\D/g, '');
+      if (cep && cep.length === 8) {
+        this.loadingCep = true;
+        try {
+          const data = await cepService.buscarCep(cep);
+          if (!data.erro) {
+            this.profile.logradouro = data.logradouro;
+            this.profile.bairro = data.bairro;
+            this.profile.cidade = data.localidade;
+            this.profile.estado = data.uf;
+          }
+        } catch (error) {
+          console.error('Erro ao buscar CEP:', error);
+        } finally {
+          this.loadingCep = false;
+        }
+      }
+    },
+
+    async handleUpdateProfile() {
+      this.isSaving = true;
+      try {
+        await authService.updateProfile(this.profile);
+        this.originalProfile = { ...this.profile };
+        this.isEditing = false;
+        alert('Perfil atualizado com sucesso!');
+        
+        // Atualiza o usuário no Vuex
+        this.$store.commit('SET_USER', {
+          ...this.user,
+          name: this.profile.nome
+        });
+        localStorage.setItem('user', JSON.stringify({
+          ...this.user,
+          name: this.profile.nome
+        }));
+      } catch (error) {
+        console.error('Erro ao atualizar perfil:', error);
+        alert('Erro ao atualizar perfil: ' + (error.response?.data?.message || error.message));
+      } finally {
+        this.isSaving = false;
+      }
+    },
+
+    async handleChangePassword() {
+      if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
+        alert('A nova senha e a confirmação não coincidem.');
+        return;
+      }
+      
+      this.isChangingPassword = true;
+      try {
+        await authService.changePassword({
+          currentPassword: this.passwordForm.currentPassword,
+          newPassword: this.passwordForm.newPassword
+        });
+        alert('Senha alterada com sucesso!');
+        this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+      } catch (error) {
+        console.error('Erro ao alterar senha:', error);
+        alert('Erro ao alterar senha: ' + (error.response?.data?.message || error.message));
+      } finally {
+        this.isChangingPassword = false;
+      }
+    },
+
+    async handleLogout() {
+      if (confirm('Tem certeza que deseja sair?')) {
+        this.logout();
+        this.$router.push('/');
+      }
     }
   }
-}
+};
 </script>
 
 <style scoped>
@@ -297,6 +470,7 @@ export default {
   text-align: left;
   transition: all 200ms;
   text-decoration: none;
+  width: 100%;
 }
 .nav-link-cf i { width: 20px; font-size: 1rem; color: var(--cf-text-faint); }
 .nav-link-cf:hover { background: var(--cf-white); color: var(--cf-green); }
@@ -318,30 +492,14 @@ export default {
 }
 .section-title-sm { font-family: var(--cf-sans); font-size: 1.8rem; font-weight: 600; color: var(--cf-green); }
 
-/* ADDRESS GRID */
-.addresses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-.cf-address-card {
-  padding: 1.75rem;
-  background: var(--cf-white);
-  border: 1px solid var(--cf-border);
-  border-radius: var(--cf-r-lg);
-  position: relative;
-  transition: all 220ms;
-}
-.cf-address-card:hover { border-color: var(--cf-gold); transform: translateY(-3px); box-shadow: var(--cf-shadow-sm); }
-.address-nick { font-family: var(--cf-sans); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem; }
-.address-text { font-size: 0.9rem; margin-bottom: 0.15rem; color: var(--cf-text-muted); }
-.address-icon-wrap { width: 40px; height: 40px; background: var(--cf-sage-tint); color: var(--cf-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
-.icon-btn { background: transparent; border: none; color: var(--cf-text-faint); padding: 5px; transition: color 200ms; }
-.icon-btn:hover { color: var(--cf-green); }
-
 .cf-form-box { background: var(--cf-ivory); padding: 2rem; border-radius: var(--cf-r-lg); border: 1px solid var(--cf-border); }
 .form-box-title { font-family: var(--cf-sans); font-size: 1.4rem; font-weight: 600; color: var(--cf-text-dark); }
 
-.cf-badge { font-size: 0.6rem; padding: 3px 10px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-.badge-success { background: var(--cf-green-light); color: var(--cf-green); }
-
 @media (max-width: 768px) {
   .cf-content-card { padding: 1.5rem; }
+}
+
+.input-group-text {
+  border-left: none;
 }
 </style>

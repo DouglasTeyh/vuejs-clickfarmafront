@@ -24,12 +24,16 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
             "(:nome IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :nome, '%'))) AND " +
             "(:categoriaId IS NULL OR p.categoria.id = :categoriaId) AND " +
             "(:precoMin IS NULL OR p.preco >= :precoMin) AND " +
-            "(:precoMax IS NULL OR p.preco <= :precoMax)")
+            "(:precoMax IS NULL OR p.preco <= :precoMax) AND " +
+            "(:cidade IS NULL OR LOWER(p.farmacia.cidade) = LOWER(:cidade))")
     List<Produto> buscarProdutosFiltrados(
             @Param("nome") String nome,
             @Param("categoriaId") Long categoriaId,
             @Param("precoMin") BigDecimal precoMin,
-            @Param("precoMax") BigDecimal precoMax);
+            @Param("precoMax") BigDecimal precoMax,
+            @Param("cidade") String cidade);
+
+    List<Produto> findByFarmaciaCidadeIgnoreCase(String cidade);
 
     // ========== MÉTODOS ADICIONAIS ==========
 

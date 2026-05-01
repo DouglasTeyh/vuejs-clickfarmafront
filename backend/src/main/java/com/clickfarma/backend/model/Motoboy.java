@@ -20,6 +20,27 @@ public class Motoboy {
     @Column(length = 20)
     private String telefone;
 
+    @Column(length = 9)
+    private String cep;
+
+    @Column(length = 200)
+    private String logradouro;
+
+    @Column(length = 20)
+    private String numero;
+
+    @Column(length = 100)
+    private String bairro;
+
+    @Column(length = 100)
+    private String cidade;
+
+    @Column(length = 2)
+    private String estado;
+
+    @Column(length = 200)
+    private String complemento;
+
     @Column(name = "chave_pix", length = 150)
     private String chavePix;
 
@@ -53,6 +74,27 @@ public class Motoboy {
     public void setCpf(String cpf) { this.cpf = cpf; }
     public String getTelefone() { return telefone; }
     public void setTelefone(String telefone) { this.telefone = telefone; }
+
+    public String getCep() { return cep; }
+    public void setCep(String cep) { this.cep = cep; }
+
+    public String getLogradouro() { return logradouro; }
+    public void setLogradouro(String logradouro) { this.logradouro = logradouro; }
+
+    public String getNumero() { return numero; }
+    public void setNumero(String numero) { this.numero = numero; }
+
+    public String getBairro() { return bairro; }
+    public void setBairro(String bairro) { this.bairro = bairro; }
+
+    public String getCidade() { return cidade; }
+    public void setCidade(String cidade) { this.cidade = cidade; }
+
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
+
+    public String getComplemento() { return complemento; }
+    public void setComplemento(String complemento) { this.complemento = complemento; }
     public String getChavePix() { return chavePix; }
     public void setChavePix(String chavePix) { this.chavePix = chavePix; }
     public String getTipoChavePix() { return tipoChavePix; }

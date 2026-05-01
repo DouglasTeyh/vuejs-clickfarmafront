@@ -559,12 +559,18 @@ export default createStore({
       console.log('✅ Logout realizado com sucesso');
     },
 
-    async fetchProducts({ commit }) {
+    async fetchProducts({ commit, state }, params = {}) {
       try {
-<<<<<<< main
-        console.log('📡 Buscando produtos da API backend...');
+        console.log('📡 Buscando produtos da API backend com params:', params);
         const api = require('../services/api').default;
-        const response = await api.get('/produtos');
+        
+        // Se o usuário estiver logado e não houver cidade nos params, usa a cidade do usuário
+        const finalParams = { ...params };
+        if (!finalParams.cidade && state.user && state.user.cidade) {
+            finalParams.cidade = state.user.cidade;
+        }
+
+        const response = await api.get('/produtos/buscar', { params: finalParams });
         
         const mappedProducts = response.data.map(p => ({
           id: p.id,
@@ -578,18 +584,7 @@ export default createStore({
         }));
         
         commit('SET_PRODUCTS', mappedProducts);
-=======
-        const mockProducts = [
-          { id: 1, name: 'Paracetamol 500mg', price: 12.90, category: 'Medicamentos', description: 'Analgésico e antitérmico', inStock: true },
-          { id: 2, name: 'Dipirona 500mg', price: 8.50, category: 'Medicamentos', description: 'Analgésico e antitérmico', inStock: true },
-          { id: 3, name: 'Shampoo Anti-Caspa', price: 24.90, category: 'Higiene', description: 'Shampoo para controle de caspa', inStock: true },
-          { id: 4, name: 'Vitamina C 1000mg', price: 45.00, category: 'Vitaminas', description: 'Suplemento de vitamina C', inStock: true },
-          { id: 5, name: 'Protetor Solar FPS 50', price: 32.90, category: 'Cosméticos', description: 'Protetor solar facial', inStock: false },
-          { id: 6, name: 'Fralda P - 30 unidades', price: 28.90, category: 'Maternidade', description: 'Fraldas para bebê', inStock: true }
-        ];
 
-        commit('SET_PRODUCTS', mockProducts);
->>>>>>> main
       } catch (error) {
         console.error('❌ Erro ao carregar produtos:', error);
       }
@@ -609,13 +604,8 @@ export default createStore({
         commit('SET_CATEGORIES', ['Medicamentos', 'Cosméticos', 'Higiene', 'Vitaminas', 'Maternidade']);
       }
     },
-<<<<<<< main
-    
     async addToCart({ commit, state, dispatch }, product) {
-=======
 
-    addToCart({ commit, state }, product) {
->>>>>>> main
       console.log('🛒 Action addToCart chamada para:', product.name);
 
       const existingItem = state.cart.find(item => item.id === product.id);
@@ -643,13 +633,8 @@ export default createStore({
         } catch (e) { console.error('Erro ao sincronizar sacola:', e); }
       }
     },
-<<<<<<< main
-    
     async removeFromCart({ commit, state }, productId) {
-=======
 
-    removeFromCart({ commit }, productId) {
->>>>>>> main
       commit('REMOVE_FROM_CART', productId);
       console.log('🗑️ Produto removido do carrinho:', productId);
 
@@ -658,13 +643,8 @@ export default createStore({
       // Vou assumir que o controller tem DELETE /sacola/remover-produto/{usuarioId}/{produtoId} ou similar
       // Para simplificar agora, vou apenas registrar que foi removido.
     },
-<<<<<<< main
-    
     async updateCartQuantity({ commit, state }, payload) {
-=======
 
-    updateCartQuantity({ commit }, payload) {
->>>>>>> main
       commit('UPDATE_CART_QUANTITY', payload);
       console.log('📦 Quantidade atualizada:', payload);
     },
@@ -673,8 +653,6 @@ export default createStore({
       commit('CLEAR_CART');
       console.log('🛒 Carrinho limpo');
     },
-<<<<<<< main
-    
     async loadCartFromBackend({ commit, state }) {
       if (!state.user) return;
       try {
@@ -690,8 +668,7 @@ export default createStore({
         commit('SET_CART', cart);
       } catch (e) { console.error('Erro ao carregar sacola:', e); }
     },
-=======
->>>>>>> main
+
 
     async processPayment({ commit, state }, paymentData) {
       try {

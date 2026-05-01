@@ -48,18 +48,12 @@
       </div>
     </div>
 
-<<<<<<< main
-    <div class="cf-alert-info mt-4 d-flex align-items-center p-3">
-      <i class="fas fa-shield-alt fa-lg me-3 cf-text-green"></i>
-      <p class="small mb-0">Você será redirecionado para o ambiente seguro do <strong>Mercado Pago</strong> ao finalizar.</p>
-=======
     <div class="alert alert-primary border-0 shadow-sm mt-4 d-flex align-items-center p-3">
       <i class="fas fa-shield-alt fa-lg me-3 text-primary"></i>
       <p class="small mb-0">
         No <strong>Mercado Pago</strong>, você será redirecionado para o ambiente seguro ao finalizar.
         No modo <strong>Simulado</strong>, o pedido é finalizado no próprio sistema.
       </p>
->>>>>>> main
     </div>
   </div>
 </template>

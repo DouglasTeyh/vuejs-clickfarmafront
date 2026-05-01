@@ -75,10 +75,11 @@ public class ProdutoController {
             @RequestParam(required = false) Long categoriaId,
             @RequestParam(required = false) BigDecimal precoMin,
             @RequestParam(required = false) BigDecimal precoMax,
-            @RequestParam(required = false) Boolean emEstoque) {
+            @RequestParam(required = false) Boolean emEstoque,
+            @RequestParam(required = false) String cidade) {
 
         return ResponseEntity.ok(produtoService.buscarComFiltros(
-                nome, categoriaId, precoMin, precoMax, emEstoque));
+                nome, categoriaId, precoMin, precoMax, emEstoque, cidade));
     }
 
     // PUT - Atualizar produto completo

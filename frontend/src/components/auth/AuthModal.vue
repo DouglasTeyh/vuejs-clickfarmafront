@@ -1,6 +1,6 @@
 <template>
   <div v-if="isOpen" class="auth-modal-overlay" @click.self="close">
-    <div class="auth-modal-content fade-in-up">
+    <div class="auth-modal-content fade-in-up" :class="{ 'wide-modal': !isLoginMode }">
       <button class="close-btn" @click="close" aria-label="Fechar">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -8,10 +8,38 @@
       </button>
 
       <div class="auth-modal-body">
-        <div class="auth-header mb-4">
+        <div class="auth-header mb-4 text-center">
           <img src="/images/Logotipo.svg" alt="ClickFarma" class="modal-logo mb-3">
           <h2 class="fw-bold">{{ isLoginMode ? 'Bem-vindo de volta' : 'Criar sua conta' }}</h2>
           <p class="text-muted">{{ isLoginMode ? 'Entre para gerenciar seus pedidos' : 'Junte-se à ClickFarma hoje mesmo' }}</p>
+        </div>
+
+        <!-- Role Selector (Only in Register) -->
+        <div v-if="!isLoginMode" class="role-selector mb-4">
+          <button 
+            type="button" 
+            class="role-btn" 
+            :class="{ active: registerData.role === 'CUSTOMER' }"
+            @click="registerData.role = 'CUSTOMER'"
+          >
+            <i class="fa-solid fa-user me-2"></i> Cliente
+          </button>
+          <button 
+            type="button" 
+            class="role-btn" 
+            :class="{ active: registerData.role === 'PHARMACY' }"
+            @click="registerData.role = 'PHARMACY'"
+          >
+            <i class="fa-solid fa-prescription-bottle-medical me-2"></i> Farmácia
+          </button>
+          <button 
+            type="button" 
+            class="role-btn" 
+            :class="{ active: registerData.role === 'COURIER' }"
+            @click="registerData.role = 'COURIER'"
+          >
+            <i class="fa-solid fa-motorcycle me-2"></i> Entregador
+          </button>
         </div>
 
         <!-- Login Form -->
@@ -46,44 +74,117 @@
         </form>
 
         <!-- Register Form -->
-        <form v-else @submit.prevent="handleRegister" class="auth-form">
-          <div class="mb-3">
-            <label class="form-label">Nome Completo</label>
-            <input 
-              type="text" 
-              class="form-control" 
-              v-model="registerData.nome" 
-              placeholder="Ex: João Silva"
-              required
-            >
+        <form v-else @submit.prevent="handleRegister" class="auth-form scrollable-form">
+          <div class="row g-3">
+            <!-- Basic Info -->
+            <div class="col-md-6">
+              <label class="form-label">Nome {{ registerData.role === 'PHARMACY' ? 'do Estabelecimento' : 'Completo' }} *</label>
+              <input type="text" class="form-control" v-model="registerData.nome" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email *</label>
+              <input type="email" class="form-control" v-model="registerData.email" required>
+            </div>
+
+            <!-- Documents -->
+            <div class="col-md-6" v-if="registerData.role === 'PHARMACY'">
+              <label class="form-label">CNPJ *</label>
+              <div class="input-group">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  v-model="registerData.cnpj" 
+                  v-maska="'##.###.###/####-##'"
+                  @blur="validateCnpj"
+                  placeholder="00.000.000/0000-00"
+                  required
+                >
+                <span v-if="validatingCnpj" class="input-group-text"><i class="fa-solid fa-spinner fa-spin"></i></span>
+              </div>
+            </div>
+            <div class="col-md-6" v-else>
+              <label class="form-label">CPF *</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                v-model="registerData.cpf" 
+                v-maska="'###.###.###-##'"
+                placeholder="000.000.000-00"
+                required
+              >
+            </div>
+
+            <!-- PIX for Pharmacy -->
+            <div class="col-md-6" v-if="registerData.role === 'PHARMACY'">
+              <label class="form-label">Chave PIX para Recebimento *</label>
+              <input type="text" class="form-control" v-model="registerData.chavePix" placeholder="Chave para repasses semanais" required>
+            </div>
+
+            <!-- Address Section -->
+            <div class="col-12 mt-4">
+              <h6 class="fw-bold border-bottom pb-2">Endereço</h6>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">CEP *</label>
+              <div class="input-group">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  v-model="registerData.cep" 
+                  v-maska="'#####-###'"
+                  @blur="handleCepBlur"
+                  placeholder="00000-000"
+                  required
+                >
+                <span v-if="loadingCep" class="input-group-text"><i class="fa-solid fa-spinner fa-spin"></i></span>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Logradouro *</label>
+              <input type="text" class="form-control" v-model="registerData.logradouro" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Número *</label>
+              <input type="text" class="form-control" v-model="registerData.numero" required>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label">Bairro *</label>
+              <input type="text" class="form-control" v-model="registerData.bairro" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Complemento</label>
+              <input type="text" class="form-control" v-model="registerData.complemento">
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label">Cidade</label>
+              <input type="text" class="form-control bg-light" v-model="registerData.cidade" readonly>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Estado</label>
+              <input type="text" class="form-control bg-light" v-model="registerData.estado" readonly>
+            </div>
+
+            <div class="col-12 mt-3">
+              <label class="form-label">Senha *</label>
+              <input 
+                type="password" 
+                class="form-control" 
+                v-model="registerData.senha" 
+                placeholder="Mínimo 6 caracteres"
+                required
+              >
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input 
-              type="email" 
-              class="form-control" 
-              v-model="registerData.email" 
-              placeholder="seu@email.com"
-              required
-            >
-          </div>
-          <div class="mb-4">
-            <label class="form-label">Senha</label>
-            <input 
-              type="password" 
-              class="form-control" 
-              v-model="registerData.senha" 
-              placeholder="Mínimo 6 caracteres"
-              required
-            >
-          </div>
-          <button type="submit" class="cf-btn-solid w-100 py-3 mb-3" :disabled="loading">
+
+          <button type="submit" class="cf-btn-solid w-100 py-3 mt-4 mb-3" :disabled="loading || validatingCnpj">
             <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
             {{ loading ? 'Criando conta...' : 'Cadastrar' }}
           </button>
         </form>
 
-        <div class="auth-footer text-center">
+        <div class="auth-footer text-center mt-3">
           <p class="mb-0">
             {{ isLoginMode ? 'Ainda não tem conta?' : 'Já tem uma conta?' }}
             <a href="#" class="toggle-link fw-bold" @click.prevent="toggleMode">
@@ -98,6 +199,8 @@
 
 <script>
 import { mapActions } from 'vuex'
+import { cepService } from '@/services/cepService'
+import { cnpjService } from '@/services/cnpjService'
 
 export default {
   name: 'AuthModal',
@@ -105,13 +208,15 @@ export default {
     isOpen: Boolean,
     initialMode: {
       type: String,
-      default: 'login' // 'login' or 'register'
+      default: 'login'
     }
   },
   data() {
     return {
       isLoginMode: this.initialMode === 'login',
       loading: false,
+      loadingCep: false,
+      validatingCnpj: false,
       loginData: {
         email: '',
         senha: ''
@@ -119,7 +224,18 @@ export default {
       registerData: {
         nome: '',
         email: '',
-        senha: ''
+        senha: '',
+        role: 'CUSTOMER',
+        cpf: '',
+        cnpj: '',
+        chavePix: '',
+        cep: '',
+        logradouro: '',
+        numero: '',
+        bairro: '',
+        cidade: '',
+        estado: '',
+        complemento: ''
       }
     }
   },
@@ -141,16 +257,66 @@ export default {
       try {
         await this.login(this.loginData);
         this.close();
-        this.$router.go(0); // Recarrega para garantir estado limpo
+        this.$router.go(0);
       } catch (error) {
         alert(error.message || 'Erro ao entrar. Verifique suas credenciais.');
       } finally {
         this.loading = false;
       }
     },
+    async validateCnpj() {
+      if (!this.registerData.cnpj || this.registerData.cnpj.length < 14) return;
+      
+      this.validatingCnpj = true;
+      try {
+        const data = await cnpjService.buscarCnpj(this.registerData.cnpj);
+        if (data) {
+          // Opcional: Auto-preencher dados da farmácia vindos do CNPJ
+          if (!this.registerData.nome) this.registerData.nome = data.fantasia || data.nome;
+          if (!this.registerData.cep) {
+            this.registerData.cep = data.cep;
+            this.registerData.logradouro = data.logradouro;
+            this.registerData.numero = data.numero;
+            this.registerData.bairro = data.bairro;
+            this.registerData.cidade = data.cidade;
+            this.registerData.estado = data.estado;
+          }
+        }
+      } catch (error) {
+        alert(error.message);
+        this.registerData.cnpj = '';
+      } finally {
+        this.validatingCnpj = false;
+      }
+    },
+    async handleCepBlur() {
+      const cep = this.registerData.cep.replace(/\D/g, '');
+      if (cep.length !== 8) return;
+
+      this.loadingCep = true;
+      try {
+        const data = await cepService.buscarCep(cep);
+        this.registerData.logradouro = data.logradouro;
+        this.registerData.bairro = data.bairro;
+        this.registerData.cidade = data.cidade;
+        this.registerData.estado = data.estado;
+      } catch (error) {
+        alert('CEP não encontrado ou erro na consulta.');
+      } finally {
+        this.loadingCep = false;
+      }
+    },
     async handleRegister() {
       this.loading = true;
       try {
+        // Validação extra para farmácia
+        if (this.registerData.role === 'PHARMACY' && !this.registerData.cnpj) {
+          throw new Error('CNPJ é obrigatório para farmácias.');
+        }
+        if (this.registerData.role === 'PHARMACY' && !this.registerData.chavePix) {
+          throw new Error('Chave PIX é obrigatória para farmácias.');
+        }
+
         await this.register(this.registerData);
         alert('Conta criada com sucesso! Você já pode entrar.');
         this.isLoginMode = true;
@@ -170,119 +336,77 @@ export default {
 
 <style scoped>
 .auth-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1.5rem;
 }
 
 .auth-modal-content {
-  background: white;
-  width: 100%;
-  max-width: 440px;
-  border-radius: var(--cf-r-xl);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--cf-border);
+  background: white; width: 100%; max-width: 440px;
+  border-radius: var(--cf-r-xl); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  position: relative; overflow: hidden; border: 1px solid var(--cf-border);
+  transition: max-width 0.3s ease;
 }
 
-.auth-modal-body {
-  padding: 2.5rem;
+.auth-modal-content.wide-modal { max-width: 700px; }
+
+.auth-modal-body { padding: 2.5rem; }
+
+.scrollable-form {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.scrollable-form::-webkit-scrollbar { width: 6px; }
+.scrollable-form::-webkit-scrollbar-thumb { background: var(--cf-border); border-radius: 10px; }
+
+.role-selector {
+  display: flex; gap: 10px; justify-content: center;
+}
+
+.role-btn {
+  flex: 1; padding: 12px 8px; border: 1px solid var(--cf-border);
+  background: var(--cf-ivory); border-radius: var(--cf-r-md);
+  font-size: 0.8rem; font-weight: 600; color: var(--cf-text-mid);
+  transition: all 0.2s;
+}
+
+.role-btn.active {
+  background: var(--cf-green-xlight); border-color: var(--cf-green);
+  color: var(--cf-green);
 }
 
 .close-btn {
-  position: absolute;
-  top: 1.2rem;
-  right: 1.2rem;
-  background: var(--cf-ivory);
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--cf-text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  z-index: 10;
+  position: absolute; top: 1.2rem; right: 1.2rem;
+  background: var(--cf-ivory); border: none; width: 36px; height: 36px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: var(--cf-text-muted); cursor: pointer; transition: all 0.2s; z-index: 10;
 }
 
-.close-btn:hover {
-  background: #fee2e2;
-  color: var(--cf-danger);
-  transform: rotate(90deg);
-}
+.close-btn:hover { background: #fee2e2; color: var(--cf-danger); transform: rotate(90deg); }
 
-.modal-logo {
-  height: 48px;
-  width: auto;
-}
+.modal-logo { height: 48px; width: auto; }
 
-.auth-header h2 {
-  font-size: 1.75rem;
-  color: var(--cf-text-dark);
-  margin-bottom: 0.5rem;
-}
-
-.auth-header p {
-  font-size: 0.95rem;
-}
-
-.form-label {
-  font-size: 0.88rem;
-  font-weight: 500;
-  color: var(--cf-text-dark);
-  margin-bottom: 0.5rem;
-}
+.form-label { font-size: 0.85rem; font-weight: 500; color: var(--cf-text-dark); margin-bottom: 0.4rem; }
 
 .form-control {
-  padding: 0.8rem 1rem;
-  border-radius: var(--cf-r-md);
-  border: 1px solid var(--cf-border);
-  background: var(--cf-ivory);
-  font-size: 0.95rem;
-  transition: all 0.2s;
+  padding: 0.75rem 1rem; border-radius: var(--cf-r-md);
+  border: 1px solid var(--cf-border); background: var(--cf-ivory);
+  font-size: 0.9rem; transition: all 0.2s;
 }
 
 .form-control:focus {
-  border-color: var(--cf-green);
-  background: white;
+  border-color: var(--cf-green); background: white;
   box-shadow: 0 0 0 4px rgba(42, 92, 69, 0.1);
 }
 
-.forgot-link {
-  font-size: 0.8rem;
-  color: var(--cf-green);
-  text-decoration: none;
-}
+.toggle-link { color: var(--cf-green); text-decoration: none; }
+.toggle-link:hover { text-decoration: underline; }
 
-.toggle-link {
-  color: var(--cf-green);
-  text-decoration: none;
-}
-
-.toggle-link:hover {
-  text-decoration: underline;
-}
-
-.auth-footer p {
-  font-size: 0.9rem;
-}
-
-@media (max-width: 576px) {
-  .auth-modal-body {
-    padding: 2rem 1.5rem;
-  }
+@media (max-width: 768px) {
+  .auth-modal-content.wide-modal { max-width: 100%; }
+  .role-selector { flex-direction: column; }
 }
 </style>

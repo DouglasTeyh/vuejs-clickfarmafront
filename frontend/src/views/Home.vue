@@ -162,9 +162,9 @@ export default {
     async initHome() {
       this.loading = true;
       try {
-        // Carregar produtos e categorias reais em paralelo
+        // O usuário logado já é tratado dentro da action fetchProducts no store
         await Promise.all([
-          this.fetchProductsList(),
+          this.fetchProducts(),
           this.fetchCategories()
         ]);
 
@@ -183,21 +183,9 @@ export default {
         this.loading = false;
       }
     },
-    async fetchProductsList() {
-      try {
-        const resP = await api.get('/produtos');
-        this.allProducts = resP.data;
-      } catch (err) {
-        console.error('Erro ao buscar produtos:', err);
-        this.allProducts = this.products; // Fallback
-      }
-    },
-    scrollToProducts() {
-      const el = document.getElementById('category-sections');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    },
     getProdutosPorCategoria(cat) {
-      let lista = this.allProducts.filter(p => p.categoriaNome === cat || p.categoria === cat);
+      if (!this.products) return [];
+      let lista = this.products.filter(p => p.category === cat);
       
       // Se tiver recomendações, ordena
       if (this.userRecommendations.length > 0) {

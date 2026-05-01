@@ -93,10 +93,11 @@ public class ProdutoService {
             Long categoriaId,
             BigDecimal precoMin,
             BigDecimal precoMax,
-            Boolean emEstoque) {
+            Boolean emEstoque,
+            String cidade) {
 
         List<Produto> produtos = produtoRepository.buscarProdutosFiltrados(
-                nome, categoriaId, precoMin, precoMax);
+                nome, categoriaId, precoMin, precoMax, cidade);
 
         // Filtrar por disponibilidade em estoque se solicitado
         if (emEstoque != null && emEstoque) {

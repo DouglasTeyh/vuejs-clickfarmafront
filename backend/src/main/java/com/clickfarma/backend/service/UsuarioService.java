@@ -4,7 +4,6 @@ import com.clickfarma.backend.dto.PedidoResponseDTO;
 import com.clickfarma.backend.dto.TelegramLinkResponseDTO;
 import com.clickfarma.backend.dto.UsuarioRequestDTO;
 import com.clickfarma.backend.dto.UsuarioResponseDTO;
-import com.clickfarma.backend.model.Pedido;
 import com.clickfarma.backend.model.Usuario;
 import com.clickfarma.backend.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,20 +24,34 @@ public class UsuarioService {
     @Autowired
     private TelegramIntegrationService telegramIntegrationService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     // Criar usuário
-    public UsuarioResponseDTO criarUsuario(UsuarioRequestDTO usuarioDTO) {
-        if (usuarioRepository.existsByEmail(usuarioDTO.getEmail())) {
-            throw new RuntimeException("Email já cadastrado: " + usuarioDTO.getEmail());
+    public UsuarioResponseDTO criarUsuario(UsuarioRequestDTO req) {
+        if (usuarioRepository.existsByEmail(req.getEmail())) {
+            throw new RuntimeException("Email já cadastrado: " + req.getEmail());
         }
 
-        Usuario usuario = new Usuario();
-        usuario.setNome(usuarioDTO.getNome());
-        usuario.setEmail(usuarioDTO.getEmail());
-        usuario.setSenha(passwordEncoder.encode(usuarioDTO.getSenha()));
-        usuario.setTelefone(usuarioDTO.getTelefone());
-        usuario.setEndereco(usuarioDTO.getEndereco());
+        Usuario user = new Usuario();
+        user.setNome(req.getNome());
+        user.setEmail(req.getEmail());
+        user.setSenha(passwordEncoder.encode(req.getSenha()));
+        user.setCpf(req.getCpf());
+        user.setTelefone(req.getTelefone());
+        user.setRole(req.getRole() != null ? req.getRole() : "CUSTOMER");
+        
+        // Address
+        user.setCep(req.getCep());
+        user.setLogradouro(req.getLogradouro());
+        user.setNumero(req.getNumero());
+        user.setBairro(req.getBairro());
+        user.setCidade(req.getCidade());
+        user.setEstado(req.getEstado());
+        user.setComplemento(req.getComplemento());
+        user.setEndereco(req.getEndereco());
 
-        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+        Usuario usuarioSalvo = usuarioRepository.save(user);
         return new UsuarioResponseDTO(usuarioSalvo);
     }
 
@@ -65,20 +78,32 @@ public class UsuarioService {
     }
 
     // Atualizar usuário
-    public UsuarioResponseDTO atualizarUsuario(Long id, UsuarioRequestDTO usuarioDTO) {
-        Usuario usuario = usuarioRepository.findById(id)
+    public UsuarioResponseDTO atualizarUsuario(Long id, UsuarioRequestDTO req) {
+        Usuario user = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + id));
 
-        usuario.setNome(usuarioDTO.getNome());
-        usuario.setEmail(usuarioDTO.getEmail());
-        usuario.setTelefone(usuarioDTO.getTelefone());
-        usuario.setEndereco(usuarioDTO.getEndereco());
+        // Regra de Imutabilidade: Email e CPF não podem ser alterados
+        // Se o DTO enviar algo diferente do atual, ignoramos ou lançamos erro.
+        // Aqui optaremos por apenas não atualizar esses campos para evitar quebras silenciosas.
+        
+        user.setNome(req.getNome());
+        user.setTelefone(req.getTelefone());
+        
+        // Atualização de Endereço
+        user.setCep(req.getCep());
+        user.setLogradouro(req.getLogradouro());
+        user.setNumero(req.getNumero());
+        user.setBairro(req.getBairro());
+        user.setCidade(req.getCidade());
+        user.setEstado(req.getEstado());
+        user.setComplemento(req.getComplemento());
+        user.setEndereco(req.getEndereco());
 
-        if (usuarioDTO.getSenha() != null && !usuarioDTO.getSenha().isEmpty()) {
-            usuario.setSenha(usuarioDTO.getSenha());
+        if (req.getSenha() != null && !req.getSenha().isEmpty()) {
+            user.setSenha(passwordEncoder.encode(req.getSenha()));
         }
 
-        Usuario usuarioAtualizado = usuarioRepository.save(usuario);
+        Usuario usuarioAtualizado = usuarioRepository.save(user);
         return new UsuarioResponseDTO(usuarioAtualizado);
     }
 
@@ -118,12 +143,10 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + id));
 
-        // Verificar se a senha atual está correta usando BCrypt
         if (!passwordEncoder.matches(senhaAtual, usuario.getSenha())) {
             throw new RuntimeException("Senha atual incorreta");
         }
 
-        // Validar nova senha
         if (senhaNova == null || senhaNova.length() < 6) {
             throw new RuntimeException("Nova senha deve ter no mínimo 6 caracteres");
         }
@@ -137,8 +160,6 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + id));
 
-        // Aqui você pode implementar uma lógica para múltiplos endereços
-        // Por enquanto, vamos apenas atualizar o endereço principal
         usuario.setEndereco(endereco);
         usuarioRepository.save(usuario);
     }
@@ -176,14 +197,12 @@ public class UsuarioService {
         Map<String, Object> relatorio = new HashMap<>();
         relatorio.put("totalUsuarios", usuarios.size());
 
-        // Usuários com pedidos
         long usuariosComPedidos = usuarios.stream()
                 .filter(u -> u.getPedidos() != null && !u.getPedidos().isEmpty())
                 .count();
         relatorio.put("usuariosComPedidos", usuariosComPedidos);
         relatorio.put("usuariosSemPedidos", usuarios.size() - usuariosComPedidos);
 
-        // Data do primeiro cadastro
         if (!usuarios.isEmpty()) {
             Usuario primeiroUsuario = usuarios.stream()
                     .min((u1, u2) -> u1.getDataCadastro().compareTo(u2.getDataCadastro()))
@@ -194,7 +213,6 @@ public class UsuarioService {
             }
         }
 
-        // Últimos 5 usuários cadastrados
         List<UsuarioResponseDTO> ultimosUsuarios = usuarios.stream()
                 .sorted((u1, u2) -> u2.getDataCadastro().compareTo(u1.getDataCadastro()))
                 .limit(5)

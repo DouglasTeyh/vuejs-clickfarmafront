@@ -1,7 +1,11 @@
 package com.clickfarma.backend.controller;
 
 import com.clickfarma.backend.dto.*;
+import com.clickfarma.backend.model.Farmacia;
+import com.clickfarma.backend.model.Motoboy;
 import com.clickfarma.backend.model.Usuario;
+import com.clickfarma.backend.repository.FarmaciaRepository;
+import com.clickfarma.backend.repository.MotoboyRepository;
 import com.clickfarma.backend.repository.UsuarioRepository;
 import com.clickfarma.backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +21,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:8082")
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     @Autowired
@@ -28,6 +32,12 @@ public class AuthController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private FarmaciaRepository farmaciaRepository;
+
+    @Autowired
+    private MotoboyRepository motoboyRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -60,37 +70,85 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO registerRequest) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO req) {
         try {
-            // Verificar se email já existe
-            if (usuarioRepository.existsByEmail(registerRequest.getEmail())) {
-                return ResponseEntity.badRequest()
-                        .body(new MensagemResponseDTO("Email já cadastrado", false));
+            if (usuarioRepository.existsByEmail(req.getEmail())) {
+                return ResponseEntity.badRequest().body(new MensagemResponseDTO("Email já cadastrado", false));
             }
 
-            // Criar novo usuário
-            Usuario usuario = new Usuario();
-            usuario.setNome(registerRequest.getNome());
-            usuario.setEmail(registerRequest.getEmail());
-            usuario.setSenha(passwordEncoder.encode(registerRequest.getSenha()));
-            usuario.setTelefone(registerRequest.getTelefone());
-            usuario.setEndereco(registerRequest.getEndereco());
+            // Criar novo usuário básico
+            Usuario user = new Usuario();
+            user.setNome(req.getNome());
+            user.setEmail(req.getEmail());
+            user.setSenha(passwordEncoder.encode(req.getSenha()));
+            user.setRole(req.getRole() != null ? req.getRole().toUpperCase() : "CUSTOMER");
+            user.setCpf(req.getCpf());
+            user.setTelefone(req.getTelefone());
+            user.setCep(req.getCep());
+            user.setLogradouro(req.getLogradouro());
+            user.setNumero(req.getNumero());
+            user.setBairro(req.getBairro());
+            user.setCidade(req.getCidade());
+            user.setEstado(req.getEstado());
+            user.setComplemento(req.getComplemento());
+            user.setEndereco(req.getEndereco());
 
-            usuarioRepository.save(usuario);
+            Usuario savedUser = usuarioRepository.save(user);
+
+            // Se for Farmácia, criar entidade Farmacia
+            if ("PHARMACY".equalsIgnoreCase(req.getRole())) {
+                if (req.getCnpj() == null || req.getCnpj().isEmpty()) {
+                    return ResponseEntity.badRequest().body(new MensagemResponseDTO("CNPJ é obrigatório para farmácias", false));
+                }
+                if (req.getChavePix() == null || req.getChavePix().isEmpty()) {
+                    return ResponseEntity.badRequest().body(new MensagemResponseDTO("Chave PIX é obrigatória para farmácias", false));
+                }
+
+                Farmacia farmacia = new Farmacia();
+                farmacia.setNome(req.getNome());
+                farmacia.setCnpj(req.getCnpj());
+                farmacia.setUsuario(savedUser);
+                farmacia.setCep(req.getCep());
+                farmacia.setLogradouro(req.getLogradouro());
+                farmacia.setNumero(req.getNumero());
+                farmacia.setBairro(req.getBairro());
+                farmacia.setCidade(req.getCidade());
+                farmacia.setEstado(req.getEstado());
+                farmacia.setComplemento(req.getComplemento());
+                farmacia.setTelefone(req.getTelefone());
+                farmacia.setEmail(req.getEmail());
+                farmacia.setChavePix(req.getChavePix());
+                farmaciaRepository.save(farmacia);
+            } 
+            // Se for Motoboy, criar entidade Motoboy
+            else if ("COURIER".equalsIgnoreCase(req.getRole())) {
+                Motoboy motoboy = new Motoboy();
+                motoboy.setNome(req.getNome());
+                motoboy.setCpf(req.getCpf());
+                motoboy.setUsuario(savedUser);
+                motoboy.setTelefone(req.getTelefone());
+                motoboy.setCep(req.getCep());
+                motoboy.setLogradouro(req.getLogradouro());
+                motoboy.setNumero(req.getNumero());
+                motoboy.setBairro(req.getBairro());
+                motoboy.setCidade(req.getCidade());
+                motoboy.setEstado(req.getEstado());
+                motoboy.setComplemento(req.getComplemento());
+                motoboy.setChavePix(req.getChavePix());
+                motoboyRepository.save(motoboy);
+            }
 
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new MensagemResponseDTO("Usuário registrado com sucesso!", true));
+                    .body(new MensagemResponseDTO("Cadastro realizado com sucesso!", true));
 
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                    .body(new MensagemResponseDTO("Erro ao registrar usuário: " + e.getMessage(), false));
+                    .body(new MensagemResponseDTO("Erro ao registrar: " + e.getMessage(), false));
         }
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
-        // Como estamos usando JWT, o logout é feito no cliente
-        // Mas podemos retornar uma mensagem de sucesso
         return ResponseEntity.ok(new MensagemResponseDTO("Logout realizado com sucesso!", true));
     }
 }

@@ -18,11 +18,20 @@ public class UsuarioRequestDTO {
     @Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
     private String senha;
 
-    @Size(max = 20, message = "Telefone deve ter no máximo 20 caracteres")
+    private String cpf;
     private String telefone;
+    private String role;
 
-    @Size(max = 200, message = "Endereço deve ter no máximo 200 caracteres")
+    // Address
+    private String cep;
+    private String logradouro;
+    private String numero;
+    private String bairro;
+    private String cidade;
+    private String estado;
+    private String complemento;
     private String endereco;
+    private String chavePix;
 
     // Getters e Setters
     public String getNome() { return nome; }
@@ -34,9 +43,39 @@ public class UsuarioRequestDTO {
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
 
+    public String getCpf() { return cpf; }
+    public void setCpf(String cpf) { this.cpf = cpf; }
+
     public String getTelefone() { return telefone; }
     public void setTelefone(String telefone) { this.telefone = telefone; }
 
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
+    public String getCep() { return cep; }
+    public void setCep(String cep) { this.cep = cep; }
+
+    public String getLogradouro() { return logradouro; }
+    public void setLogradouro(String logradouro) { this.logradouro = logradouro; }
+
+    public String getNumero() { return numero; }
+    public void setNumero(String numero) { this.numero = numero; }
+
+    public String getBairro() { return bairro; }
+    public void setBairro(String bairro) { this.bairro = bairro; }
+
+    public String getCidade() { return cidade; }
+    public void setCidade(String cidade) { this.cidade = cidade; }
+
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
+
+    public String getComplemento() { return complemento; }
+    public void setComplemento(String complemento) { this.complemento = complemento; }
+
     public String getEndereco() { return endereco; }
     public void setEndereco(String endereco) { this.endereco = endereco; }
+
+    public String getChavePix() { return chavePix; }
+    public void setChavePix(String chavePix) { this.chavePix = chavePix; }
 }
