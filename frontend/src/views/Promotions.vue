@@ -1,27 +1,40 @@
 <template>
   <div class="promotions-page">
-    <div class="container py-lg-5 py-4">
-      <div class="text-center mb-5 fade-in-up">
-        <span class="section-eyebrow">Ofertas Exclusivas</span>
-        <h1 class="section-title">Nossas <em>Promoções</em></h1>
-        <p class="section-desc">Cuidado que cabe no seu bolso. Selecionamos as melhores ofertas para você.</p>
+    <!-- Header Hero -->
+    <div class="promo-hero">
+      <div class="container text-center">
+        <span class="badge rounded-pill bg-gold px-3 py-2 mb-3 fade-in">OFERTAS IMPERDÍVEIS</span>
+        <h1 class="display-4 fw-bold mb-3 fade-in-up">Economize até <em>20%</em> OFF</h1>
+        <p class="lead text-muted fade-in-up">Os melhores produtos com descontos exclusivos das farmácias parceiras.</p>
       </div>
-      
-      <div class="card cf-promo-alert mb-5 fade-in-up">
-        <div class="card-body py-4 text-center">
-          <i class="fas fa-magic text-gold mb-3 d-block" style="font-size: 1.5rem;"></i>
-          <h5 class="fw-normal">Algoritmo de Economia em Ação</h5>
-          <p class="mb-0 text-muted small">Estamos processando novas ofertas personalizadas para você. Volte em instantes!</p>
-        </div>
+    </div>
+
+    <div class="container py-5">
+      <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border text-green" role="status"></div>
+        <p class="mt-3 text-muted">Buscando as melhores ofertas...</p>
       </div>
 
-      <div class="row g-4">
-        <div class="col-md-4" v-for="p in promoCategories" :key="p.title">
-          <div class="cf-feature-box text-center">
-            <div class="promo-icon mb-3">{{ p.icon }}</div>
-            <h5 class="feature-h">{{ p.title }}</h5>
-            <p class="feature-p">Descontos que chegam a <strong>{{ p.discount }}</strong></p>
-            <router-link to="/products" class="btn btn-sm btn-outline-primary mt-3">Ver Itens</router-link>
+      <div v-else-if="groupedProducts.length === 0" class="text-center py-5 no-promos">
+        <img src="/images/empty-promo.svg" alt="Sem promoções" class="mb-4" style="max-width: 200px;">
+        <h3>Nenhuma promoção ativa no momento</h3>
+        <p class="text-muted">Fique de olho! Novas ofertas aparecem todos os dias.</p>
+        <router-link to="/products" class="btn btn-green mt-3">Ver todos os produtos</router-link>
+      </div>
+
+      <div v-else>
+        <!-- Loop por Categorias -->
+        <div v-for="group in groupedProducts" :key="group.category" class="category-section mb-5">
+          <div class="d-flex align-items-center mb-4 section-header">
+            <h2 class="h4 fw-bold mb-0">{{ group.category }}</h2>
+            <div class="flex-grow-1 ms-3 border-bottom opacity-25"></div>
+            <span class="badge bg-green-light text-green ms-3">{{ group.items.length }} itens</span>
+          </div>
+          
+          <div class="row g-4">
+            <div v-for="product in group.items" :key="product.id" class="col-6 col-md-4 col-lg-3">
+              <ProductCard :product="product" />
+            </div>
           </div>
         </div>
       </div>
@@ -30,15 +43,45 @@
 </template>
 
 <script>
+import ProductCard from '@/components/products/ProductCard.vue'
+
 export default {
   name: 'Promotions',
+  components: { ProductCard },
   data() {
     return {
-      promoCategories: [
-        { title: 'Medicamentos', icon: '💊', discount: '30% OFF' },
-        { title: 'Linha Infantil', icon: '🍼', discount: '25% OFF' },
-        { title: 'Dermocosméticos', icon: '🧴', discount: '40% OFF' }
-      ]
+      products: [],
+      loading: true
+    }
+  },
+  computed: {
+    groupedProducts() {
+      const groups = {};
+      this.products.forEach(p => {
+        const cat = p.category || 'Outros';
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push(p);
+      });
+      return Object.keys(groups).map(cat => ({
+        category: cat,
+        items: groups[cat]
+      }));
+    }
+  },
+  async created() {
+    await this.fetchPromotions();
+  },
+  methods: {
+    async fetchPromotions() {
+      this.loading = true;
+      try {
+        const response = await this.$axios.get('/api/produtos/filtrar?emPromocao=true');
+        this.products = response.data;
+      } catch (error) {
+        console.error('Erro ao buscar promoções:', error);
+      } finally {
+        this.loading = false;
+      }
     }
   }
 }
@@ -46,38 +89,39 @@ export default {
 
 <style scoped>
 .promotions-page {
-  min-height: 80vh;
-  background: var(--cf-white);
+  min-height: 100vh;
+  background: #fcfcfc;
+  padding-top: 80px; /* Offset for sticky header */
 }
 
-.section-desc { color: var(--cf-text-muted); font-weight: 300; }
-
-.cf-promo-alert {
-  background: var(--cf-ivory);
-  border: 1px dashed var(--cf-gold-mid);
-  border-radius: var(--cf-r-xl);
+.promo-hero {
+  background: white;
+  padding: 4rem 0;
+  border-bottom: 1px solid var(--cf-border);
+  margin-bottom: 2rem;
 }
 
-.promo-icon {
-  font-size: 3rem;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.05));
+.bg-gold { background-color: var(--cf-gold); color: white; }
+.text-green { color: var(--cf-green); }
+.bg-green-light { background-color: var(--cf-green-xlight); }
+.btn-green { background: var(--cf-green); color: white; }
+.btn-green:hover { background: var(--cf-green-dark); color: white; }
+
+.category-section {
+  animation: fadeIn 0.5s ease-out both;
 }
 
-.text-gold { color: var(--cf-gold); }
-
-.cf-feature-box {
-  background: var(--cf-white);
-  padding: 2.5rem 2rem;
-  border-radius: var(--cf-r-xl);
-  border: 1px solid var(--cf-border);
-  transition: all 300ms var(--cf-ease);
-}
-.cf-feature-box:hover {
-  transform: translateY(-5px);
-  border-color: var(--cf-green-light);
-  box-shadow: var(--cf-shadow-md);
+.section-header h2 {
+  color: var(--cf-text-dark);
+  letter-spacing: -0.02em;
 }
 
-.feature-h { font-family: var(--cf-sans); font-size: 1.4rem; font-weight: 600; color: var(--cf-text-dark); }
-.feature-p { font-size: 0.95rem; color: var(--cf-text-muted); margin-bottom: 0; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .display-4 { font-size: 2.2rem; }
+}
 </style>

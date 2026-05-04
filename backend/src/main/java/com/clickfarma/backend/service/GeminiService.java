@@ -1,5 +1,7 @@
 package com.clickfarma.backend.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,6 +13,7 @@ import java.util.Map;
 
 @Service
 public class GeminiService {
+    private static final Logger log = LoggerFactory.getLogger(GeminiService.class);
 
     @Value("${GEMINI_API_KEY:}")
     private String apiKey;
@@ -29,13 +32,13 @@ public class GeminiService {
      */
     public Mono<String> analyzeCart(List<Map<String, Object>> cartItems, Double totalPrice) {
         if (apiKey == null || apiKey.isEmpty()) {
-            System.err.println("❌ Chave da API Gemini não configurada");
+            log.error("Chave da API Gemini não configurada");
             return Mono.just("⚠️ Chave da API Gemini não configurada. Configure a variável GEMINI_API_KEY.");
         }
 
         // Construir prompt inteligente para análise de carrinho
         String prompt = buildCartAnalysisPrompt(cartItems, totalPrice);
-        System.out.println("📤 Enviando análise de carrinho para Gemini");
+        log.info("Enviando análise de carrinho para Gemini");
 
         return this.chat(prompt);
     }
@@ -91,11 +94,11 @@ public class GeminiService {
 
     public Mono<String> chat(String mensagem) {
         if (apiKey == null || apiKey.isEmpty()) {
-            System.err.println("❌ Chave da API Gemini não configurada");
+            log.error("Chave da API Gemini não configurada");
             return Mono.just("⚠️ Chave da API Gemini não configurada. Configure a variável GEMINI_API_KEY no .env do backend.");
         }
 
-        System.out.println("📤 Enviando mensagem para Gemini");
+        log.info("Enviando mensagem para Gemini");
 
         Map<String, Object> request = new HashMap<>();
 
@@ -219,12 +222,11 @@ public class GeminiService {
                     }
                 })
                 .onErrorResume(org.springframework.web.reactive.function.client.WebClientResponseException.class, e -> {
-                    System.err.println("Gemini Vision HTTP Error " + e.getStatusCode());
-                    System.err.println("Gemini Response Body: " + e.getResponseBodyAsString());
+                    log.error("Gemini Vision HTTP Error {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
                     return Mono.just("Erro: Falha gravíssima na leitura inteligente da API Vision. " + e.getStatusCode());
                 })
                 .onErrorResume(e -> {
-                    System.err.println("Erro inesperado no Gemini Vision: " + e.getMessage());
+                    log.error("Erro inesperado no Gemini Vision: {}", e.getMessage());
                     return Mono.just("Erro: Falha gravíssima na leitura inteligente da API Vision.");
                 });
     }

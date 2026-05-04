@@ -49,6 +49,12 @@
     --cf-r-md: 8px;
     --cf-r-lg: 12px;
     --cf-r-xl: 16px;
+    --cf-r-2xl: 24px;
+
+    /* Dashboard Layout */
+    --cf-dash-sidebar: 280px;
+    --cf-dash-topbar: 70px;
+    --cf-dash-bg: #F8F9FA;
 
     /* Tipografia */
     --cf-serif: 'Cormorant Garamond', Georgia, serif;
@@ -452,6 +458,96 @@ a:hover { color: var(--cf-green-dark); }
 }
 .bs-tooltip-top .tooltip-arrow::before { border-top-color: var(--cf-green-dark) !important; }
 
+
+/* ===========================
+   DASHBOARD COMPONENTS
+   =========================== */
+
+/* Sidebar Base */
+.dash-sidebar {
+    width: var(--cf-dash-sidebar);
+    background: var(--cf-green-dark);
+    height: 100vh;
+    position: fixed;
+    left: 0; top: 0;
+    z-index: 1050;
+    transition: all 0.3s var(--cf-ease);
+    box-shadow: 10px 0 30px rgba(0,0,0,0.05);
+}
+
+/* Glassmorphism Card */
+.dash-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--cf-r-lg);
+    box-shadow: var(--cf-shadow-sm);
+    transition: all 0.3s var(--cf-ease);
+}
+.dash-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--cf-shadow-md);
+    background: #fff;
+}
+
+/* Premium KPI */
+.dash-kpi {
+    padding: 1.5rem;
+    border-radius: var(--cf-r-xl);
+    background: #fff;
+    border: 1px solid var(--cf-border);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    position: relative;
+    overflow: hidden;
+}
+.dash-kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 4px; height: 100%;
+}
+.dash-kpi.primary::before { background: var(--cf-green); }
+.dash-kpi.accent::before { background: var(--cf-gold); }
+
+/* Unified Table */
+.dash-table-wrap {
+    background: #fff;
+    border-radius: var(--cf-r-lg);
+    border: 1px solid var(--cf-border);
+    overflow: hidden;
+    box-shadow: var(--cf-shadow-xs);
+}
+
+.dash-table {
+    width: 100%;
+    margin: 0;
+}
+.dash-table th {
+    background: var(--cf-ivory);
+    padding: 1rem 1.5rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cf-text-muted);
+    border-bottom: 1px solid var(--cf-border);
+}
+.dash-table td {
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid var(--cf-border);
+    vertical-align: middle;
+}
+.dash-table tr:last-child td { border-bottom: none; }
+.dash-table tr:hover td { background: var(--cf-green-xlight); }
+
+/* Typography fix for dash titles */
+.dash-page-title {
+    font-family: var(--cf-serif);
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: var(--cf-text-dark);
+    margin-bottom: 0.5rem;
+}
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }

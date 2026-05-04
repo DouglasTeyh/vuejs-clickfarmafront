@@ -103,4 +103,10 @@ public class UsuarioResponseDTO {
     public void setQuantidadePedidos(Integer quantidadePedidos) {
         this.quantidadePedidos = quantidadePedidos;
     }
+
+    public String getCnpj() { return cnpj; }
+    public void setCnpj(String cnpj) { this.cnpj = cnpj; }
+
+    public String getChavePix() { return chavePix; }
+    public void setChavePix(String chavePix) { this.chavePix = chavePix; }
 }

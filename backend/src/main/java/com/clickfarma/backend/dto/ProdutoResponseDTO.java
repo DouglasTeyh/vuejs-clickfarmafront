@@ -22,6 +22,9 @@ public class ProdutoResponseDTO {
     private String farmaciaNome;
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
+    private Boolean emPromocao;
+    private BigDecimal descontoPercentual;
+    private BigDecimal precoComDesconto;
 
     public ProdutoResponseDTO(Produto produto) {
         this.id = produto.getId();
@@ -45,6 +48,17 @@ public class ProdutoResponseDTO {
             this.farmaciaId = produto.getFarmacia().getId();
             this.farmaciaNome = produto.getFarmacia().getNome();
         }
+        this.emPromocao = produto.getEmPromocao();
+        this.descontoPercentual = produto.getDescontoPercentual();
+        this.precoComDesconto = calcularPrecoComDesconto();
+    }
+
+    private BigDecimal calcularPrecoComDesconto() {
+        if (Boolean.TRUE.equals(emPromocao) && descontoPercentual != null && descontoPercentual.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal desconto = preco.multiply(descontoPercentual).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+            return preco.subtract(desconto);
+        }
+        return preco;
     }
 
     // Getters e Setters
@@ -82,4 +96,10 @@ public class ProdutoResponseDTO {
     public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
     public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
     public void setDataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; }
+    public Boolean getEmPromocao() { return emPromocao; }
+    public void setEmPromocao(Boolean emPromocao) { this.emPromocao = emPromocao; }
+    public BigDecimal getDescontoPercentual() { return descontoPercentual; }
+    public void setDescontoPercentual(BigDecimal descontoPercentual) { this.descontoPercentual = descontoPercentual; }
+    public BigDecimal getPrecoComDesconto() { return precoComDesconto; }
+    public void setPrecoComDesconto(BigDecimal precoComDesconto) { this.precoComDesconto = precoComDesconto; }
 }

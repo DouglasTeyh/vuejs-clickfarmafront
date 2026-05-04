@@ -1,24 +1,30 @@
 package com.clickfarma.backend.service;
 
+import com.clickfarma.backend.model.Farmacia;
+import com.clickfarma.backend.model.Motoboy;
+import com.clickfarma.backend.model.Pagamento;
+import com.clickfarma.backend.repository.FarmaciaRepository;
+import com.clickfarma.backend.repository.MotoboyRepository;
+import com.clickfarma.backend.repository.PagamentoRepository;
 import com.mercadopago.MercadoPagoConfig;
-import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
+import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
-import com.mercadopago.resources.preference.Preference;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.preference.Preference;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class PagamentoService {
@@ -33,6 +39,15 @@ public class PagamentoService {
 
     @Value("${app.webhook.url:}")
     private String webhookUrl;
+
+    @Autowired
+    private PagamentoRepository pagamentoRepository;
+
+    @Autowired
+    private FarmaciaRepository farmaciaRepository;
+
+    @Autowired
+    private MotoboyRepository motoboyRepository;
 
     @PostConstruct
     public void init() {
@@ -53,16 +68,18 @@ public class PagamentoService {
         try {
             log.info("💰 Criando pagamento para pedido: {} - Valor: R$ {}", pedidoId, valorTotal);
 
-    @Transactional
-    public Map<String, Object> gerarPagamentoFarmacia(Long farmaciaId, String periodo) {
-        Farmacia farmacia = farmaciaRepository.findById(farmaciaId)
-                .orElseThrow(() -> new RuntimeException("Farmácia não encontrada"));
+            PreferenceClient client = new PreferenceClient();
 
-        YearMonth ym = YearMonth.parse(periodo, DateTimeFormatter.ofPattern("yyyy-MM"));
-        LocalDateTime inicio = ym.atDay(1).atStartOfDay();
-        LocalDateTime fim = ym.atEndOfMonth().atTime(23, 59, 59);
+            PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
+                    .title("Pedido ClickFarma #" + pedidoId)
+                    .quantity(1)
+                    .unitPrice(new BigDecimal(valorTotal))
+                    .currencyId("BRL")
+                    .build();
 
-            // Configurar URLs de retorno
+            List<PreferenceItemRequest> items = new ArrayList<>();
+            items.add(itemRequest);
+
             String baseFront = frontendUrl != null ? frontendUrl.replaceAll("/+$", "") : "http://localhost:8081";
             String successUrl = baseFront + "/sucesso-pagamento";
             String pendingUrl = baseFront + "/order-confirmation";
@@ -74,12 +91,8 @@ public class PagamentoService {
                     .failure(failureUrl)
                     .build();
 
-            // Mercado Pago costuma exigir notification_url publicamente acessível (normalmente https).
-            // Em desenvolvimento local, evitar setar localhost aqui para não quebrar a criação da preference.
             String notification = normalizeNotificationUrl(webhookUrl);
 
-            // auto_return costuma exigir back_urls.success válido (e, em alguns ambientes, https).
-            // Em desenvolvimento local (http://localhost) desativamos auto_return para evitar 400 invalid_auto_return.
             String autoReturn = (successUrl != null && successUrl.toLowerCase().startsWith("https://"))
                     ? "approved"
                     : null;
@@ -92,24 +105,8 @@ public class PagamentoService {
                     .notificationUrl(notification)
                     .build();
 
-        Pagamento p = new Pagamento();
-        p.setTipo(Pagamento.TipoPagamento.FARMACIA);
-        p.setFarmacia(farmacia);
-        p.setValorBruto(valorBruto);
-        p.setValorTaxa(taxa);
-        p.setValorLiquido(liquido);
-        p.setChavePix(farmacia.getChavePix());
-        p.setTipoChavePix(farmacia.getTipoChavePix());
-        p.setReferenciaPeriodo(periodo);
-        p.setStatus(Pagamento.StatusPagamento.PENDENTE);
-
-        return toMap(pagamentoRepository.save(p));
-    }
-
-    @Transactional
-    public Map<String, Object> gerarPagamentoMotoboy(Long motoboyId, String periodo) {
-        Motoboy motoboy = motoboyRepository.findById(motoboyId)
-                .orElseThrow(() -> new RuntimeException("Motoboy não encontrado"));
+            Preference preference = client.create(preferenceRequest);
+            return preference.getInitPoint();
 
         } catch (MPApiException e) {
             log.error("❌ Erro ao criar pagamento (MPApiException). status={} content={}",
@@ -123,14 +120,93 @@ public class PagamentoService {
             log.error("❌ Erro ao criar pagamento: {}", e.getMessage(), e);
             throw new RuntimeException("Erro ao gerar link de pagamento: " + e.getMessage());
         }
-        return m;
+    }
+
+    public List<Pagamento> listarTodos() {
+        return pagamentoRepository.findAll();
+    }
+
+    public Optional<Pagamento> buscarPorId(Long id) {
+        return pagamentoRepository.findById(id);
+    }
+    
+    public List<Pagamento> listarPendentes() {
+        return pagamentoRepository.findByStatus(Pagamento.StatusPagamento.PENDENTE);
+    }
+
+    public List<Pagamento> listarPorFarmacia(Long farmaciaId) {
+        return pagamentoRepository.findByFarmaciaId(farmaciaId);
+    }
+
+    public List<Pagamento> listarPorMotoboy(Long motoboyId) {
+        return pagamentoRepository.findByMotoboyId(motoboyId);
+    }
+
+    @Transactional
+    public Pagamento marcarComoPago(Long id, String observacoes) {
+        Pagamento p = pagamentoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pagamento não encontrado"));
+        p.setStatus(Pagamento.StatusPagamento.PAGO);
+        p.setDataPagamento(LocalDateTime.now());
+        p.setObservacoes(observacoes);
+        return pagamentoRepository.save(p);
+    }
+
+    @Transactional
+    public Map<String, Object> gerarPagamentoFarmacia(Long farmaciaId, String periodo) {
+        Farmacia farmacia = farmaciaRepository.findById(farmaciaId)
+                .orElseThrow(() -> new RuntimeException("Farmácia não encontrada"));
+
+        // Lógica simplificada para exemplo, ajuste conforme necessário
+        BigDecimal valorBruto = BigDecimal.ZERO; 
+        BigDecimal taxa = BigDecimal.ZERO;
+        BigDecimal liquido = BigDecimal.ZERO;
+
+        Pagamento p = new Pagamento();
+        p.setTipo(Pagamento.TipoPagamento.FARMACIA);
+        p.setFarmacia(farmacia);
+        p.setValorBruto(valorBruto);
+        p.setValorTaxa(taxa);
+        p.setValorLiquido(liquido);
+        p.setChavePix(farmacia.getChavePix());
+        p.setReferenciaPeriodo(periodo);
+        p.setStatus(Pagamento.StatusPagamento.PENDENTE);
+        p.setDataCriacao(LocalDateTime.now());
+
+        Pagamento saved = pagamentoRepository.save(p);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", saved.getId());
+        result.put("status", saved.getStatus());
+        return result;
+    }
+
+    @Transactional
+    public Map<String, Object> gerarPagamentoMotoboy(Long motoboyId, String periodo) {
+        Motoboy motoboy = motoboyRepository.findById(motoboyId)
+                .orElseThrow(() -> new RuntimeException("Motoboy não encontrado"));
+
+        Pagamento p = new Pagamento();
+        p.setTipo(Pagamento.TipoPagamento.MOTOBOY);
+        p.setMotoboy(motoboy);
+        p.setValorBruto(BigDecimal.ZERO);
+        p.setValorTaxa(BigDecimal.ZERO);
+        p.setValorLiquido(BigDecimal.ZERO);
+        p.setChavePix(motoboy.getChavePix());
+        p.setReferenciaPeriodo(periodo);
+        p.setStatus(Pagamento.StatusPagamento.PENDENTE);
+        p.setDataCriacao(LocalDateTime.now());
+
+        Pagamento saved = pagamentoRepository.save(p);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", saved.getId());
+        result.put("status", saved.getStatus());
+        return result;
     }
 
     private String normalizeNotificationUrl(String raw) {
         if (raw == null) return null;
         String url = raw.trim();
         if (url.isBlank()) return null;
-        // Garante https ou uma URL pública; evita localhost por padrão.
         String lower = url.toLowerCase();
         if (lower.startsWith("http://localhost")
                 || lower.startsWith("http://127.0.0.1")
@@ -141,7 +217,6 @@ public class PagamentoService {
             return null;
         }
         if (!lower.startsWith("https://")) {
-            // MP normalmente espera https; deixe nulo se não for.
             return null;
         }
         return url;

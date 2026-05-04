@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/categorias")
-@CrossOrigin(origins = "http://localhost:8082")
 public class CategoriaController {
 
     @Autowired
@@ -41,6 +40,12 @@ public class CategoriaController {
     @GetMapping
     public ResponseEntity<List<CategoriaResponseDTO>> listarTodas() {
         return ResponseEntity.ok(categoriaService.listarTodas());
+    }
+
+    // GET - Listar categorias que possuem produtos
+    @GetMapping("/ativas")
+    public ResponseEntity<List<CategoriaResponseDTO>> listarAtivas() {
+        return ResponseEntity.ok(categoriaService.listarAtivas());
     }
 
     // GET - Buscar categoria por ID

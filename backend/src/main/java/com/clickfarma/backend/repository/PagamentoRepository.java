@@ -16,6 +16,10 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, Long> {
     @Query("SELECT p FROM Pagamento p WHERE p.referenciaPeriodo = :periodo")
     List<Pagamento> findByReferenciaPeriodo(@Param("periodo") String periodo);
 
+    List<Pagamento> findByStatus(Pagamento.StatusPagamento status);
+    List<Pagamento> findByFarmaciaId(Long farmaciaId);
+    List<Pagamento> findByMotoboyId(Long motoboyId);
+
     @Query("SELECT p FROM Pagamento p ORDER BY p.dataCriacao DESC")
     List<Pagamento> findAllOrderByDataDesc();
 }

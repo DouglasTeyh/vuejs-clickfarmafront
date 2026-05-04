@@ -56,6 +56,24 @@ public class Pedido {
     @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL)
     private Rastreio rastreio;
 
+    @Column(name = "codigo_retirada", length = 4)
+    private String codigoRetirada;
+
+    @Column(name = "codigo_entrega", length = 4)
+    private String codigoEntrega;
+
+    @Column(name = "distancia_km")
+    private Double distanciaKm;
+
+    @Column(name = "valor_frete", precision = 10, scale = 2)
+    private BigDecimal valorFrete;
+
+    @Column(name = "latitude_entrega")
+    private Double latitudeEntrega;
+
+    @Column(name = "longitude_entrega")
+    private Double longitudeEntrega;
+
     // Enum para status
     public enum StatusPedido {
         AGUARDANDO_PAGAMENTO,
@@ -143,4 +161,22 @@ public class Pedido {
                 .map(ItemPedido::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    public String getCodigoRetirada() { return codigoRetirada; }
+    public void setCodigoRetirada(String codigoRetirada) { this.codigoRetirada = codigoRetirada; }
+
+    public String getCodigoEntrega() { return codigoEntrega; }
+    public void setCodigoEntrega(String codigoEntrega) { this.codigoEntrega = codigoEntrega; }
+
+    public Double getDistanciaKm() { return distanciaKm; }
+    public void setDistanciaKm(Double distanciaKm) { this.distanciaKm = distanciaKm; }
+
+    public BigDecimal getValorFrete() { return valorFrete; }
+    public void setValorFrete(BigDecimal valorFrete) { this.valorFrete = valorFrete; }
+
+    public Double getLatitudeEntrega() { return latitudeEntrega; }
+    public void setLatitudeEntrega(Double latitudeEntrega) { this.latitudeEntrega = latitudeEntrega; }
+
+    public Double getLongitudeEntrega() { return longitudeEntrega; }
+    public void setLongitudeEntrega(Double longitudeEntrega) { this.longitudeEntrega = longitudeEntrega; }
 }

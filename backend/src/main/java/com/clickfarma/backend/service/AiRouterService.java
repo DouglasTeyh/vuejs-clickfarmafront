@@ -1,5 +1,8 @@
 package com.clickfarma.backend.service;
 
+import com.clickfarma.backend.model.Produto;
+import com.clickfarma.backend.repository.ProdutoRepository;
+import com.clickfarma.backend.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -90,5 +93,15 @@ public class AiRouterService {
             return geminiService.getRecommendations(usuarioId, vistos, comprados, produtos);
         }
         return Mono.just(List.of()); // Fallback
+    }
+
+    public Mono<String> interpretSearchQuery(String query) {
+        String prompt = String.format(
+            "Atue como um farmaceutico especialista. O usuario buscou por: '%s'. " +
+            "Sua tarefa e converter essa busca em uma lista de palavras-chave, categorias ou principios ativos que ajudem a encontrar o produto no banco de dados. " +
+            "Responda APENAS com as palavras-chave separadas por virgula. Exemplo: 'Paracetamol, Dor, Febre, Analgesico'.",
+            query
+        );
+        return this.chat(prompt);
     }
 }

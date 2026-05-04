@@ -1,30 +1,58 @@
 <template>
-  <div class="cf-login-page">
-    <div class="cf-login-card animate__animated animate__fadeInUp">
-      <div class="text-center mb-4">
-        <div class="cf-logo-icon bg-primary"><i class="fas fa-motorcycle"></i></div>
-        <h2 class="cf-login-title mt-3">Portal do Entregador</h2>
-        <p class="text-muted">Acesse suas entregas e ganhos</p>
-      </div>
-
-      <form @submit.prevent="handleLogin">
-        <div class="mb-3">
-          <label class="cf-label">E-mail</label>
-          <input v-model="email" type="email" class="cf-input" placeholder="seu@email.com" required>
+  <div class="auth-page-container py-5 fade-in-up">
+    <div class="row justify-content-center w-100 m-0">
+      <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm border-primary" style="border-top-width: 4px; border-radius: var(--cf-r-xl)">
+          <div class="card-header py-4 bg-white border-0 text-center">
+            <div class="cf-logo-icon mb-3 mx-auto"><i class="fas fa-motorcycle"></i></div>
+            <h3 class="mb-0 fw-bold" style="font-family: var(--cf-serif); color: var(--cf-text-dark)">Portal do Entregador</h3>
+            <p class="text-muted small mt-1">Acesse suas entregas e acompanhe seus ganhos em tempo real.</p>
+          </div>
+          <div class="card-body p-4 p-md-5 pt-0">
+            <form @submit.prevent="handleLogin">
+              <div class="mb-4">
+                <label class="form-label fw-bold text-muted small text-uppercase" style="letter-spacing: 0.05em;">E-mail</label>
+                <input 
+                  type="email" 
+                  class="form-control form-control-lg bg-light" 
+                  v-model="email"
+                  required
+                  placeholder="seu@email.com"
+                >
+              </div>
+              
+              <div class="mb-4">
+                <label class="form-label fw-bold text-muted small text-uppercase" style="letter-spacing: 0.05em;">Senha</label>
+                <input 
+                  type="password" 
+                  class="form-control form-control-lg bg-light" 
+                  v-model="password"
+                  required
+                  placeholder="Sua senha"
+                >
+              </div>
+              
+              <button 
+                type="submit" 
+                class="btn btn-primary btn-lg w-100 py-3 fw-bold"
+                style="border-radius: 12px; transition: all 0.2s;"
+                :disabled="loading"
+              >
+                <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+                {{ loading ? 'Entrando...' : 'Acessar Meu Painel' }}
+              </button>
+            </form>
+            
+            <div class="text-center mt-4 pt-2">
+              <p class="mb-0">
+                <router-link to="/login" class="text-muted small text-decoration-none">
+                  <i class="fas fa-arrow-left me-1"></i>
+                  Voltar para o site ClickFarma
+                </router-link>
+              </p>
+            </div>
+          </div>
         </div>
-        <div class="mb-4">
-          <label class="cf-label">Senha</label>
-          <input v-model="password" type="password" class="cf-input" placeholder="••••••••" required>
-        </div>
-
-        <button type="submit" class="cf-btn-primary w-100 py-3" :disabled="loading">
-          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-          Entrar no Painel
-        </button>
-      </form>
-      
-      <div class="mt-4 text-center">
-        <router-link to="/login" class="text-decoration-none small text-muted">Voltar para o site</router-link>
       </div>
     </div>
   </div>
@@ -32,22 +60,35 @@
 
 <script>
 import api from '@/services/api';
+import { useToast } from 'vue-toastification';
 
 export default {
   name: 'CourierLogin',
+  setup() {
+    return { toast: useToast() };
+  },
   data() {
-    return { email: '', password: '', loading: false };
+    return {
+      email: '',
+      password: '',
+      loading: false
+    };
   },
   methods: {
     async handleLogin() {
       this.loading = true;
       try {
         const res = await api.post('/auth/login', { email: this.email, senha: this.password });
+        if (res.data.role !== 'COURIER') {
+          this.toast.error('Acesso negado. Esta conta não é de um entregador parceiro.');
+          return;
+        }
         localStorage.setItem('authToken', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data));
+        this.toast.success(`Bem-vindo, ${res.data.nome}!`);
         this.$router.push('/courier/dashboard');
       } catch (err) {
-        alert('Credenciais inválidas para entregador.');
+        this.toast.error('Credenciais inválidas. Tente novamente.');
       } finally {
         this.loading = false;
       }
@@ -57,13 +98,34 @@ export default {
 </script>
 
 <style scoped>
-.cf-login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 20px; }
-.cf-login-card { background: #fff; width: 100%; max-width: 400px; padding: 2.5rem; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
-.cf-logo-icon { width: 60px; height: 60px; border-radius: 18px; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto; }
-.cf-login-title { font-family: var(--cf-serif); font-weight: 800; font-size: 1.5rem; color: #1e293b; }
-.cf-label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; display: block; }
-.cf-input { width: 100%; padding: 0.8rem 1rem; border-radius: 12px; border: 2px solid #f1f5f9; background: #f8fafc; transition: all 0.2s; }
-.cf-input:focus { border-color: #3b82f6; outline: none; background: #fff; }
-.cf-btn-primary { background: #3b82f6; color: #fff; border: none; border-radius: 12px; font-weight: 700; transition: all 0.2s; }
-.cf-btn-primary:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); }
+.auth-page-container {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cf-ivory);
+}
+
+.cf-logo-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  background: var(--cf-green);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.3);
+}
+
+.form-control:focus {
+  background: #fff !important;
+  border-color: var(--cf-green);
+  box-shadow: 0 0 0 0.25rem rgba(34, 197, 94, 0.25);
+}
 </style>

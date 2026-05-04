@@ -44,6 +44,14 @@ public class CategoriaService {
                 .collect(Collectors.toList());
     }
 
+    // Listar apenas categorias com produtos
+    public List<CategoriaResponseDTO> listarAtivas() {
+        return categoriaRepository.findCategoriasAtivas()
+                .stream()
+                .map(CategoriaResponseDTO::new)
+                .collect(Collectors.toList());
+    }
+
     // Buscar por ID
     public CategoriaResponseDTO buscarPorId(Long id) {
         Categoria categoria = categoriaRepository.findById(id)

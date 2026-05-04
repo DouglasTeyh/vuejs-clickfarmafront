@@ -3,133 +3,114 @@
     <!-- Overlay mobile -->
     <div v-if="sidebarOpen && isMobile" class="cf-sidebar-overlay" @click="sidebarOpen = false"></div>
 
-    <!-- ═══ SIDEBAR ═══ -->
-    <nav class="cf-sidebar" :class="{ 'sidebar-open': sidebarOpen }">
-      <!-- Logo -->
-      <div class="cf-sidebar-logo">
-        <div class="logo-mark">
-          <i class="fas fa-leaf"></i>
+    <!-- ═══ SIDEBAR PREMIUM ═══ -->
+    <aside class="cf-sidebar" :class="{ 'sidebar-open': sidebarOpen, 'collapsed': isCollapsed && !isMobile }">
+      <!-- Logo Section -->
+      <div class="sidebar-header">
+        <div class="brand-wrap">
+          <div class="brand-logo">
+            <i class="fas fa-leaf"></i>
+          </div>
+          <div class="brand-meta" v-if="!isCollapsed || isMobile">
+            <h1 class="brand-name">Click<span>Farma</span></h1>
+            <span class="brand-tag">Central Administrativa</span>
+          </div>
         </div>
-        <div>
-          <div class="logo-name">ClickFarma</div>
-          <div class="logo-role">Painel Admin</div>
-        </div>
-        <button v-if="isMobile" @click="sidebarOpen = false" class="cf-sidebar-close">
-          <i class="fas fa-times"></i>
+        <button class="collapse-btn d-none d-lg-flex" @click="isCollapsed = !isCollapsed">
+          <i class="fas" :class="isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'"></i>
         </button>
       </div>
 
-      <div class="cf-sidebar-divider"></div>
-
-      <!-- Navegação -->
-      <div class="cf-sidebar-section-label">VISÃO GERAL</div>
-      <ul class="cf-nav">
-        <li>
-          <router-link to="/admin/dashboard" class="cf-nav-link" :class="{ active: $route.path === '/admin/dashboard' }" @click="sidebarOpen = false">
-            <i class="fas fa-chart-pie cf-nav-icon"></i>
-            <span>Dashboard</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/admin/orders" class="cf-nav-link" :class="{ active: $route.path === '/admin/orders' }" @click="sidebarOpen = false">
-            <i class="fas fa-shopping-bag cf-nav-icon"></i>
-            <span>Pedidos</span>
-          </router-link>
-        </li>
-      </ul>
-
-      <div class="cf-sidebar-section-label">GESTÃO</div>
-      <ul class="cf-nav">
-        <li>
-          <router-link to="/admin/users" class="cf-nav-link" :class="{ active: $route.path === '/admin/users' }" @click="sidebarOpen = false">
-            <i class="fas fa-users cf-nav-icon"></i>
-            <span>Clientes</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/admin/pharmacies" class="cf-nav-link" :class="{ active: $route.path === '/admin/pharmacies' }" @click="sidebarOpen = false">
-            <i class="fas fa-store cf-nav-icon"></i>
-            <span>Farmácias</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/admin/couriers" class="cf-nav-link" :class="{ active: $route.path === '/admin/couriers' }" @click="sidebarOpen = false">
-            <i class="fas fa-motorcycle cf-nav-icon"></i>
-            <span>Entregadores</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/admin/products" class="cf-nav-link" :class="{ active: $route.path === '/admin/products' }" @click="sidebarOpen = false">
-            <i class="fas fa-pills cf-nav-icon"></i>
-            <span>Produtos</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/admin/categories" class="cf-nav-link" :class="{ active: $route.path === '/admin/categories' }" @click="sidebarOpen = false">
-            <i class="fas fa-tags cf-nav-icon"></i>
-            <span>Categorias</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/admin/prescriptions" class="cf-nav-link" :class="{ active: $route.path === '/admin/prescriptions' }" @click="sidebarOpen = false">
-            <i class="fas fa-file-medical cf-nav-icon"></i>
-            <span>Receitas</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/admin/payments" class="cf-nav-link" :class="{ active: $route.path === '/admin/payments' }" @click="sidebarOpen = false">
-            <i class="fas fa-hand-holding-usd cf-nav-icon"></i>
-            <span>Financeiro (Repasses)</span>
-          </router-link>
-        </li>
-      </ul>
-
-      <!-- Footer da sidebar -->
-      <div class="cf-sidebar-footer">
-        <div class="cf-user-info">
-          <div class="cf-user-avatar">
-            {{ currentUser?.nome?.charAt(0)?.toUpperCase() || 'A' }}
+      <div class="sidebar-content cf-hide-scrollbar">
+        <!-- Navigation Groups -->
+        <nav class="sidebar-nav">
+          <div v-for="group in navGroups" :key="group.label" class="nav-group">
+            <h6 class="nav-label" v-if="!isCollapsed || isMobile">{{ group.label }}</h6>
+            <div class="nav-items">
+              <router-link v-for="item in group.items" :key="item.path" :to="item.path" 
+                class="nav-link" :class="{ active: $route.path === item.path }" @click="handleNavClick">
+                <div class="link-icon">
+                  <i :class="item.icon"></i>
+                  <span class="badge-dot" v-if="item.badge"></span>
+                </div>
+                <span class="link-text" v-if="!isCollapsed || isMobile">{{ item.name }}</span>
+                <div class="link-hover-pill"></div>
+              </router-link>
+            </div>
           </div>
-          <div class="cf-user-details">
-            <div class="cf-user-name">{{ currentUser?.nome || 'Administrador' }}</div>
-            <div class="cf-user-role">Admin ClickFarma</div>
-          </div>
-        </div>
-        <button @click="logout" class="cf-logout-btn">
-          <i class="fas fa-sign-out-alt"></i>
-        </button>
+        </nav>
       </div>
-    </nav>
 
-    <!-- ═══ CONTEÚDO PRINCIPAL ═══ -->
-    <div class="cf-main">
-      <!-- Topbar -->
-      <header class="cf-topbar">
-        <div class="cf-topbar-left">
-          <button @click="sidebarOpen = !sidebarOpen" class="cf-menu-btn d-md-none">
-            <i class="fas fa-bars"></i>
+      <!-- User Profile Section -->
+      <div class="sidebar-footer">
+        <div class="user-profile-card">
+          <div class="user-avatar-wrap">
+            <div class="user-avatar">{{ currentUser?.nome?.charAt(0) || 'A' }}</div>
+            <div class="status-indicator online"></div>
+          </div>
+          <div class="user-details" v-if="!isCollapsed || isMobile">
+            <p class="user-name">{{ currentUser?.nome || 'Administrador' }}</p>
+            <p class="user-role">Nível: Master</p>
+          </div>
+          <button @click="logout" class="logout-btn" title="Sair do Sistema">
+            <i class="fas fa-power-off"></i>
           </button>
-          <div class="cf-breadcrumb">
-            <span class="cf-breadcrumb-root">Admin</span>
-            <i class="fas fa-chevron-right cf-breadcrumb-sep"></i>
-            <span class="cf-breadcrumb-current">{{ pageTitle }}</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN CONTENT AREA ═══ -->
+    <main class="cf-main">
+      <!-- Top Navigation Bar -->
+      <header class="cf-topbar shadow-sm">
+        <div class="topbar-left">
+          <button @click="sidebarOpen = !sidebarOpen" class="mobile-toggle d-lg-none">
+            <i class="fas fa-bars-staggered"></i>
+          </button>
+          
+          <div class="page-identity">
+            <nav class="cf-breadcrumb d-none d-md-flex">
+              <router-link to="/admin/dashboard" class="bc-item">Painel</router-link>
+              <i class="fas fa-chevron-right bc-sep"></i>
+              <span class="bc-item active">{{ pageTitle }}</span>
+            </nav>
+            <h2 class="topbar-page-title">{{ pageTitle }}</h2>
           </div>
         </div>
-        <div class="cf-topbar-right">
-          <div class="cf-topbar-badge">
-            <i class="fas fa-leaf me-1"></i>
-            ClickFarma Admin
+
+        <div class="topbar-right">
+          <div class="global-tools">
+            <div class="tool-search d-none d-sm-flex">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Comando rápido (Alt+K)">
+            </div>
+            <button class="tool-icon-btn">
+              <i class="far fa-bell"></i>
+              <span class="notif-badge"></span>
+            </button>
+            <div class="divider"></div>
+            <div class="system-health">
+              <span class="pulse-dot"></span>
+              <span class="status-label d-none d-md-block">API v1.4 Ativa</span>
+            </div>
           </div>
         </div>
       </header>
 
-      <!-- Área de conteúdo -->
-      <div class="cf-content">
-        <router-view />
-      </div>
-    </div>
+      <!-- View Wrapper -->
+      <section class="cf-content">
+        <router-view v-slot="{ Component }">
+          <transition name="view-fade" mode="out-in">
+            <div :key="$route.path">
+              <component :is="Component" />
+            </div>
+          </transition>
+        </router-view>
+      </section>
+    </main>
   </div>
 </template>
+
 
 <script>
 export default {
@@ -137,25 +118,58 @@ export default {
   data() {
     return {
       sidebarOpen: false,
+      isCollapsed: false,
       isMobile: false,
-      currentUser: null
+      currentUser: null,
+      navGroups: [
+        {
+          label: 'Operacional',
+          items: [
+            { name: 'Visão Geral', path: '/admin/dashboard', icon: 'fas fa-chart-pie' },
+            { name: 'Pedidos', path: '/admin/orders', icon: 'fas fa-shopping-cart', badge: true },
+            { name: 'Receitas', path: '/admin/prescriptions', icon: 'fas fa-file-medical' }
+          ]
+        },
+        {
+          label: 'Ecossistema',
+          items: [
+            { name: 'Clientes', path: '/admin/users', icon: 'fas fa-user-friends' },
+            { name: 'Farmácias', path: '/admin/pharmacies', icon: 'fas fa-hospital' },
+            { name: 'Entregadores', path: '/admin/couriers', icon: 'fas fa-truck-fast' }
+          ]
+        },
+        {
+          label: 'Logística & Catálogo',
+          items: [
+            { name: 'Produtos', path: '/admin/products', icon: 'fas fa-boxes-stacked' },
+            { name: 'Categorias', path: '/admin/categories', icon: 'fas fa-tags' },
+            { name: 'Estoque', path: '/admin/inventory', icon: 'fas fa-clipboard-check' }
+          ]
+        },
+        {
+          label: 'Tesouraria',
+          items: [
+            { name: 'Conciliação', path: '/admin/payments', icon: 'fas fa-wallet' }
+          ]
+        }
+      ]
     };
   },
   computed: {
     pageTitle() {
       const titles = {
-        '/admin/dashboard': 'Dashboard',
-        '/admin/products': 'Produtos',
-        '/admin/inventory': 'Estoque',
-        '/admin/orders': 'Pedidos',
-        '/admin/prescriptions': 'Receitas',
-        '/admin/users': 'Clientes',
-        '/admin/pharmacies': 'Farmácias',
-        '/admin/couriers': 'Entregadores',
-        '/admin/payments': 'Financeiro (Repasses)',
-        '/admin/categories': 'Categorias'
+        '/admin/dashboard': 'Relatório Executivo',
+        '/admin/products': 'Gestão Global',
+        '/admin/orders': 'Fluxo de Pedidos',
+        '/admin/users': 'Base de Clientes',
+        '/admin/pharmacies': 'Rede de Farmácias',
+        '/admin/couriers': 'Gestão Logística',
+        '/admin/payments': 'Conciliação Financeira',
+        '/admin/categories': 'Arquitetura de Categorias',
+        '/admin/prescriptions': 'Validação Técnica',
+        '/admin/inventory': 'Controle de Estoque'
       };
-      return titles[this.$route.path] || 'Painel';
+      return titles[this.$route.path] || 'Painel Administrativo';
     }
   },
   mounted() {
@@ -168,8 +182,8 @@ export default {
   },
   methods: {
     checkMobile() {
-      this.isMobile = window.innerWidth < 768;
-      if (!this.isMobile) this.sidebarOpen = false;
+      this.isMobile = window.innerWidth < 1024;
+      if (!this.isMobile && this.sidebarOpen) this.sidebarOpen = false;
     },
     loadUser() {
       try {
@@ -177,10 +191,12 @@ export default {
         if (raw) this.currentUser = JSON.parse(raw);
       } catch (e) {}
     },
+    handleNavClick() {
+      if (this.isMobile) this.sidebarOpen = false;
+    },
     logout() {
-      if (confirm('Deseja sair do painel?')) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+      if (confirm('Deseja encerrar sua sessão administrativa com segurança?')) {
+        localStorage.clear();
         this.$router.push('/admin/login');
       }
     }
@@ -188,284 +204,277 @@ export default {
 };
 </script>
 
+
 <style scoped>
-/* ══════════════════════════════════════
-   SHELL DO PAINEL — Identidade ClickFarma
-   ══════════════════════════════════════ */
+/* ═══ Shell & Base ═══ */
 .cf-admin-shell {
   display: flex;
   min-height: 100vh;
   background: var(--cf-ivory);
   font-family: var(--cf-sans);
-  overflow-x: hidden; /* Prevenir scroll horizontal global */
-  width: 100%;
+  color: var(--cf-text-dark);
 }
 
-/* ─── SIDEBAR ─── */
+/* ═══ Sidebar Premium ═══ */
 .cf-sidebar {
-  width: 260px;
-  height: 100vh;
+  width: 280px;
   background: var(--cf-green-dark);
+  height: 100vh;
+  position: sticky;
+  top: 0;
   display: flex;
   flex-direction: column;
-  position: fixed;
-  left: 0; top: 0;
+  transition: all 0.4s var(--cf-ease);
   z-index: 1050;
-  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  overflow-y: auto;
-  scrollbar-width: none; /* Firefox */
+  box-shadow: 10px 0 30px rgba(0,0,0,0.15);
 }
-.cf-sidebar::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+.cf-sidebar.collapsed { width: 88px; }
 
-.cf-sidebar-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 1.4rem 1.25rem;
-  flex-shrink: 0;
-}
-.logo-mark {
-  width: 38px; height: 38px;
-  background: var(--cf-gold);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  color: white; font-size: 1.1rem;
-  flex-shrink: 0;
-}
-.logo-name {
-  font-family: var(--cf-serif);
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #fff;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-}
-.logo-role {
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: rgba(255,255,255,0.45);
-  margin-top: 2px;
-}
-.cf-sidebar-close {
-  margin-left: auto;
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.5);
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.cf-sidebar-divider {
-  height: 1px;
-  background: rgba(255,255,255,0.08);
-  margin: 0 1.25rem;
-  flex-shrink: 0;
-}
-
-.cf-sidebar-section-label {
-  font-size: 0.6rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
-  padding: 1.1rem 1.4rem 0.4rem;
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
-.cf-nav {
-  list-style: none;
-  padding: 0 0.75rem;
-  margin: 0;
-  flex: 1;
-}
-
-.cf-nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: var(--cf-r-md);
-  color: rgba(255,255,255,0.65);
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 400;
-  transition: all 0.18s var(--cf-ease);
-  margin-bottom: 2px;
-  border-left: 3px solid transparent;
-}
-.cf-nav-link:hover {
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-  border-left-color: var(--cf-gold);
-}
-.cf-nav-link.active {
-  background: rgba(184,149,80,0.18);
-  color: var(--cf-gold);
-  border-left-color: var(--cf-gold);
-  font-weight: 500;
-}
-.cf-nav-icon {
-  width: 16px;
-  text-align: center;
-  opacity: 0.75;
-  flex-shrink: 0;
-}
-.cf-nav-link.active .cf-nav-icon { opacity: 1; }
-
-/* Footer da sidebar */
-.cf-sidebar-footer {
-  margin-top: auto;
-  padding: 1rem 1.25rem;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-  background: rgba(0,0,0,0.1);
-}
-.cf-user-avatar {
-  width: 34px; height: 34px;
-  border-radius: 50%;
-  background: var(--cf-gold);
-  color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; font-weight: 700;
-  flex-shrink: 0;
-}
-.cf-user-details { flex: 1; min-width: 0; }
-.cf-user-name {
-  font-size: 0.8rem; font-weight: 500; color: #fff;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.cf-user-role { font-size: 0.65rem; color: rgba(255,255,255,0.4); }
-.cf-logout-btn {
-  background: none; border: none;
-  color: rgba(255,255,255,0.4);
-  cursor: pointer; font-size: 0.95rem;
-  padding: 0.3rem; border-radius: 6px;
-  transition: color 0.2s;
-  flex-shrink: 0;
-}
-.cf-logout-btn:hover { color: var(--cf-gold); }
-
-/* Overlay mobile */
-.cf-sidebar-overlay {
-  position: fixed; inset: 0;
-  background: rgba(28,28,26,0.6);
-  z-index: 1040;
-  backdrop-filter: blur(4px);
-}
-
-/* ─── CONTEÚDO PRINCIPAL ─── */
-.cf-main {
-  margin-left: 260px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  min-width: 0; /* Essencial para conter o flex overflow */
-  width: calc(100% - 260px);
-  overflow-x: hidden;
-}
-
-/* Topbar */
-.cf-topbar {
-  height: 64px;
-  background: var(--cf-white);
-  border-bottom: 1px solid var(--cf-border);
+/* Sidebar Header */
+.sidebar-header {
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: var(--cf-shadow-xs);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.brand-wrap { display: flex; align-items: center; gap: 1rem; overflow: hidden; }
+.brand-logo {
+  width: 42px; height: 42px;
+  background: var(--cf-gold);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.25rem;
+  box-shadow: 0 4px 15px rgba(184,149,80,0.4);
   flex-shrink: 0;
 }
-.cf-topbar-left { 
-  display: flex; 
-  align-items: center; 
-  gap: 0.75rem; 
-  min-width: 0;
-  flex: 1;
-}
-.cf-menu-btn {
-  background: none; border: 1px solid var(--cf-border);
-  border-radius: var(--cf-r-sm);
-  padding: 0.35rem 0.55rem;
-  cursor: pointer; color: var(--cf-text-muted);
-  transition: all 0.18s;
-  flex-shrink: 0;
-}
-.cf-menu-btn:hover { border-color: var(--cf-green); color: var(--cf-green); }
-
-.cf-breadcrumb { 
-  display: flex; 
-  align-items: center; 
-  gap: 0.4rem; 
-  min-width: 0;
+.brand-name {
+  font-family: var(--cf-serif);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
   white-space: nowrap;
 }
-.cf-breadcrumb-root { font-size: 0.72rem; color: var(--cf-text-muted); }
-.cf-breadcrumb-sep { font-size: 0.55rem; color: var(--cf-border-mid); }
-.cf-breadcrumb-current { 
-  font-size: 0.82rem; 
-  font-weight: 500; 
-  color: var(--cf-text-dark);
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cf-topbar-badge {
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
+.brand-name span { color: var(--cf-gold); }
+.brand-tag {
+  font-size: 0.6rem;
   text-transform: uppercase;
-  color: var(--cf-green);
-  background: var(--cf-green-xlight);
-  padding: 0.3rem 0.7rem;
-  border-radius: 20px;
-  border: 1px solid rgba(42,92,69,0.15);
-  font-weight: 500;
-  white-space: nowrap;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.4);
+  display: block;
 }
 
-/* Área de conteúdo */
-.cf-content {
+.collapse-btn {
+  background: rgba(255,255,255,0.05);
+  border: none;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.3);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.collapse-btn:hover { background: var(--cf-gold); color: #fff; }
+
+/* Sidebar Nav */
+.sidebar-content {
   flex: 1;
-  padding: 1.5rem;
-  background: var(--cf-ivory);
-  animation: fadeInUp 0.35s var(--cf-ease) both;
-  min-width: 0;
-  width: 100%;
-}
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  overflow-y: auto;
+  padding: 1.5rem 1rem;
 }
 
-/* Mobile */
-@media (max-width: 991px) {
-  .cf-sidebar { 
-    transform: translateX(-100%); 
-    width: 280px;
+.nav-group { margin-bottom: 2rem; }
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.25);
+  margin: 0 0 1rem 1rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  border-radius: 14px;
+  transition: all 0.3s var(--cf-ease);
+  position: relative;
+  margin-bottom: 0.25rem;
+}
+.link-icon {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  position: relative;
+}
+.nav-link:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+.nav-link.active {
+  background: rgba(184,149,80,0.15);
+  color: var(--cf-gold);
+}
+.nav-link.active .link-hover-pill {
+  position: absolute; left: -10px; width: 4px; height: 20px;
+  background: var(--cf-gold); border-radius: 0 4px 4px 0;
+  box-shadow: 2px 0 10px var(--cf-gold);
+}
+.link-text { font-size: 0.9rem; font-weight: 500; white-space: nowrap; }
+
+.badge-dot {
+  position: absolute; top: -2px; right: -2px;
+  width: 8px; height: 8px;
+  background: var(--cf-gold);
+  border: 2px solid var(--cf-green-dark);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--cf-gold);
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  padding: 1.5rem 1rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  background: rgba(0,0,0,0.2);
+}
+.user-profile-card {
+  background: rgba(255,255,255,0.03);
+  border-radius: 18px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.user-avatar-wrap { position: relative; }
+.user-avatar {
+  width: 42px; height: 42px;
+  background: var(--cf-gold);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: #fff; font-size: 1.1rem;
+}
+.status-indicator {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--cf-green-dark);
+}
+.status-indicator.online { background: #22c55e; }
+
+.user-name { font-size: 0.85rem; font-weight: 700; color: #fff; margin: 0; white-space: nowrap; }
+.user-role { font-size: 0.65rem; color: rgba(255,255,255,0.4); margin: 0; }
+
+.logout-btn {
+  background: none; border: none;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.2);
+  cursor: pointer; transition: all 0.2s;
+}
+.logout-btn:hover { color: #ff6b6b; transform: scale(1.1); }
+
+/* ═══ Main Content ═══ */
+.cf-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Topbar Premium */
+.cf-topbar {
+  height: 80px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  z-index: 1000;
+  position: sticky; top: 0;
+}
+
+.topbar-left { display: flex; align-items: center; gap: 2rem; }
+.mobile-toggle {
+  background: var(--cf-ivory); border: 1px solid var(--cf-border);
+  width: 44px; height: 44px; border-radius: 12px;
+  color: var(--cf-text-dark); cursor: pointer;
+}
+
+.cf-breadcrumb { gap: 0.6rem; align-items: center; margin-bottom: 0.2rem; }
+.bc-item { font-size: 0.72rem; color: var(--cf-text-faint); text-decoration: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.bc-sep { font-size: 0.55rem; color: var(--cf-text-faint); opacity: 0.5; }
+.bc-item.active { color: var(--cf-gold); }
+
+.topbar-page-title {
+  font-family: var(--cf-serif);
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--cf-text-dark);
+  margin: 0;
+}
+
+.topbar-right { display: flex; align-items: center; gap: 2rem; }
+.global-tools { display: flex; align-items: center; gap: 1.25rem; }
+
+.tool-search {
+  background: var(--cf-ivory);
+  border: 1px solid var(--cf-border);
+  border-radius: 12px;
+  padding: 0.6rem 1.25rem;
+  display: flex; align-items: center; gap: 0.75rem;
+  width: 280px;
+}
+.tool-search i { color: var(--cf-text-faint); font-size: 0.85rem; }
+.tool-search input { border: none; background: transparent; font-size: 0.85rem; outline: none; width: 100%; color: var(--cf-text-dark); }
+
+.tool-icon-btn {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: #fff; border: 1px solid var(--cf-border);
+  color: var(--cf-text-muted); cursor: pointer;
+  position: relative; transition: all 0.2s;
+}
+.tool-icon-btn:hover { border-color: var(--cf-green); color: var(--cf-green); background: var(--cf-ivory-light); }
+.notif-badge {
+  position: absolute; top: 8px; right: 8px;
+  width: 8px; height: 8px;
+  background: #ef4444; border: 2px solid #fff; border-radius: 50%;
+}
+
+.system-health { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.8rem; background: var(--cf-green-xlight); border-radius: 50px; }
+.pulse-dot { width: 8px; height: 8px; background: var(--cf-green); border-radius: 50%; animation: pulse 2s infinite; }
+.status-label { font-size: 0.65rem; font-weight: 800; color: var(--cf-green); text-transform: uppercase; letter-spacing: 0.05em; }
+
+@keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(42,92,69,0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(42,92,69,0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(42,92,69,0); } }
+
+/* Content Area */
+.cf-content {
+  padding: 2.5rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ═══ Transitions ═══ */
+.view-fade-enter-active, .view-fade-leave-active { transition: opacity 0.3s var(--cf-ease), transform 0.3s var(--cf-ease); }
+.view-fade-enter-from { opacity: 0; transform: translateY(10px); }
+.view-fade-leave-to { opacity: 0; transform: translateY(-10px); }
+
+.cf-sidebar-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1040;
+}
+
+@media (max-width: 1024px) {
+  .cf-sidebar {
+    position: fixed; left: -280px;
   }
-  .cf-sidebar.sidebar-open { 
-    transform: translateX(0); 
-  }
-  .cf-main { 
-    margin-left: 0; 
-    width: 100%;
-  }
-  .cf-topbar {
-    padding: 0 1rem;
-  }
-  .cf-content {
-    padding: 1rem;
-  }
-  .cf-topbar-right {
-    display: none; 
-  }
+  .cf-sidebar.sidebar-open { left: 0; }
+  .cf-sidebar.collapsed { width: 280px; }
+  .sidebar-header .collapse-btn { display: none; }
+  .cf-content { padding: 1.5rem; }
 }
 </style>

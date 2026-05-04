@@ -61,6 +61,12 @@
                       <span class="cf-info-label">Realizado em</span>
                       <span class="cf-info-val">{{ formatDate(currentOrder.date) }}</span>
                     </div>
+                    
+                    <div v-if="currentOrder.codigoEntrega" class="cf-info-row mt-3 p-2 bg-warning-subtle rounded border border-warning">
+                      <span class="cf-info-label text-dark fw-bold"><i class="fas fa-key"></i> Código de Entrega (Diga ao Entregador)</span>
+                      <span class="cf-info-val text-dark fs-4 fw-bolder tracking-widest text-center">{{ currentOrder.codigoEntrega }}</span>
+                    </div>
+
                     <div class="cf-info-row mt-3">
                       <span class="cf-info-label">Valor Total</span>
                       <span class="cf-info-val text-green">R$ {{ getOrderTotal(currentOrder) }}</span>
@@ -369,8 +375,8 @@ export default {
 
 /* TABELA DE INFOS */
 .cf-info-row { display: flex; flex-direction: column; }
-.cf-info-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cf-text-faint); margin-bottom: 2px; }
 .cf-info-val { font-size: 1rem; font-weight: 400; color: var(--cf-text-dark); }
+.tracking-widest { letter-spacing: 0.3em; }
 .text-green { color: var(--cf-green) !important; font-family: var(--cf-sans); font-size: 1.4rem; font-weight: 500; }
 .border-end-cf { border-right: 1px solid var(--cf-border); }
 

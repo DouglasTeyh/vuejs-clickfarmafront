@@ -137,16 +137,30 @@ export default {
 
     extractSuggestedProducts(text) {
       if (!text || !this.products || !this.products.length) return [];
-      const lowerText = text.toLowerCase();
-      // Only returns REAL products from the Database
-      const matched = this.products.filter(p => {
+      
+      const cleanText = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      
+      // 1. Busca por nome do produto
+      const matchedByName = this.products.filter(p => {
         if (!p.name) return false;
-        const pName = p.name.toLowerCase();
-        if (pName.length < 4) return false;
-        return lowerText.includes(pName);
+        const pName = p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (pName.length < 3) return false;
+        return cleanText.includes(pName) || pName.split(' ').some(word => word.length > 3 && cleanText.includes(word));
       });
-      // Limit to max 4 items to avoid overwhelming the chat
-      return matched.slice(0, 4);
+
+      // 2. Busca por categoria (para termos genéricos como "Suplementos")
+      const matchedByCategory = this.products.filter(p => {
+        if (!p.category) return false;
+        const pCat = p.category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return cleanText.includes(pCat);
+      });
+
+      // Combina e remove duplicatas
+      const combined = [...matchedByName, ...matchedByCategory];
+      const unique = Array.from(new Set(combined.map(p => p.id)))
+        .map(id => combined.find(p => p.id === id));
+
+      return unique.slice(0, 6); // Aumentado para 6 para recomendações genéricas
     },
 
     renderMarkdown(text) {

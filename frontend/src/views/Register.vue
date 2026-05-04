@@ -10,7 +10,7 @@
             
             <!-- Mensagem de Boas-Vindas -->
             <div v-if="showWelcome" class="alert alert-success animate__animated animate__fadeIn">
-              <h5 class="fw-bold">🎉 Bem-vindo(a) à família ClickFarma!</h5>
+              <h5 class="fw-bold"><i class="fas fa-party-horn me-2 text-primary"></i>Bem-vindo(a) à família ClickFarma!</h5>
               <p class="mb-0">Que bom ter você conosco! Agora você pode explorar farmácias perto de você e fazer suas compras com toda a praticidade.</p>
             </div>
 

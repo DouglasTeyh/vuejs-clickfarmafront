@@ -14,7 +14,7 @@
           <div class="col-lg-6 cf-modal-gallery">
             <div class="cf-gallery-main">
               <div class="cf-visual-placeholder">
-                  <span class="cf-large-icon">{{ getCategoryIcon(product?.category) }}</span>
+                  <i :class="getCategoryIcon(product?.category)" class="cf-large-icon text-primary"></i>
               </div>
             </div>
             <div v-if="product?.images && product.images.length > 1" class="cf-gallery-thumbs">
@@ -137,7 +137,13 @@ export default {
   },
   methods: {
     getCategoryIcon(cat) {
-      return { 'Medicamentos':'💊','Cosméticos':'🧴','Higiene':'🚿','Vitaminas':'🌿','Maternidade':'👶' }[cat] || '📦'
+      return { 
+        'Medicamentos': 'fas fa-pills',
+        'Cosméticos': 'fas fa-pump-soap',
+        'Higiene': 'fas fa-shower',
+        'Vitaminas': 'fas fa-leaf',
+        'Maternidade': 'fas fa-baby'
+      }[cat] || 'fas fa-box'
     },
     close() {
       this.$emit('close')

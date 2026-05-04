@@ -22,6 +22,7 @@
         :initialMode="authModalMode"
         @close="closeAuthModal"
       />
+      <NotificationToast ref="toast" />
       <Footer />
     </template>
 
@@ -38,13 +39,18 @@ import Footer from '@/components/common/Footer.vue'
 import GeminiChat from '@/components/gemini/GeminiChat.vue'
 import ProductQuickView from '@/components/products/ProductQuickView.vue'
 import AuthModal from '@/components/auth/AuthModal.vue'
+import NotificationToast from '@/components/common/NotificationToast.vue'
 import { mapState, mapActions } from 'vuex'
 
 export default {
   name: 'App',
-  components: { Header, Footer, GeminiChat, ProductQuickView, AuthModal },
+  components: { Header, Footer, GeminiChat, ProductQuickView, AuthModal, NotificationToast },
   data() {
     return { isChatOpen: false };
+  },
+  mounted() {
+    // Expoe o toast globalmente
+    window.$toast = this.$refs.toast;
   },
   computed: {
     ...mapState(['isQuickViewOpen', 'quickViewProduct', 'isAuthModalOpen', 'authModalMode']),
@@ -72,7 +78,7 @@ body { background-color: var(--cf-ivory) !important; }
 .main-content { 
   min-height: calc(100vh - 160px); 
   background: var(--cf-ivory);
-  padding-top: 110px; /* Offset for fixed header */
+  padding-top: 91px; /* Offset for fixed header (66px + 25px) */
   transition: filter 0.3s ease;
 }
 

@@ -4,7 +4,7 @@
       <div class="col-md-6">
         <div class="card">
           <div class="card-header">
-            <h3 class="text-center">🔐 Redefinir Senha</h3>
+            <h3 class="text-center"><i class="fas fa-key me-2 text-primary"></i>Redefinir Senha</h3>
           </div>
           <div class="card-body">
             <p class="text-muted text-center mb-4">
@@ -61,10 +61,10 @@ export default {
       this.loading = true
       try {
         await this.requestPasswordReset(this.email)
-        this.$toast.success('Email de redefinição enviado com sucesso!')
+        alert('Email de redefinição enviado com sucesso!')
         this.email = ''
       } catch (error) {
-        this.$toast.error(error.message || 'Erro ao solicitar redefinição de senha')
+        alert(error.message || 'Erro ao solicitar redefinição de senha')
       } finally {
         this.loading = false
       }

@@ -17,6 +17,7 @@ import com.clickfarma.backend.repository.PedidoRepository;
 import com.clickfarma.backend.repository.ProdutoRepository;
 import com.clickfarma.backend.repository.RastreioRepository;
 import com.clickfarma.backend.repository.UsuarioRepository;
+import com.clickfarma.backend.repository.MotoboyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +56,9 @@ public class PedidoService {
 
     @Autowired
     private EmailNotificationService emailNotificationService;
+
+    @Autowired
+    private MotoboyRepository motoboyRepository;
 
     /**
      * Cria o pedido normal (sem considerar agendamento de recompra).
@@ -97,7 +101,20 @@ public class PedidoService {
             valorTotal = valorTotal.add(item.getSubtotal());
         }
 
-        pedidoSalvo.setValorTotal(valorTotal);
+        // Mock distance calculation and freight value (R$ 3/km)
+        double distanciaKm = Math.round((Math.random() * 5.0 + 1.0) * 100.0) / 100.0;
+        BigDecimal valorFrete = BigDecimal.valueOf(distanciaKm * 3.0);
+        pedidoSalvo.setDistanciaKm(distanciaKm);
+        pedidoSalvo.setValorFrete(valorFrete);
+
+        // Generate validation codes
+        String codigoRetirada = String.format("%04d", (int)(Math.random() * 10000));
+        String codigoEntrega = String.format("%04d", (int)(Math.random() * 10000));
+        pedidoSalvo.setCodigoRetirada(codigoRetirada);
+        pedidoSalvo.setCodigoEntrega(codigoEntrega);
+
+        // Add freight to total
+        pedidoSalvo.setValorTotal(valorTotal.add(valorFrete));
         pedidoSalvo = pedidoRepository.save(pedidoSalvo);
 
         String metodo = pedidoDTO.getMetodoPagamento() != null
@@ -356,6 +373,94 @@ public class PedidoService {
         pedido.setStatus(Pedido.StatusPedido.CANCELADO);
         pedido.setDataAtualizacao(LocalDateTime.now());
         pedidoRepository.save(pedido);
+    }
+
+    @Transactional
+    public PedidoResponseDTO aceitarCorrida(Long pedidoId, Long motoboyId) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+        
+        if (pedido.getMotoboy() != null) {
+            throw new RuntimeException("Esta corrida já foi aceita por outro motoboy.");
+        }
+        
+        com.clickfarma.backend.model.Motoboy motoboy = new com.clickfarma.backend.model.Motoboy();
+        motoboy.setId(motoboyId); // Lazy load reference
+        pedido.setMotoboy(motoboy);
+        pedido.setStatus(Pedido.StatusPedido.ENVIADO); // Ou criar um status A_CAMINHO_DA_FARMACIA
+        pedido.setDataAtualizacao(LocalDateTime.now());
+        
+        Pedido atualizado = pedidoRepository.save(pedido);
+        return new PedidoResponseDTO(atualizado);
+    }
+
+    @Transactional
+    public PedidoResponseDTO confirmarRetirada(Long pedidoId, Long motoboyId, String codigoRetirada) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+        
+        if (pedido.getMotoboy() == null || !pedido.getMotoboy().getId().equals(motoboyId)) {
+            throw new RuntimeException("Motoboy não autorizado para esta corrida.");
+        }
+        
+        if (!pedido.getCodigoRetirada().equals(codigoRetirada)) {
+            throw new RuntimeException("Código de retirada inválido.");
+        }
+        
+        pedido.setStatus(Pedido.StatusPedido.EM_TRANSITO);
+        pedido.setDataAtualizacao(LocalDateTime.now());
+        
+        // Registrar localização atual no rastreio se aplicável
+        if (pedido.getRastreio() != null) {
+            atualizarRastreio(pedidoId, "Saiu da Farmácia", "EM_TRANSITO");
+        }
+        
+        emailNotificationService.enviarAtualizacaoStatusPedido(pedido.getUsuario(), pedido);
+        System.out.println("[WHATSAPP MOCK] Notificação enviada para Cliente: Seu pedido saiu para entrega!");
+        
+        return new PedidoResponseDTO(pedidoRepository.save(pedido));
+    }
+
+    @Transactional
+    public PedidoResponseDTO confirmarEntrega(Long pedidoId, Long motoboyId, String codigoEntrega) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+        
+        if (pedido.getMotoboy() == null || !pedido.getMotoboy().getId().equals(motoboyId)) {
+            throw new RuntimeException("Motoboy não autorizado para esta corrida.");
+        }
+        
+        if (!pedido.getCodigoEntrega().equals(codigoEntrega)) {
+            throw new RuntimeException("Código de entrega inválido.");
+        }
+        
+        pedido.setStatus(Pedido.StatusPedido.ENTREGUE);
+        pedido.setDataAtualizacao(LocalDateTime.now());
+        
+        if (pedido.getRastreio() != null) {
+            atualizarRastreio(pedidoId, "Entregue ao Cliente", "ENTREGUE");
+        }
+        
+        // Verifica atraso
+        java.time.Duration duracao = java.time.Duration.between(pedido.getDataPedido(), LocalDateTime.now());
+        if (duracao.toMinutes() > 30) {
+            com.clickfarma.backend.model.Motoboy mb = pedido.getMotoboy();
+            if (mb != null && mb.getId() != null) {
+                com.clickfarma.backend.model.Motoboy motoboyFromDb = motoboyRepository.findById(mb.getId()).orElse(null);
+                if (motoboyFromDb != null) {
+                    motoboyFromDb.setAtrasos(motoboyFromDb.getAtrasos() + 1);
+                    motoboyRepository.save(motoboyFromDb);
+                    System.out.println("[SISTEMA] Motoboy " + motoboyFromDb.getNome() + " penalizado por atraso (Total: " + motoboyFromDb.getAtrasos() + ").");
+                }
+            }
+        }
+
+        // Aciona o split de pagamentos (Simulado)
+        System.out.println("[MERCADO PAGO MOCK] PIX enviado para Farmácia e Motoboy da entrega " + pedido.getId());
+        emailNotificationService.enviarAtualizacaoStatusPedido(pedido.getUsuario(), pedido);
+        System.out.println("[WHATSAPP MOCK] Notificação enviada para Cliente: Pedido Entregue com Sucesso!");
+        
+        return new PedidoResponseDTO(pedidoRepository.save(pedido));
     }
 
     public Map<String, Object> gerarRelatorio(LocalDateTime inicio, LocalDateTime fim) {

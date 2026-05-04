@@ -81,10 +81,10 @@ export default {
       userMessage: '',
       loading: false,
       suggestions: [
-        '💊 Qual remédio para dor de cabeça?',
-        '📦 Como rastrear meu pedido?',
-        '🚚 Qual prazo de entrega?',
-        '💳 Formas de pagamento'
+        'Qual remédio para dor de cabeça?',
+        'Como rastrear meu pedido?',
+        'Qual prazo de entrega?',
+        'Formas de pagamento'
       ]
     }
   },

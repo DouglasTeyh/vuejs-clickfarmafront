@@ -15,4 +15,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByTelegramLinkToken(String telegramLinkToken);
 
     Optional<Usuario> findByTelegramId(String telegramId);
+    Optional<Usuario> findByResetPasswordToken(String resetPasswordToken);
+    long countByRole(String role);
 }

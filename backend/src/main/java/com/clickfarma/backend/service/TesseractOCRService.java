@@ -6,19 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-<<<<<<< main
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-=======
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
->>>>>>> main
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,8 +21,6 @@ import java.util.Map;
 
 @Service
 public class TesseractOCRService {
-    private static final Logger log = LoggerFactory.getLogger(TesseractOCRService.class);
-
     private static final Logger log = LoggerFactory.getLogger(TesseractOCRService.class);
 
     /**
@@ -44,6 +37,9 @@ public class TesseractOCRService {
      */
     @Value("${receita.tesseract.useUserWords:true}")
     private boolean useUserWords;
+
+    @Value("${receita.tesseract.datapath:/usr/share/tesseract-ocr/5/tessdata/}")
+    private String tesseractDatapath;
 
     private static volatile Path userWordsTempFile;
 
@@ -114,7 +110,7 @@ public class TesseractOCRService {
     private Tesseract createTesseract(int pageSegMode) {
         Tesseract tesseract = new Tesseract();
         tesseract.setLanguage("por");
-        tesseract.setDatapath("/usr/share/tesseract-ocr/5/tessdata/");
+        tesseract.setDatapath(tesseractDatapath);
         tesseract.setPageSegMode(pageSegMode);
         tesseract.setOcrEngineMode(1);
         tesseract.setTessVariable("classify_bln_numeric_mode", "0");
@@ -122,7 +118,6 @@ public class TesseractOCRService {
         if (useUserWords) {
             Path words = resolveUserWordsFile();
             if (words != null) {
-                // Tesseract expects a filesystem path.
                 tesseract.setTessVariable("user_words_file", words.toAbsolutePath().toString());
             }
         }

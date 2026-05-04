@@ -1,95 +1,155 @@
 <template>
-  <div class="cf-pharm-dash">
-    <!-- KPI Cards -->
-    <div class="row g-3 mb-4">
-      <div class="col-xl-3 col-md-6">
-        <div class="cf-kpi accent-green">
-          <div class="cf-kpi-icon"><i class="fas fa-dollar-sign"></i></div>
-          <div class="cf-kpi-body">
-            <span class="cf-kpi-lbl">Faturamento Bruto</span>
-            <div class="cf-kpi-val">R$ {{ n(stats.faturamentoBruto) }}</div>
-          </div>
+  <div class="cf-mgmt-premium">
+    <!-- ═══ HEADER DE BOAS-VINDAS ═══ -->
+    <header class="mgmt-header">
+      <div class="header-info">
+        <h3 class="editorial-title">Painel Executivo</h3>
+        <p class="editorial-subtitle">Visão analítica de performance e inteligência logística</p>
+      </div>
+      <div class="header-tools">
+        <div class="status-indicator">
+          <span class="status-dot online"></span>
+          <span class="status-text">Unidade Operacional</span>
         </div>
       </div>
-      <div class="col-xl-3 col-md-6">
-        <div class="cf-kpi accent-gold">
-          <div class="cf-kpi-icon"><i class="fas fa-hand-holding-usd"></i></div>
-          <div class="cf-kpi-body">
-            <span class="cf-kpi-lbl">Faturamento Líquido</span>
-            <div class="cf-kpi-val">R$ {{ n(stats.faturamentoLiquido) }}</div>
-            <span class="cf-kpi-sub">Taxa: R$ {{ n(stats.comissaoPaga) }}</span>
+    </header>
+
+    <!-- ═══ KPI GRID PREMIUM ═══ -->
+    <div class="cf-kpi-grid-premium mb-5">
+      <div class="kpi-card-premium ivory">
+        <div class="kpi-icon"><i class="fas fa-coins"></i></div>
+        <div class="kpi-data">
+          <span class="kpi-label">Faturamento Bruto</span>
+          <div class="kpi-value-wrap">
+            <span class="currency">R$</span>
+            <span class="amount">{{ n(stats.faturamentoBruto) }}</span>
           </div>
         </div>
-      </div>
-      <div class="col-xl-3 col-sm-6">
-        <div class="cf-kpi accent-neutral">
-          <div class="cf-kpi-icon"><i class="fas fa-box-open"></i></div>
-          <div class="cf-kpi-body">
-            <span class="cf-kpi-lbl">Total Pedidos</span>
-            <div class="cf-kpi-val">{{ stats.totalPedidos }}</div>
-          </div>
+        <div class="kpi-visual">
+          <div class="mini-chart-bar" style="height: 40%"></div>
+          <div class="mini-chart-bar" style="height: 60%"></div>
+          <div class="mini-chart-bar" style="height: 80%"></div>
         </div>
       </div>
-      <div class="col-xl-3 col-sm-6">
-        <div class="cf-kpi" :class="stats.pedidosPendentes > 0 ? 'accent-danger' : 'accent-neutral'">
-          <div class="cf-kpi-icon"><i class="fas fa-clock"></i></div>
-          <div class="cf-kpi-body">
-            <span class="cf-kpi-lbl">Pendentes</span>
-            <div class="cf-kpi-val" :class="stats.pedidosPendentes > 0 ? 'cf-danger' : ''">
-              {{ stats.pedidosPendentes }}
+
+      <div class="kpi-card-premium gold">
+        <div class="kpi-icon"><i class="fas fa-vault"></i></div>
+        <div class="kpi-data">
+          <span class="kpi-label">Margem Líquida</span>
+          <div class="kpi-value-wrap">
+            <span class="currency">R$</span>
+            <span class="amount">{{ n(stats.faturamentoLiquido) }}</span>
+          </div>
+          <span class="kpi-sub">Comissão: R$ {{ n(stats.comissaoPaga) }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card-premium dark">
+        <div class="kpi-icon"><i class="fas fa-box-archive"></i></div>
+        <div class="kpi-data">
+          <span class="kpi-label">Volume de Pedidos</span>
+          <div class="kpi-value-wrap">
+            <span class="amount">{{ stats.totalPedidos }}</span>
+          </div>
+          <span class="kpi-sub">Total acumulado</span>
+        </div>
+      </div>
+
+      <div class="kpi-card-premium" :class="stats.pedidosPendentes > 0 ? 'alert' : 'neutral'">
+        <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+        <div class="kpi-data">
+          <span class="kpi-label">Ações Pendentes</span>
+          <div class="kpi-value-wrap">
+            <span class="amount">{{ stats.pedidosPendentes }}</span>
+          </div>
+          <span v-if="stats.pedidosPendentes > 0" class="kpi-sub">Requer atenção imediata</span>
+          <span v-else class="kpi-sub">Operação em dia</span>
+        </div>
+        <div v-if="stats.pedidosPendentes > 0" class="pulse-ring"></div>
+      </div>
+    </div>
+
+    <!-- ═══ ANALYTICS E ALERTAS ═══ -->
+    <div class="dashboard-analytics-row">
+      <!-- Performance Semanal -->
+      <div class="analytics-card flex-2">
+        <header class="card-header-premium">
+          <div class="header-main">
+            <i class="fas fa-chart-area"></i>
+            <h5>Projeção de Receita</h5>
+          </div>
+          <span class="time-range">Últimos 7 dias</span>
+        </header>
+        <div class="chart-container-premium">
+          <canvas id="lineChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Central de Despacho -->
+      <div class="analytics-card flex-1">
+        <header class="card-header-premium">
+          <div class="header-main">
+            <i class="fas fa-satellite-dish"></i>
+            <h5>Fila de Despacho</h5>
+          </div>
+        </header>
+        <div class="dispatch-center">
+          <template v-if="stats.pedidosPendentes > 0">
+            <div class="dispatch-status-alert">
+              <div class="alert-icon-wrap">
+                <i class="fas fa-truck-ramp-box"></i>
+                <div class="alert-pulse"></div>
+              </div>
+              <h4>{{ stats.pedidosPendentes }} Pedidos aguardando</h4>
+              <p>O tempo médio de preparo impacta seu ranqueamento na plataforma.</p>
+              <router-link to="/pharmacy/orders" class="btn-dispatch-premium">
+                Acessar Logística <i class="fas fa-chevron-right"></i>
+              </router-link>
             </div>
-          </div>
-          <div v-if="stats.pedidosPendentes > 0" class="cf-kpi-pulse"></div>
+          </template>
+          <template v-else>
+            <div class="dispatch-status-clear">
+              <div class="clear-icon"><i class="fas fa-check-double"></i></div>
+              <h4>Fluxo Normalizado</h4>
+              <p>Nenhuma pendência logística detectada para sua unidade agora.</p>
+              <router-link to="/pharmacy/orders" class="btn-history-premium">Ver Histórico</router-link>
+            </div>
+          </template>
         </div>
       </div>
     </div>
 
-    <div class="row g-4">
-      <!-- Gráfico semanal -->
-      <div class="col-xl-7">
-        <div class="cf-card">
-          <div class="cf-card-head">
-            <h5 class="cf-card-title"><span class="cf-dot green"></span>Vendas da Semana</h5>
-            <span class="cf-eyebrow">semana atual</span>
-          </div>
-          <div class="cf-card-body">
-            <canvas id="lineChart" height="130"></canvas>
-          </div>
+    <!-- ═══ MODAL PIX OBRIGATÓRIO ═══ -->
+    <div v-if="showPixModal" class="pix-modal-overlay">
+      <div class="pix-modal-card">
+        <div class="pix-modal-header text-center mb-4">
+          <i class="fas fa-money-bill-transfer text-success fa-3x mb-3"></i>
+          <h4 class="fw-bold">Cadastre sua Chave PIX</h4>
+          <p class="text-muted small">Para receber os repasses das suas vendas, precisamos que você cadastre uma chave PIX válida. Você só verá esta mensagem até configurar.</p>
         </div>
-      </div>
-
-      <!-- Central de pedidos -->
-      <div class="col-xl-5">
-        <div class="cf-card h-100">
-          <div class="cf-card-head">
-            <h5 class="cf-card-title"><span class="cf-dot gold"></span>Central de Pedidos</h5>
-            <span v-if="stats.pedidosPendentes > 0" class="cf-badge-danger">
-              {{ stats.pedidosPendentes }} pendentes
-            </span>
-          </div>
-          <div class="cf-card-body d-flex flex-column justify-content-center text-center py-4">
-            <template v-if="stats.pedidosPendentes > 0">
-              <div class="cf-bell-anim mb-3"><i class="fas fa-bell"></i></div>
-              <h4 class="cf-alert-heading">{{ stats.pedidosPendentes }} pedido(s) aguardando</h4>
-              <p class="cf-alert-sub">Acesse os pedidos para confirmar e preparar os envios.</p>
-              <router-link to="/pharmacy/orders" class="cf-btn-primary mt-2">
-                <i class="fas fa-arrow-right me-2"></i>Ver Pedidos
-              </router-link>
-            </template>
-            <template v-else>
-              <div class="cf-all-clear">
-                <i class="fas fa-check-circle"></i>
-                <h5 class="mt-3">Tudo em dia!</h5>
-                <p>Nenhum pedido pendente no momento.</p>
-                <router-link to="/pharmacy/orders" class="cf-btn-outline mt-2">Ver histórico</router-link>
-              </div>
-            </template>
-          </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">Tipo de Chave</label>
+          <select v-model="pixForm.tipo" class="form-select">
+            <option value="CNPJ">CNPJ</option>
+            <option value="CPF">CPF</option>
+            <option value="EMAIL">E-mail</option>
+            <option value="TELEFONE">Telefone</option>
+            <option value="ALEATORIA">Chave Aleatória</option>
+          </select>
         </div>
+        <div class="mb-4">
+          <label class="form-label fw-bold small">Chave PIX</label>
+          <input type="text" v-model="pixForm.chave" class="form-control" placeholder="Digite sua chave...">
+        </div>
+        <button class="btn btn-success w-100 fw-bold py-3" @click="salvarPix" :disabled="savingPix || !pixForm.chave">
+          <span v-if="savingPix" class="spinner-border spinner-border-sm me-2"></span>
+          Salvar Chave PIX
+        </button>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import api from '@/services/api';
@@ -99,7 +159,11 @@ export default {
   data() {
     return {
       stats: { faturamentoBruto:0, faturamentoLiquido:0, comissaoPaga:0, totalPedidos:0, pedidosPendentes:0, totalProdutos:0 },
-      lineChart: null
+      lineChart: null,
+      showPixModal: false,
+      savingPix: false,
+      farmacia: null,
+      pixForm: { tipo: 'CNPJ', chave: '' }
     };
   },
   async mounted() {
@@ -113,6 +177,11 @@ export default {
         const { data: farmacias } = await api.get('/farmacias');
         const farmacia = farmacias.find(f => f.email === user.email);
         if (!farmacia) return;
+        this.farmacia = farmacia;
+
+        if (!farmacia.chavePix || farmacia.chavePix === '') {
+          this.showPixModal = true;
+        }
 
         const { data: s } = await api.get(`/dashboard/farmacia/${farmacia.id}`);
         this.stats = s;
@@ -140,11 +209,11 @@ export default {
               tension: 0.4, fill: true,
               pointBackgroundColor: '#2A5C45',
               pointRadius: 4, pointHoverRadius: 6,
-              borderWidth: 2
+              borderWidth: 3
             }]
           },
           options: {
-            responsive: true, maintainAspectRatio: true,
+            responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
               x: { grid: { display: false }, ticks: { font: { family: "'DM Sans', sans-serif", size: 11 } } },
@@ -154,88 +223,101 @@ export default {
           }
         });
       } catch (e) { console.error(e); }
+    },
+    async salvarPix() {
+      this.savingPix = true;
+      try {
+        await api.patch(`/farmacias/${this.farmacia.id}/pix`, {
+          chavePix: this.pixForm.chave,
+          tipoChavePix: this.pixForm.tipo
+        });
+        this.showPixModal = false;
+        alert('Chave PIX cadastrada com sucesso!');
+      } catch (e) {
+        alert('Erro ao salvar Chave PIX.');
+      } finally {
+        this.savingPix = false;
+      }
     }
   }
 };
 </script>
 
 <style scoped>
-/* KPIs */
-.cf-kpi {
-  background: var(--cf-white); border: 1px solid var(--cf-border);
-  border-radius: var(--cf-r-lg); padding: 1.25rem 1.1rem;
-  display: flex; align-items: center; gap: 0.9rem;
-  box-shadow: var(--cf-shadow-xs); position: relative; overflow: hidden;
-  border-top: 3px solid transparent; transition: all 0.2s var(--cf-ease);
-}
-.cf-kpi:hover { transform: translateY(-2px); box-shadow: var(--cf-shadow-md); }
-.cf-kpi.accent-green  { border-top-color: var(--cf-green); }
-.cf-kpi.accent-gold   { border-top-color: var(--cf-gold); }
-.cf-kpi.accent-danger { border-top-color: var(--cf-danger); }
-.cf-kpi.accent-neutral { border-top-color: var(--cf-border-mid); }
+.cf-mgmt-premium { animation: fadeIn 0.6s var(--cf-ease); }
 
-.cf-kpi-icon {
-  width: 44px; height: 44px; border-radius: var(--cf-r-md);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem; flex-shrink: 0;
-}
-.accent-green  .cf-kpi-icon { background: var(--cf-green-xlight); color: var(--cf-green); }
-.accent-gold   .cf-kpi-icon { background: var(--cf-gold-light);   color: var(--cf-gold); }
-.accent-danger .cf-kpi-icon { background: #F9EDED;                color: var(--cf-danger); }
-.accent-neutral .cf-kpi-icon { background: var(--cf-cream);       color: var(--cf-text-mid); }
+/* Header */
+.mgmt-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; }
+.editorial-title { font-family: var(--cf-serif); font-size: 2.2rem; font-weight: 500; color: var(--cf-text-dark); margin: 0; }
+.editorial-subtitle { font-size: 0.95rem; color: var(--cf-text-muted); margin: 0.25rem 0 0; }
 
-.cf-kpi-body { flex: 1; min-width: 0; }
-.cf-kpi-lbl { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--cf-text-muted); display: block; margin-bottom: 3px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cf-kpi-val { font-size: 1.4rem; font-weight: 700; color: var(--cf-text-dark); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cf-kpi-sub { font-size: 0.7rem; color: var(--cf-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-.cf-danger  { color: var(--cf-danger) !important; }
+.status-indicator { display: flex; align-items: center; gap: 0.6rem; background: #fff; padding: 0.5rem 1rem; border-radius: 50px; border: 1px solid var(--cf-border); box-shadow: var(--cf-shadow-sm); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; }
+.status-dot.online { background: #22c55e; box-shadow: 0 0 10px rgba(34,197,94,0.4); }
+.status-text { font-size: 0.75rem; font-weight: 800; color: var(--cf-text-dark); text-transform: uppercase; }
 
-.cf-kpi-pulse {
-  position: absolute; top: 10px; right: 10px;
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--cf-danger);
-  animation: kpi-pulse 1.5s ease-in-out infinite;
-}
-@keyframes kpi-pulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.6); opacity:0.4; } }
+/* KPI Grid */
+.cf-kpi-grid-premium { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.kpi-card-premium { background: #fff; border-radius: 24px; padding: 1.5rem; border: 1px solid var(--cf-border); display: flex; flex-direction: column; gap: 1rem; position: relative; overflow: hidden; transition: all 0.3s; }
+.kpi-card-premium:hover { transform: translateY(-5px); box-shadow: var(--cf-shadow-md); border-color: var(--cf-border-mid); }
 
-/* Cards */
-.cf-card { background: var(--cf-white); border: 1px solid var(--cf-border); border-radius: var(--cf-r-lg); box-shadow: var(--cf-shadow-xs); overflow: hidden; }
-.cf-card-head { padding: 0.95rem 1.3rem; border-bottom: 1px solid var(--cf-border); display: flex; align-items: center; justify-content: space-between; background: var(--cf-ivory); }
-.cf-card-title { margin: 0; font-size: 0.87rem; font-weight: 500; color: var(--cf-text-dark); display: flex; align-items: center; gap: 0.5rem; }
-.cf-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.cf-dot.green { background: var(--cf-green); }
-.cf-dot.gold  { background: var(--cf-gold); }
-.cf-eyebrow { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--cf-text-faint); font-weight: 500; }
-.cf-card-body { padding: 1.2rem; }
+.kpi-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--cf-ivory-light); color: var(--cf-text-muted); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.kpi-label { font-size: 0.65rem; font-weight: 800; color: var(--cf-text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+.kpi-value-wrap { display: flex; align-items: baseline; gap: 0.25rem; }
+.kpi-value-wrap .currency { font-size: 0.8rem; font-weight: 800; color: var(--cf-green); }
+.kpi-value-wrap .amount { font-size: 1.6rem; font-weight: 800; color: var(--cf-text-dark); letter-spacing: -0.02em; }
+.kpi-sub { font-size: 0.65rem; font-weight: 700; color: var(--cf-text-faint); }
 
-.cf-badge-danger { font-size: 0.65rem; font-weight: 700; background: #F9EDED; color: var(--cf-danger); padding: 0.22rem 0.75rem; border-radius: 20px; }
+.kpi-card-premium.ivory { background: var(--cf-ivory); }
+.kpi-card-premium.gold .kpi-icon { background: var(--cf-gold-light); color: var(--cf-gold); }
+.kpi-card-premium.dark { background: var(--cf-text-dark); color: #fff; border: none; }
+.kpi-card-premium.dark .kpi-label { color: rgba(255,255,255,0.6); }
+.kpi-card-premium.dark .amount { color: #fff; }
+.kpi-card-premium.dark .kpi-icon { background: rgba(255,255,255,0.1); color: #fff; }
 
-/* Central de pedidos */
-.cf-bell-anim { font-size: 2.8rem; color: var(--cf-gold); animation: bell-shake 1.2s ease-in-out infinite; }
-@keyframes bell-shake { 0%,100%{transform:rotate(0)} 20%{transform:rotate(15deg)} 40%{transform:rotate(-15deg)} 60%{transform:rotate(8deg)} 80%{transform:rotate(-8deg)} }
-.cf-alert-heading { font-size: 1.05rem; font-weight: 600; color: var(--cf-text-dark); }
-.cf-alert-sub { font-size: 0.82rem; color: var(--cf-text-muted); }
+.kpi-card-premium.alert { border-color: #fecaca; background: #fff1f2; }
+.kpi-card-premium.alert .kpi-icon { background: #fee2e2; color: #ef4444; }
+.kpi-card-premium.alert .amount { color: #b91c1c; }
 
-.cf-all-clear i { font-size: 2.8rem; color: var(--cf-green); }
-.cf-all-clear h5 { font-size: 1rem; font-weight: 600; color: var(--cf-text-dark); }
-.cf-all-clear p { font-size: 0.82rem; color: var(--cf-text-muted); }
+.kpi-visual { display: flex; align-items: flex-end; gap: 4px; height: 30px; position: absolute; right: 1.5rem; bottom: 1.5rem; }
+.mini-chart-bar { width: 4px; border-radius: 2px; background: var(--cf-green); opacity: 0.2; }
 
-.cf-btn-primary {
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--cf-green); color: #fff; border: none; cursor: pointer;
-  padding: 0.62rem 1.4rem; border-radius: var(--cf-r-md);
-  font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em;
-  text-decoration: none; transition: all 0.2s var(--cf-ease);
-}
-.cf-btn-primary:hover { background: var(--cf-green-dark); color: #fff; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(42,92,69,0.2); }
+/* Pulse Ring */
+.pulse-ring { position: absolute; top: 1rem; right: 1rem; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 rgba(239,68,68,0.4); animation: pulse-red 2s infinite; }
+@keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); } 70% { box-shadow: 0 0 0 10px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
 
-.cf-btn-outline {
-  display: inline-flex; align-items: center; justify-content: center;
-  background: transparent; color: var(--cf-green);
-  border: 1px solid var(--cf-green); cursor: pointer;
-  padding: 0.55rem 1.2rem; border-radius: var(--cf-r-md);
-  font-size: 0.78rem; font-weight: 500; text-decoration: none;
-  transition: all 0.2s var(--cf-ease);
-}
-.cf-btn-outline:hover { background: var(--cf-green); color: #fff; }
+/* Analytics Grid */
+.dashboard-analytics-row { display: flex; gap: 2rem; }
+.analytics-card { background: #fff; border-radius: 32px; border: 1px solid var(--cf-border); display: flex; flex-direction: column; overflow: hidden; }
+.flex-2 { flex: 2; }
+.flex-1 { flex: 1; }
+
+.card-header-premium { padding: 1.5rem 2rem; border-bottom: 1px solid var(--cf-border); display: flex; justify-content: space-between; align-items: center; }
+.header-main { display: flex; align-items: center; gap: 1rem; }
+.header-main i { font-size: 1rem; color: var(--cf-gold); }
+.header-main h5 { font-family: var(--cf-serif); font-size: 1.25rem; font-weight: 600; margin: 0; }
+.time-range { font-size: 0.65rem; font-weight: 800; color: var(--cf-text-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.chart-container-premium { padding: 2rem; height: 340px; }
+
+/* Dispatch Center */
+.dispatch-center { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 3rem 2rem; text-align: center; }
+.dispatch-status-alert h4 { font-family: var(--cf-serif); font-size: 1.5rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+.dispatch-status-alert p { font-size: 0.9rem; color: var(--cf-text-muted); margin-bottom: 2rem; }
+
+.alert-icon-wrap { width: 90px; height: 90px; margin: 0 auto; border-radius: 50%; background: #fff1f2; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #ef4444; position: relative; }
+.alert-pulse { position: absolute; inset: -4px; border: 4px solid #fecaca; border-radius: 50%; animation: alert-ring 1.5s infinite; }
+@keyframes alert-ring { from {transform:scale(0.8); opacity:1} to {transform:scale(1.4); opacity:0} }
+
+.btn-dispatch-premium { background: var(--cf-text-dark); color: #fff; padding: 1rem 2rem; border-radius: 50px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.75rem; transition: all 0.3s; }
+.btn-dispatch-premium:hover { background: #000; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+
+.dispatch-status-clear .clear-icon { font-size: 3.5rem; color: var(--cf-green); margin-bottom: 1.5rem; }
+.dispatch-status-clear h4 { font-family: var(--cf-serif); font-size: 1.5rem; font-weight: 600; margin: 0 0 0.5rem; }
+.btn-history-premium { background: var(--cf-ivory); border: 1px solid var(--cf-border); color: var(--cf-text-dark); padding: 0.75rem 2rem; border-radius: 50px; font-weight: 700; text-decoration: none; display: inline-block; transition: all 0.2s; }
+
+.pix-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.pix-modal-card { background: #fff; width: 100%; max-width: 450px; padding: 2.5rem; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: fadeIn 0.4s ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 </style>

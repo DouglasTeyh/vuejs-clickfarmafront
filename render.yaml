@@ -1,0 +1,71 @@
+services:
+  # ---------------------------------------------------------------------------
+  # BACKEND (Spring Boot)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: clickfarma-backend
+    env: docker
+    dockerContext: backend
+    dockerfilePath: Dockerfile
+    plan: free
+    healthCheckPath: /api/produtos/buscar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: clickfarma-db
+          property: jdbcInternalUrl
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: clickfarma-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: clickfarma-db
+          property: password
+      - key: DB_DRIVER
+        value: org.postgresql.Driver
+      - key: DB_DIALECT
+        value: org.hibernate.dialect.PostgreSQLDialect
+      - key: APP_BACKEND_URL
+        sync: false # A URL que o Render der para este serviço (ex: https://backend.onrender.com)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AI_PROVIDER
+        value: groq
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OCR_SPACE_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        sync: false
+      - key: ADMIN_EMAIL_1
+        sync: false
+      - key: ADMIN_PASSWORD_1
+        sync: false
+      - key: APP_FRONTEND_URL
+        sync: false # URL do seu frontend no Render
+      - key: PORT
+        value: 8080
+
+  # ---------------------------------------------------------------------------
+  # FRONTEND (Vue.js + Nginx)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: clickfarma-frontend
+    env: docker
+    dockerContext: .
+    dockerfilePath: Dockerfile.frontend
+    plan: free
+    envVars:
+      - key: VUE_APP_API_URL
+        sync: false # URL do seu backend no Render (ex: https://backend.onrender.com/api)
+
+databases:
+  - name: clickfarma-db
+    databaseName: clickfarma
+    user: clickfarma_user
+    plan: free

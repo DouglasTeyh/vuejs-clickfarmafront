@@ -9,7 +9,7 @@
         <div class="row g-3">
           <div class="col-lg-4 col-md-6">
             <div class="filter-group">
-              <label class="form-label">📂 Categoria</label>
+              <label class="form-label"><i class="fas fa-folder-open me-1"></i> Categoria</label>
               <select v-model="filters.category" class="form-select">
                 <option value="">Todas as especialidades</option>
                 <option v-for="cat in categoriesList" :key="cat" :value="cat">
@@ -20,7 +20,7 @@
           </div>
           <div class="col-lg-3 col-md-6">
             <div class="filter-group">
-              <label class="form-label">💰 Ordenar por</label>
+              <label class="form-label"><i class="fas fa-sort-amount-down me-1"></i> Ordenar por</label>
               <select v-model="filters.sortBy" class="form-select">
                 <optgroup label="Valor">
                   <option value="price">Menor Preço</option>
@@ -69,7 +69,7 @@
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
-        <div class="error-icon">⚠️</div>
+        <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
         <h4 class="mb-3">Conexão interrompida</h4>
         <p class="text-muted mb-4">{{ error }}</p>
         <button @click="retryLoading" class="btn btn-primary">
@@ -79,7 +79,7 @@
 
       <!-- Empty State -->
       <div v-else-if="filteredProducts.length === 0" class="empty-state">
-        <div class="empty-icon">🔍</div>
+        <div class="empty-icon"><i class="fas fa-search"></i></div>
         <h4 class="mb-3">Nada encontrado</h4>
         <p class="text-muted mb-4">Tente outros termos ou remova os filtros ativos.</p>
         <button @click="clearAllFilters" class="btn btn-primary">Ver Tudo</button>
@@ -87,11 +87,11 @@
 
       <!-- Products Grid -->
       <div v-else class="products-grid">
-        <div class="row g-4">
+        <div class="row g-3 g-md-4">
           <div
               v-for="product in filteredProducts"
               :key="product.id"
-              class="col-xl-3 col-lg-4 col-md-6"
+              class="col-6 col-md-6 col-lg-4 col-xl-3"
           >
             <ProductCard
                 :product="product"
@@ -101,20 +101,6 @@
         </div>
       </div>
 
-      <!-- Quick Actions -->
-      <div v-if="!loading && !error && filteredProducts.length > 0" class="mt-5 pt-lg-4">
-        <div class="quick-actions-card text-center">
-          <h2 class="qa-title mb-4">Ainda com dúvidas sobre sua prescrição?</h2>
-          <div class="d-flex flex-wrap justify-content-center gap-3">
-            <button class="btn btn-outline-primary shadow-sm bg-white">
-              <i class="fas fa-headset me-2"></i>Chamar Farmacêutico
-            </button>
-            <button class="btn btn-primary">
-              <i class="fas fa-prescription me-2"></i>Enviar Receita
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -143,14 +129,25 @@ export default {
   watch: {
     '$route.query.q': {
       immediate: true,
-      handler(newVal) {
+      async handler(newVal) {
         this.searchTerm = newVal || '';
+        if (newVal) {
+          this.loading = true;
+          await this.fetchProducts({ nome: newVal });
+          this.loading = false;
+        }
       }
     },
     '$route.query.category': {
       immediate: true,
       handler(newVal) {
         if (newVal) this.filters.category = newVal;
+      }
+    },
+    '$route.query.ai': {
+      immediate: true,
+      handler(newVal) {
+        if (newVal) this.handleAiSearch(newVal);
       }
     }
   },
@@ -174,7 +171,9 @@ export default {
         const searchTermLower = this.searchTerm.toLowerCase()
         const matchesSearch = !this.searchTerm ||
             (product.name && product.name.toLowerCase().includes(searchTermLower)) ||
-            (product.description && product.description.toLowerCase().includes(searchTermLower))
+            (product.description && product.description.toLowerCase().includes(searchTermLower)) ||
+            (product.principioAtivo && product.principioAtivo.toLowerCase().includes(searchTermLower)) ||
+            (product.category && product.category.toLowerCase().includes(searchTermLower))
 
         const matchesCategory = !this.filters.category || product.category === this.filters.category
 
@@ -223,17 +222,17 @@ export default {
     await this.initializeComponent()
   },
   methods: {
-    ...mapActions(['fetchProducts']),
+    ...mapActions(['fetchProducts', 'addToCart']),
 
     getCategoryIcon(category) {
       const icons = {
-        'Medicamentos': '💊',
-        'Cosméticos': '🧴',
-        'Higiene': '🚿',
-        'Vitaminas': '🌿',
-        'Maternidade': '👶'
+        'Medicamentos': 'fa-pills',
+        'Cosméticos': 'fa-pump-soap',
+        'Higiene': 'fa-shower',
+        'Vitaminas': 'fa-leaf',
+        'Maternidade': 'fa-baby'
       }
-      return icons[category] || '📦'
+      return icons[category] || 'fa-box'
     },
 
     async initializeComponent() {
@@ -241,7 +240,14 @@ export default {
       this.error = null
 
       try {
-        console.log('📦 Buscando produtos da API...')
+        // Se houver busca por IA ou Query, o Watcher cuidará do carregamento inicial
+        if (this.$route.query.ai || this.$route.query.q) {
+          console.log('🔍 Busca ativa detectada, aguardando carregamento específico...');
+          this.trackPageView();
+          return;
+        }
+
+        console.log('📦 Buscando todos os produtos (sem filtros)...')
         await this.fetchProducts()
         console.log('✅ Produtos carregados com sucesso')
         console.log('📊 Total de produtos:', this.products?.length || 0)
@@ -266,10 +272,28 @@ export default {
       }
     },
 
+    async handleAiSearch(query) {
+      this.loading = true;
+      this.error = null;
+      try {
+        console.log('🤖 Disparando busca inteligente por IA:', query);
+        const response = await this.$axios.get(`/api/produtos/busca-ia?query=${encodeURIComponent(query)}`);
+        // Aqui estamos substituindo os produtos do store localmente apenas para exibição
+        this.$store.commit('SET_PRODUCTS', response.data);
+        this.searchTerm = `Busca Inteligente: ${query}`;
+      } catch (err) {
+        console.error('❌ Erro na busca IA:', err);
+        this.error = 'O assistente de IA não conseguiu processar sua busca. Tente termos simples.';
+      } finally {
+        this.loading = false;
+      }
+    },
+
     handleAddToCart(product) {
-      console.log(`📦 Produto adicionado ao carrinho: ${product.name}`)
-      // Dispara evento para adicionar ao carrinho
-      this.$emit('add-to-cart', product)
+      this.addToCart(product);
+      if (window.$toast) {
+        window.$toast.addToast(`${product.name} adicionado ao carrinho!`, 'success');
+      }
     },
 
     retryLoading() {
@@ -432,5 +456,15 @@ export default {
 @media (max-width: 768px) {
   .products-header { padding: 2.5rem 0; text-align: center; }
   .products-header .col-md-4 { margin-top: 1.5rem; }
+
+  /* Ajustes finos para o grid de 2 colunas no mobile */
+  .cf-product-visual { height: 160px; }
+  .cf-card-body { padding: 0.75rem; gap: 0.15rem; }
+  .cf-product-name { font-size: 0.95rem; min-height: 2.4em; }
+  .cf-product-desc { display: none; } /* Esconde descrição no mobile p/ economizar espaço */
+  .cf-price { font-size: 1.2rem; }
+  .cf-add-btn { padding: 0.5rem 0.7rem; font-size: 0.65rem; }
+  .cf-installment { font-size: 0.65rem; }
+  .cf-card-foot { padding-top: 0.6rem; }
 }
 </style>

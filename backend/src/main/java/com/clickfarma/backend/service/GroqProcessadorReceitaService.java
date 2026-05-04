@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class GroqProcessadorReceitaService {
     private static final Logger log = LoggerFactory.getLogger(GroqProcessadorReceitaService.class);
 
-    private static final Logger log = LoggerFactory.getLogger(GroqProcessadorReceitaService.class);
     /**
      * Termos típicos do "miolo" da receita (cabeçalho/rodapé/orientação) que não devem virar item de medicamento.
      */

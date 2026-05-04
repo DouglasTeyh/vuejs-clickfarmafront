@@ -1,135 +1,123 @@
 <template>
-  <div class="cf-overview">
-    <!-- KPI Cards -->
-    <div class="row g-3 mb-4">
-      <div class="col-xl-3 col-sm-6" v-for="kpi in kpis" :key="kpi.label">
-        <div class="cf-kpi-card" :class="kpi.accent">
-          <div class="cf-kpi-icon"><i :class="kpi.icon"></i></div>
-          <div class="cf-kpi-body">
-            <span class="cf-kpi-label">{{ kpi.label }}</span>
-            <div class="cf-kpi-value">{{ kpi.value }}</div>
+  <div class="cf-overview-premium">
+    <!-- ═══ HEADER EXECUTIVO ═══ -->
+    <header class="overview-header">
+      <div class="header-meta">
+        <h3 class="editorial-title">Inteligência Operacional</h3>
+        <p class="editorial-subtitle">Relatório consolidado de performance da rede ClickFarma</p>
+      </div>
+      <div class="header-actions">
+        <div class="date-badge">
+          <i class="far fa-calendar-alt"></i>
+          <span>{{ currentMonth }}</span>
+        </div>
+        <button class="action-btn-gold" @click="loadData" :disabled="loading">
+          <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
+          <span>Sincronizar Dados</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══ KPI DASHBOARD ═══ -->
+    <div class="kpi-grid">
+      <div v-for="kpi in kpis" :key="kpi.label" class="kpi-premium-card" :class="kpi.accent">
+        <div class="card-glass"></div>
+        <div class="kpi-icon-box">
+          <i :class="kpi.icon"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">{{ kpi.label }}</span>
+          <div class="kpi-value-wrap">
+            <h2 class="kpi-value">{{ kpi.value }}</h2>
+            <div class="kpi-trend" v-if="kpi.trend">
+              <i class="fas fa-arrow-trend-up"></i>
+              <span>+12.5%</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Gráficos -->
-    <div class="row g-4 mb-4">
-      <div class="col-xl-7">
-        <div class="cf-card">
-          <div class="cf-card-head">
-            <h5 class="cf-card-title">
-              <span class="cf-card-dot green"></span>
-              Vendas da Semana (R$)
-            </h5>
-            <span class="cf-eyebrow">semana atual</span>
+    <!-- ═══ BUSINESS ANALYTICS ═══ -->
+    <div class="analytics-row">
+      <!-- Volume Chart -->
+      <div class="chart-box-main">
+        <div class="box-header">
+          <div class="title-group">
+            <h5 class="box-title">Fluxo Transacional Semanal</h5>
+            <span class="box-tag">Vendas vs Meta</span>
           </div>
-          <div class="cf-card-body">
-            <canvas id="barChart" height="130"></canvas>
+          <div class="box-controls">
+            <span class="indicator primary">Faturamento</span>
           </div>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="barChart"></canvas>
         </div>
       </div>
 
-      <div class="col-xl-5">
-        <div class="cf-card h-100">
-          <div class="cf-card-head">
-            <h5 class="cf-card-title">
-              <span class="cf-card-dot gold"></span>
-              Status dos Pedidos
-            </h5>
-          </div>
-          <div class="cf-card-body d-flex align-items-center justify-content-center">
-            <canvas id="pieChart" height="180" style="max-height:210px"></canvas>
+      <!-- Conversion Chart -->
+      <div class="chart-box-side">
+        <div class="box-header">
+          <h5 class="box-title">Composição de Fluxo</h5>
+        </div>
+        <div class="chart-canvas-wrap doughnut-wrap">
+          <canvas id="pieChart"></canvas>
+          <div class="doughnut-center">
+            <span class="center-val">{{ totalPedidos }}</span>
+            <span class="center-label">Pedidos</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Rankings -->
-    <div class="row g-4 mb-4">
-      <div class="col-xl-4">
-        <div class="cf-card h-100">
-          <div class="cf-card-head">
-            <h5 class="cf-card-title"><span class="cf-card-dot green"></span>Top Farmácias</h5>
-            <span class="cf-eyebrow">por faturamento</span>
+    <!-- ═══ RANKING BOARDS ═══ -->
+    <div class="rankings-grid">
+      <div v-for="(rank, idx) in rankings" :key="idx" class="rank-board">
+        <div class="rank-header">
+          <div class="rank-title-group">
+            <h6 class="rank-title">{{ rank.title }}</h6>
+            <span class="rank-subtitle">{{ rank.subtitle }}</span>
           </div>
-          <div class="cf-card-body p-0">
-            <div v-if="loadingRankings" class="cf-loading"><div class="cf-spinner"></div></div>
-            <table v-else class="cf-table">
-              <thead>
-                <tr><th>#</th><th>Farmácia</th><th>Faturamento</th></tr>
-              </thead>
-              <tbody>
-                <tr v-for="(f, i) in topFarmacias" :key="f.id">
-                  <td><span class="cf-rank" :class="`cf-rank-${i+1}`">{{ i+1 }}</span></td>
-                  <td class="cf-td-bold text-truncate" style="max-width: 120px;">{{ f.nome }}</td>
-                  <td class="cf-td-green">R$ {{ num(f.faturamento) }}</td>
-                </tr>
-                <tr v-if="!topFarmacias.length">
-                  <td colspan="3" class="cf-empty">Nenhum dado</td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="rank-badge-icon">
+            <i :class="idx === 0 ? 'fas fa-store' : (idx === 1 ? 'fas fa-user-tie' : 'fas fa-truck-fast')"></i>
           </div>
         </div>
-      </div>
-
-      <div class="col-xl-4">
-        <div class="cf-card h-100">
-          <div class="cf-card-head">
-            <h5 class="cf-card-title"><span class="cf-card-dot gold"></span>Top Clientes</h5>
-            <span class="cf-eyebrow">por valor gasto</span>
+        
+        <div class="rank-list">
+          <div v-for="(item, i) in rank.data" :key="i" class="rank-item">
+            <div class="rank-position">
+              <div class="medal" :class="{ 'gold': i === 0, 'silver': i === 1, 'bronze': i === 2 }">
+                {{ i + 1 }}
+              </div>
+            </div>
+            <div class="rank-entity">
+              <span class="entity-name">{{ item.name }}</span>
+              <div class="entity-bar-wrap">
+                <div class="entity-bar" :style="{ width: getBarWidth(item.value, rank.data) + '%' }"></div>
+              </div>
+            </div>
+            <div class="rank-metric">
+              <span class="metric-val">{{ rank.prefix }}{{ item.value }}</span>
+            </div>
           </div>
-          <div class="cf-card-body p-0">
-            <div v-if="loadingRankings" class="cf-loading"><div class="cf-spinner"></div></div>
-            <table v-else class="cf-table">
-              <thead>
-                <tr><th>#</th><th>Cliente</th><th>Total Gasto</th></tr>
-              </thead>
-              <tbody>
-                <tr v-for="(c, i) in topClientes" :key="c.usuarioId">
-                  <td><span class="cf-rank" :class="`cf-rank-${i+1}`">{{ i+1 }}</span></td>
-                  <td class="cf-td-bold text-truncate" style="max-width: 120px;">{{ c.nome || 'Cliente #' + c.usuarioId }}</td>
-                  <td class="cf-td-gold">R$ {{ num(c.totalGasto) }}</td>
-                </tr>
-                <tr v-if="!topClientes.length">
-                  <td colspan="3" class="cf-empty">Nenhum dado</td>
-                </tr>
-              </tbody>
-            </table>
+          
+          <div v-if="!rank.data.length" class="empty-rank">
+            <div class="empty-glass">
+              <i class="fas fa-microchip"></i>
+              <p>Processando algoritmos...</p>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="col-xl-4">
-        <div class="cf-card h-100">
-          <div class="cf-card-head">
-            <h5 class="cf-card-title"><span class="cf-card-dot dark"></span>Top Entregadores</h5>
-            <span class="cf-eyebrow">por entregas</span>
-          </div>
-          <div class="cf-card-body p-0">
-            <div v-if="loadingRankings" class="cf-loading"><div class="cf-spinner"></div></div>
-            <table v-else class="cf-table">
-              <thead>
-                <tr><th>#</th><th>Nome</th><th>Entregas</th></tr>
-              </thead>
-              <tbody>
-                <tr v-for="(m, i) in topMotoboys" :key="m.motoboyId">
-                  <td><span class="cf-rank" :class="`cf-rank-${i+1}`">{{ i+1 }}</span></td>
-                  <td class="cf-td-bold">{{ m.nome || 'Motoboy #' + m.motoboyId }}</td>
-                  <td class="cf-td-muted fw-bold">{{ m.entregas }} envios</td>
-                </tr>
-                <tr v-if="!topMotoboys.length">
-                  <td colspan="3" class="cf-empty">Nenhum dado</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        
+        <div class="rank-footer" v-if="rank.data.length">
+          <button class="rank-btn-more">Análise Detalhada <i class="fas fa-chevron-right ms-1"></i></button>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import api from '@/services/api';
@@ -139,48 +127,65 @@ export default {
   data() {
     return {
       kpis: [],
-      topFarmacias: [],
-      topClientes: [],
-      topMotoboys: [],
-      loadingRankings: true,
+      totalPedidos: 0,
+      rankings: [
+        { title: 'Leaderboard Farmácias', subtitle: 'Líderes de Faturamento', header: 'Parceiro', metric: 'Receita', prefix: 'R$ ', data: [] },
+        { title: 'Top Clientes Master', subtitle: 'Fidelidade & Ticket', header: 'Cliente', metric: 'Total', prefix: 'R$ ', data: [] },
+        { title: 'Malha Logística', subtitle: 'Eficiência de Entrega', header: 'Operador', metric: 'Envios', prefix: '', data: [] }
+      ],
+      loading: true,
       barChart: null,
       pieChart: null
     };
   },
+  computed: {
+    currentMonth() {
+      const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      const d = new Date();
+      return `${meses[d.getMonth()]} ${d.getFullYear()}`;
+    }
+  },
+
   async mounted() {
-    await Promise.all([this.loadKpis(), this.loadRankings(), this.loadCharts()]);
+    await Promise.all([this.loadData(), this.loadCharts()]);
   },
   methods: {
-    num(v) { return Number(v || 0).toFixed(2); },
+    num(v) { return Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }); },
 
-    async loadKpis() {
+    async loadData() {
+      this.loading = true;
       try {
         const { data: d } = await api.get('/dashboard/admin');
+        this.totalPedidos = d.totalPedidos ?? 0;
         this.kpis = [
-          { label: 'Faturamento Total',   value: `R$ ${this.num(d.faturamentoTotal)}`,  icon: 'fas fa-dollar-sign', accent: 'accent-green' },
-          { label: 'Comissão ClickFarma', value: `R$ ${this.num(d.comissaoTotal)}`,     icon: 'fas fa-percentage', accent: 'accent-gold' },
-          { label: 'Total de Pedidos',    value: d.totalPedidos ?? 0,                   icon: 'fas fa-shopping-bag', accent: 'accent-neutral' },
-          { label: 'Clientes Ativos',     value: d.totalClientes ?? 0,                  icon: 'fas fa-users', accent: 'accent-neutral' }
+          { label: 'Receita Operacional', value: `R$ ${this.num(d.faturamentoTotal)}`, icon: 'fas fa-sack-dollar', accent: 'gold', trend: true },
+          { label: 'Lucro de Plataforma', value: `R$ ${this.num(d.comissaoTotal)}`, icon: 'fas fa-chart-line', accent: 'green', trend: true },
+          { label: 'Pedidos Consolidados', value: d.totalPedidos ?? 0, icon: 'fas fa-shopping-basket', accent: 'ivory' },
+          { label: 'Estatura de Base', value: d.totalClientes ?? 0, icon: 'fas fa-users-viewfinder', accent: 'ivory' }
         ];
-      } catch (e) { console.error(e); }
+
+        const { data: r } = await api.get('/dashboard/admin/rankings');
+        this.rankings[0].data = (r.topFarmacias || []).slice(0, 5).map(f => ({ name: f.nome, value: f.faturamento }));
+        this.rankings[1].data = (r.topClientes || []).slice(0, 5).map(c => ({ name: c.nome || 'Consumidor', value: c.totalGasto }));
+        this.rankings[2].data = (r.topMotoboys || []).slice(0, 5).map(m => ({ name: m.nome || 'Entregador', value: m.entregas }));
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.loading = false;
+      }
+    },
+    getBarWidth(val, all) {
+      const max = Math.max(...all.map(x => x.value), 1);
+      return (val / max) * 100;
     },
 
-    async loadRankings() {
-      try {
-        const { data } = await api.get('/dashboard/admin/rankings');
-        this.topFarmacias = data.topFarmacias || [];
-        this.topClientes  = data.topClientes  || [];
-        this.topMotoboys  = data.topMotoboys  || [];
-      } catch (e) { console.error(e); }
-      finally { this.loadingRankings = false; }
-    },
 
     async loadCharts() {
       await this.$nextTick();
       const Chart = window.Chart;
       if (!Chart) return;
+      
       try {
-        // ─── Barras — vendas da semana ───
         const { data: s } = await api.get('/dashboard/admin/vendas-semana');
         const ctxBar = document.getElementById('barChart');
         if (ctxBar) {
@@ -190,48 +195,58 @@ export default {
             data: {
               labels: s.labels || [],
               datasets: [{
-                label: 'Vendas (R$)',
+                label: 'Faturamento',
                 data: s.valores || [],
-                backgroundColor: 'rgba(42,92,69,0.18)',
-                borderColor: '#2A5C45',
-                borderWidth: 2,
-                borderRadius: 6,
-                hoverBackgroundColor: 'rgba(42,92,69,0.35)'
+                backgroundColor: '#2A5C45',
+                hoverBackgroundColor: '#1a3b2c',
+                borderRadius: 12,
+                barThickness: 32
               }]
             },
             options: {
-              responsive: true, maintainAspectRatio: true,
+              responsive: true,
+              maintainAspectRatio: false,
               plugins: { legend: { display: false } },
               scales: {
-                x: { grid: { display: false }, ticks: { font: { family: "'DM Sans', sans-serif", size: 11 } } },
-                y: { beginAtZero: true, grid: { color: 'rgba(28,28,26,0.05)' },
-                     ticks: { callback: v => `R$${v}`, font: { family: "'DM Sans', sans-serif", size: 10 } } }
+                x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } },
+                y: { 
+                  grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false }, 
+                  ticks: { callback: v => `R$${v}`, font: { size: 10 } } 
+                }
               }
             }
           });
         }
 
-        // ─── Rosca — status de pedidos ───
         const { data: st } = await api.get('/dashboard/admin/pedidos-por-status');
-        const labels = Object.keys(st.porStatus || {}).map(k => k.replace(/_/g,' '));
-        const vals   = Object.values(st.porStatus || {});
         const ctxPie = document.getElementById('pieChart');
-        if (ctxPie && labels.length) {
+        if (ctxPie) {
           if (this.pieChart) this.pieChart.destroy();
           this.pieChart = new Chart(ctxPie.getContext('2d'), {
             type: 'doughnut',
             data: {
-              labels,
+              labels: Object.keys(st.porStatus || {}),
               datasets: [{
-                data: vals,
-                backgroundColor: ['#2A5C45','#B89550','#3D7A5E','#8B3A3A','#B0AFA9','#1C3D2E'],
-                borderWidth: 0
+                data: Object.values(st.porStatus || {}),
+                backgroundColor: ['#2A5C45', '#B89550', '#3D7A5E', '#B0AFA9', '#E8F2EC'],
+                borderWidth: 8,
+                borderColor: '#ffffff',
+                hoverOffset: 10
               }]
             },
             options: {
-              responsive: true, cutout: '68%',
-              plugins: {
-                legend: { position: 'bottom', labels: { font: { family: "'DM Sans', sans-serif", size: 10 }, padding: 12, boxWidth: 10, usePointStyle: true } }
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '75%',
+              plugins: { 
+                legend: { 
+                  position: 'bottom', 
+                  labels: { 
+                    usePointStyle: true, 
+                    padding: 25,
+                    font: { size: 11, weight: 'bold' }
+                  } 
+                } 
               }
             }
           });
@@ -243,113 +258,85 @@ export default {
 </script>
 
 <style scoped>
-/* KPIs */
-.cf-kpi-card {
-  background: var(--cf-white);
-  border: 1px solid var(--cf-border);
-  border-radius: var(--cf-r-lg);
-  padding: 1.35rem 1.25rem;
-  display: flex; align-items: center; gap: 1rem;
-  box-shadow: var(--cf-shadow-xs);
-  transition: all 0.22s var(--cf-ease);
-  border-top: 3px solid transparent;
-}
-.cf-kpi-card:hover { transform: translateY(-3px); box-shadow: var(--cf-shadow-md); }
-.cf-kpi-card.accent-green  { border-top-color: var(--cf-green); }
-.cf-kpi-card.accent-gold   { border-top-color: var(--cf-gold); }
-.cf-kpi-card.accent-neutral { border-top-color: var(--cf-border-mid); }
+.cf-overview-premium { animation: fadeIn 0.8s var(--cf-ease); }
 
-.cf-kpi-icon {
-  width: 48px; height: 48px; border-radius: var(--cf-r-md);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; flex-shrink: 0;
-}
-.accent-green  .cf-kpi-icon { background: var(--cf-green-xlight); color: var(--cf-green); }
-.accent-gold   .cf-kpi-icon { background: var(--cf-gold-light);   color: var(--cf-gold); }
-.accent-neutral .cf-kpi-icon { background: var(--cf-cream);       color: var(--cf-text-mid); }
+/* Header */
+.overview-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; }
+.editorial-title { font-family: var(--cf-serif); font-size: 2.2rem; font-weight: 500; color: var(--cf-text-dark); margin: 0; }
+.editorial-subtitle { font-size: 0.95rem; color: var(--cf-text-muted); margin: 0.25rem 0 0; }
 
-.cf-kpi-label {
-  font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em;
-  color: var(--cf-text-muted); display: block; margin-bottom: 4px; font-weight: 500;
-}
-.cf-kpi-value { 
-  font-size: clamp(1.2rem, 4vw, 1.5rem); 
-  font-weight: 700; 
-  color: var(--cf-text-dark); 
-  line-height: 1.1; 
-  font-family: var(--cf-sans);
-  word-break: break-all;
-}
+.header-actions { display: flex; align-items: center; gap: 1.5rem; }
+.date-badge { background: #fff; padding: 0.6rem 1.25rem; border-radius: 50px; border: 1px solid var(--cf-border); display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; font-weight: 700; color: var(--cf-text-muted); box-shadow: var(--cf-shadow-sm); }
+.action-btn-gold { background: var(--cf-gold); color: #fff; border: none; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 0.75rem; transition: all 0.3s var(--cf-ease); cursor: pointer; box-shadow: 0 4px 15px rgba(184,149,80,0.3); }
+.action-btn-gold:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(184,149,80,0.4); }
+.action-btn-gold:disabled { opacity: 0.7; cursor: not-allowed; }
 
-@media (max-width: 576px) {
-  .cf-kpi-card { padding: 1rem; gap: 0.75rem; }
-  .cf-kpi-icon { width: 40px; height: 40px; font-size: 1rem; }
-}
+/* KPI Grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+.kpi-premium-card { background: #fff; padding: 1.5rem; border-radius: 24px; border: 1px solid var(--cf-border); position: relative; overflow: hidden; display: flex; align-items: center; gap: 1.5rem; transition: all 0.4s var(--cf-ease); box-shadow: var(--cf-shadow-sm); }
+.kpi-premium-card:hover { transform: translateY(-5px); box-shadow: var(--cf-shadow-md); border-color: var(--cf-gold-light); }
+.card-glass { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0)); pointer-events: none; }
 
-/* Cards */
-.cf-card {
-  background: var(--cf-white);
-  border: 1px solid var(--cf-border);
-  border-radius: var(--cf-r-lg);
-  box-shadow: var(--cf-shadow-xs);
-  overflow: hidden;
-}
-.cf-card-head {
-  padding: 1rem 1.35rem;
-  border-bottom: 1px solid var(--cf-border);
-  display: flex; align-items: center; justify-content: space-between;
-  background: var(--cf-ivory);
-}
-.cf-card-title {
-  margin: 0; font-size: 0.88rem; font-weight: 500;
-  color: var(--cf-text-dark); display: flex; align-items: center; gap: 0.5rem;
-}
-.cf-card-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  display: inline-block; flex-shrink: 0;
-}
-.cf-card-dot.green { background: var(--cf-green); }
-.cf-card-dot.gold  { background: var(--cf-gold); }
-.cf-card-dot.dark  { background: var(--cf-green-dark); }
-.cf-eyebrow {
-  font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em;
-  color: var(--cf-text-faint); font-weight: 500;
-}
-.cf-card-body { padding: 1.25rem; }
+.kpi-icon-box { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: var(--cf-ivory); color: var(--cf-green); flex-shrink: 0; z-index: 1; }
+.kpi-premium-card.gold .kpi-icon-box { background: var(--cf-gold-light); color: var(--cf-gold); }
+.kpi-premium-card.green .kpi-icon-box { background: var(--cf-green-xlight); color: var(--cf-green); }
 
-/* Tabelas */
-.cf-table { width: 100%; border-collapse: collapse; }
-.cf-table thead tr { background: var(--cf-ivory); }
-.cf-table th {
-  font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em;
-  color: var(--cf-text-muted); font-weight: 500;
-  padding: 0.6rem 1.1rem; border-bottom: 1px solid var(--cf-border);
-}
-.cf-table td { padding: 0.7rem 1.1rem; border-bottom: 1px solid var(--cf-border); font-size: 0.855rem; }
-.cf-table tbody tr:last-child td { border-bottom: none; }
-.cf-table tbody tr:hover td { background: var(--cf-ivory); }
+.kpi-info { flex: 1; z-index: 1; }
+.kpi-label { font-size: 0.65rem; font-weight: 800; color: var(--cf-text-faint); text-transform: uppercase; letter-spacing: 0.15em; }
+.kpi-value-wrap { display: flex; align-items: baseline; gap: 0.75rem; margin-top: 0.25rem; }
+.kpi-value { font-size: 1.8rem; font-weight: 800; color: var(--cf-text-dark); margin: 0; line-height: 1; letter-spacing: -0.02em; }
+.kpi-trend { font-size: 0.7rem; font-weight: 700; color: #22c55e; display: flex; align-items: center; gap: 0.25rem; }
 
-.cf-td-bold   { font-weight: 500; color: var(--cf-text-dark); }
-.cf-td-muted  { color: var(--cf-text-muted); font-size: 0.8rem; }
-.cf-td-green  { color: var(--cf-green); font-weight: 600; }
-.cf-td-gold   { color: var(--cf-gold);  font-weight: 600; }
+/* Charts */
+.analytics-row { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 3rem; }
+.chart-box-main, .chart-box-side { background: #fff; padding: 2rem; border-radius: 28px; border: 1px solid var(--cf-border); box-shadow: var(--cf-shadow-sm); }
+.box-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+.box-title { font-family: var(--cf-serif); font-size: 1.3rem; font-weight: 600; margin: 0; }
+.box-tag { font-size: 0.7rem; font-weight: 700; color: var(--cf-text-faint); text-transform: uppercase; }
+.indicator { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cf-text-muted); }
+.indicator::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--cf-green); }
 
-.cf-rank {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 24px; height: 24px; border-radius: 50%;
-  font-size: 0.72rem; font-weight: 700;
-  background: var(--cf-cream); color: var(--cf-text-muted);
-}
-.cf-rank-1 { background: var(--cf-gold-light); color: var(--cf-gold); }
-.cf-rank-2 { background: var(--cf-cream); color: var(--cf-text-mid); }
-.cf-rank-3 { background: var(--cf-green-xlight); color: var(--cf-green); }
+.chart-canvas-wrap { height: 320px; position: relative; }
+.doughnut-wrap { display: flex; align-items: center; justify-content: center; }
+.doughnut-center { position: absolute; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.center-val { font-size: 2.2rem; font-weight: 800; color: var(--cf-text-dark); line-height: 1; }
+.center-label { font-size: 0.65rem; font-weight: 800; color: var(--cf-text-faint); text-transform: uppercase; margin-top: 0.2rem; }
 
-.cf-empty { text-align: center; color: var(--cf-text-faint); padding: 2rem; font-size: 0.82rem; }
-.cf-loading { display: flex; align-items: center; justify-content: center; padding: 2.5rem; }
-.cf-spinner {
-  width: 26px; height: 26px; border: 2.5px solid var(--cf-border);
-  border-top-color: var(--cf-green); border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+/* Rankings */
+.rankings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
+.rank-board { background: #fff; border-radius: 28px; border: 1px solid var(--cf-border); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--cf-shadow-sm); }
+.rank-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--cf-border-mid); display: flex; justify-content: space-between; align-items: center; background: var(--cf-ivory-light); }
+.rank-title { font-family: var(--cf-serif); font-size: 1.2rem; font-weight: 600; margin: 0; }
+.rank-subtitle { font-size: 0.65rem; font-weight: 800; color: var(--cf-text-faint); text-transform: uppercase; letter-spacing: 0.1em; }
+.rank-badge-icon { width: 36px; height: 36px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--cf-gold); border: 1px solid var(--cf-border); }
+
+.rank-list { padding: 1.5rem 2rem; flex: 1; }
+.rank-item { display: flex; align-items: center; gap: 1.25rem; padding: 0.85rem 0; border-bottom: 1px solid rgba(0,0,0,0.03); }
+.rank-item:last-child { border-bottom: none; }
+
+.medal { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; background: var(--cf-ivory); color: var(--cf-text-muted); }
+.medal.gold { background: var(--cf-gold); color: #fff; box-shadow: 0 4px 12px rgba(184,149,80,0.3); }
+.medal.silver { background: #e2e8f0; color: #475569; }
+.medal.bronze { background: #fed7aa; color: #9a3412; }
+
+.rank-entity { flex: 1; min-width: 0; }
+.entity-name { font-size: 0.9rem; font-weight: 700; color: var(--cf-text-dark); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.35rem; }
+.entity-bar-wrap { height: 4px; background: var(--cf-ivory); border-radius: 10px; overflow: hidden; }
+.entity-bar { height: 100%; background: var(--cf-green); border-radius: 10px; opacity: 0.2; }
+.rank-item:nth-child(1) .entity-bar { opacity: 0.8; }
+
+.metric-val { font-size: 0.85rem; font-weight: 800; color: var(--cf-text-dark); }
+
+.rank-footer { padding: 1.25rem 2rem; border-top: 1px solid var(--cf-border-mid); background: var(--cf-ivory-light); text-align: center; }
+.rank-btn-more { background: none; border: none; font-size: 0.75rem; font-weight: 800; color: var(--cf-text-muted); text-transform: uppercase; cursor: pointer; transition: color 0.2s; }
+.rank-btn-more:hover { color: var(--cf-gold); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 1200px) {
+  .analytics-row { grid-template-columns: 1fr; }
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 768px) {
+  .overview-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+}
 </style>

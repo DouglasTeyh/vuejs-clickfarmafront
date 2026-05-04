@@ -33,6 +33,8 @@ public class ProdutoRequestDTO {
     private String dosagem;
     private String laboratorio;
     private Boolean necessitaReceita = false;
+    private Boolean emPromocao = false;
+    private BigDecimal descontoPercentual = BigDecimal.ZERO;
 
     // Getters e Setters
     public String getNome() { return nome; }
@@ -59,4 +61,8 @@ public class ProdutoRequestDTO {
     public void setLaboratorio(String laboratorio) { this.laboratorio = laboratorio; }
     public Boolean getNecessitaReceita() { return necessitaReceita; }
     public void setNecessitaReceita(Boolean necessitaReceita) { this.necessitaReceita = necessitaReceita; }
+    public Boolean getEmPromocao() { return emPromocao; }
+    public void setEmPromocao(Boolean emPromocao) { this.emPromocao = emPromocao; }
+    public BigDecimal getDescontoPercentual() { return descontoPercentual; }
+    public void setDescontoPercentual(BigDecimal descontoPercentual) { this.descontoPercentual = descontoPercentual; }
 }

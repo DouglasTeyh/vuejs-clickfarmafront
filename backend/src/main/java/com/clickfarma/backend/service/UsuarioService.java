@@ -89,6 +89,11 @@ public class UsuarioService {
         user.setNome(req.getNome());
         user.setTelefone(req.getTelefone());
         
+        // Permite atualização de Role (útil para Admin)
+        if (req.getRole() != null && !req.getRole().isEmpty()) {
+            user.setRole(req.getRole());
+        }
+        
         // Atualização de Endereço
         user.setCep(req.getCep());
         user.setLogradouro(req.getLogradouro());

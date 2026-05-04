@@ -82,4 +82,12 @@ public class MotoboyService {
         if (tipoChavePix != null) motoboy.setTipoChavePix(tipoChavePix);
         return new MotoboyResponseDTO(motoboyRepository.save(motoboy));
     }
+
+    @Transactional
+    public void atualizarLocalizacao(Long id, Double lat, Double lng) {
+        Motoboy m = motoboyRepository.findById(id).orElseThrow(() -> new RuntimeException("Motoboy não encontrado"));
+        m.setLatitudeAtual(lat);
+        m.setLongitudeAtual(lng);
+        motoboyRepository.save(m);
+    }
 }

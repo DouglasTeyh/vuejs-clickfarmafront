@@ -190,4 +190,31 @@ public class PedidoController {
                     .body(new MensagemResponseDTO(e.getMessage(), false));
         }
     }
+
+    @PostMapping("/{pedidoId}/aceitar")
+    public ResponseEntity<?> aceitarCorrida(@PathVariable Long pedidoId, @RequestParam Long motoboyId) {
+        try {
+            return ResponseEntity.ok(pedidoService.aceitarCorrida(pedidoId, motoboyId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MensagemResponseDTO(e.getMessage(), false));
+        }
+    }
+
+    @PostMapping("/{pedidoId}/retirada")
+    public ResponseEntity<?> confirmarRetirada(@PathVariable Long pedidoId, @RequestParam Long motoboyId, @RequestParam String codigoRetirada) {
+        try {
+            return ResponseEntity.ok(pedidoService.confirmarRetirada(pedidoId, motoboyId, codigoRetirada));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MensagemResponseDTO(e.getMessage(), false));
+        }
+    }
+
+    @PostMapping("/{pedidoId}/entrega")
+    public ResponseEntity<?> confirmarEntrega(@PathVariable Long pedidoId, @RequestParam Long motoboyId, @RequestParam String codigoEntrega) {
+        try {
+            return ResponseEntity.ok(pedidoService.confirmarEntrega(pedidoId, motoboyId, codigoEntrega));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MensagemResponseDTO(e.getMessage(), false));
+        }
+    }
 }

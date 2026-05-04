@@ -2,23 +2,23 @@
 <template>
   <aside class="admin-sidebar">
     <div class="sidebar-header">
-      <h3>⚕️ ClickFarma Admin</h3>
+      <h3><i class="fas fa-hand-holding-medical me-2"></i>ClickFarma Admin</h3>
     </div>
     <nav class="sidebar-nav">
       <router-link to="/admin/products" class="nav-item">
-        📦 Gerenciar Produtos
+        <i class="fas fa-box me-2"></i> Gerenciar Produtos
       </router-link>
       <router-link to="/admin/inventory" class="nav-item">
-        📊 Gerenciar Estoque
+        <i class="fas fa-chart-bar me-2"></i> Gerenciar Estoque
       </router-link>
       <router-link to="/admin/orders" class="nav-item">
-        📋 Visualizar Pedidos
+        <i class="fas fa-list-alt me-2"></i> Visualizar Pedidos
       </router-link>
       <router-link to="/admin/prescriptions" class="nav-item">
-        🏥 Validar Receitas
+        <i class="fas fa-hospital me-2"></i> Validar Receitas
       </router-link>
       <router-link to="/admin/users" class="nav-item">
-        👥 Gerenciar Usuários
+        <i class="fas fa-users me-2"></i> Gerenciar Usuários
       </router-link>
     </nav>
   </aside>

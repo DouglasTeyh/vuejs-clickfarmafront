@@ -1,12 +1,12 @@
 <template>
   <div class="container mt-4">
-    <h2>📄 Minhas Receitas</h2>
+    <h2><i class="fas fa-file-prescription me-2 text-primary"></i>Minhas Receitas</h2>
     
     <div class="row">
       <div class="col-md-8">
         <div class="card mb-4">
           <div class="card-header">
-            <h5>📤 Enviar Nova Receita</h5>
+            <h5><i class="fas fa-upload me-2 text-primary"></i>Enviar Nova Receita</h5>
           </div>
           <div class="card-body">
             <form @submit.prevent="uploadPrescription">
@@ -39,7 +39,7 @@
         
         <div class="card">
           <div class="card-header">
-            <h5>📋 Histórico de Receitas</h5>
+            <h5><i class="fas fa-history me-2 text-primary"></i>Histórico de Receitas</h5>
           </div>
           <div class="card-body">
             <div v-if="prescriptions.length === 0" class="text-center py-4">
@@ -99,7 +99,7 @@
             @click="showInfoSection = !showInfoSection" 
             class="btn btn-info"
           >
-            ℹ️ {{ showInfoSection ? 'Ocultar' : 'Mostrar' }} Informações
+            <i class="fas fa-info-circle me-1"></i> {{ showInfoSection ? 'Ocultar' : 'Mostrar' }} Informações
           </button>
         </div>
         
@@ -107,7 +107,7 @@
         <div v-show="showInfoSection">
           <div class="card">
             <div class="card-header">
-              <h5>ℹ️ Informações</h5>
+              <h5><i class="fas fa-info-circle me-2 text-primary"></i>Informações</h5>
             </div>
             <div class="card-body">
               <h6>Como funciona?</h6>

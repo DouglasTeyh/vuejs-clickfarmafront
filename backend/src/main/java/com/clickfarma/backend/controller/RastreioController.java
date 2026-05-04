@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/rastreios")
-@CrossOrigin(origins = "http://localhost:8082")
 public class RastreioController {
 
     @Autowired

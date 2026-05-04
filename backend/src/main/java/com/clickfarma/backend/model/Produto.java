@@ -42,6 +42,12 @@ public class Produto {
     @Column(name = "necessita_receita")
     private Boolean necessitaReceita = false;
 
+    @Column(name = "em_promocao")
+    private Boolean emPromocao = false;
+
+    @Column(name = "desconto_percentual", precision = 5, scale = 2)
+    private BigDecimal descontoPercentual = BigDecimal.ZERO;
+
     @ManyToOne
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
@@ -92,6 +98,10 @@ public class Produto {
     public void setLaboratorio(String laboratorio) { this.laboratorio = laboratorio; }
     public Boolean getNecessitaReceita() { return necessitaReceita; }
     public void setNecessitaReceita(Boolean necessitaReceita) { this.necessitaReceita = necessitaReceita; }
+    public Boolean getEmPromocao() { return emPromocao; }
+    public void setEmPromocao(Boolean emPromocao) { this.emPromocao = emPromocao; }
+    public BigDecimal getDescontoPercentual() { return descontoPercentual; }
+    public void setDescontoPercentual(BigDecimal descontoPercentual) { this.descontoPercentual = descontoPercentual; }
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
     public Farmacia getFarmacia() { return farmacia; }

@@ -2,6 +2,8 @@ package com.clickfarma.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,6 +18,7 @@ import com.clickfarma.backend.model.Produto;
 
 @Service
 public class GroqService {
+    private static final Logger log = LoggerFactory.getLogger(GroqService.class);
 
     @Value("${GROQ_API_KEY:${groq.api.key:}}")
     private String apiKey;
@@ -50,6 +53,32 @@ public class GroqService {
         requestBody.put("model", "llama-3.3-70b-versatile");
         requestBody.put("messages", List.of(Map.of("role", "user", "content", mensagem)));
         requestBody.put("temperature", temperature);
+
+        return processarRequisicaoChat(requestBody);
+    }
+
+    public Mono<String> chatWithHistory(List<Map<String, String>> messages) {
+        if (apiKey == null || apiKey.isEmpty()) {
+            return Mono.error(new IllegalStateException("GROQ_API_KEY não configurada"));
+        }
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "llama-3.3-70b-versatile");
+        
+        // Injetar System Prompt para RAG estrito
+        java.util.List<Map<String, String>> messagesWithSystem = new java.util.ArrayList<>();
+        messagesWithSystem.add(Map.of(
+            "role", "system", 
+            "content", "Voce e o Assistente Virtual da ClickFarma. Seja profissional, prestativo e empatico. " +
+                       "REGRAS: 1. Responda de forma completa mas objetiva (nao seja curto demais, nem prolixo). " +
+                       "2. NUNCA use pontos de lista ou listas nao ordenadas. 3. NUNCA mencione precos nas mensagens de texto. " +
+                       "4. Se o usuario pedir recomendacao ou citar algo parecido com um produto ou categoria, cite o nome do produto ou da categoria claramente. " +
+                       "5. Se nao encontrar algo no estoque, informe educadamente. 6. Nao responda sobre temas fora de saude/farmacia."
+        ));
+        messagesWithSystem.addAll(messages);
+        
+        requestBody.put("messages", messagesWithSystem);
+        requestBody.put("temperature", 0.7);
 
         return processarRequisicaoChat(requestBody);
     }
@@ -136,8 +165,7 @@ public class GroqService {
                     }
                 })
                 .onErrorResume(org.springframework.web.reactive.function.client.WebClientResponseException.class, e -> {
-                    System.err.println("Groq Vision API Error: " + e.getStatusCode());
-                    System.err.println("Response Body: " + e.getResponseBodyAsString());
+                    log.error("Groq Vision API Error: {} - Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
                     return Mono.just("Erro: 400 Bad Request from Groq Vision API");
                 });
     }

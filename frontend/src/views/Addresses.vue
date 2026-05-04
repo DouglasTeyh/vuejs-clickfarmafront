@@ -1,6 +1,6 @@
 <template>
   <div class="container mt-4">
-    <h2>📍 Meus Endereços</h2>
+    <h2><i class="fas fa-map-marker-alt me-2 text-primary"></i>Meus Endereços</h2>
     
     <div class="row">
       <div class="col-md-8">

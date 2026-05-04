@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Usa o proxy do vue.config.js em dev, e o mesmo origin em produção
+// Usa a URL da variável de ambiente ou o default /api
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: process.env.VUE_APP_API_URL || '/api',
     headers: {
         'Content-Type': 'application/json'
     }

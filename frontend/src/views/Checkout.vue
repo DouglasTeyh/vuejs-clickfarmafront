@@ -11,7 +11,7 @@
         <div class="col-md-8">
           <!-- Endereço -->
           <div class="card shadow-sm border-0 p-4 mb-4">
-            <h4 class="mb-4 font-weight-bold">📍 Entrega</h4>
+            <h4 class="mb-4 font-weight-bold"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Entrega</h4>
             <div class="row g-3">
               <div class="col-12">
                 <label class="form-label">Rua *</label>

@@ -14,7 +14,7 @@
             <div class="col-lg-6">
               <div class="hero-content py-5">
                 <span class="hero-badge animate__animated animate__fadeInDown">
-                  <i class="fas fa-sparkles me-2"></i>Sua saúde, nossa prioridade
+                  <i class="fas fa-hand-holding-heart me-2"></i>Sua saúde, nossa prioridade
                 </span>
                 <h1 class="hero-title mb-4 animate__animated animate__fadeInLeft">Sua saúde, cuidada com <span class="text-gradient">inteligência</span></h1>
                 <p class="hero-subtitle mb-5 animate__animated animate__fadeInLeft" style="animation-delay: 0.1s">
@@ -95,20 +95,6 @@
         </div>
       </section>
 
-      <!-- Features Section -->
-      <section class="features-section py-5">
-        <div class="container py-lg-4">
-          <div class="row g-4">
-            <div class="col-md-4" v-for="f in features" :key="f.title">
-              <div class="cf-feature-box text-center">
-                <div class="feature-icon-blob">{{ f.icon }}</div>
-                <h3 class="feature-h">{{ f.title }}</h3>
-                <p class="feature-p">{{ f.text }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   </div>
 </template>
@@ -128,22 +114,14 @@ export default {
       loading: true,
       allProducts: [],
       userRecommendations: [],
-      features: [
-        { icon: '🚚', title: 'Entrega Expressa', text: 'Receba seus produtos em até 2 horas em sua residência.' },
-        { icon: '🤖', title: 'IA ClickFarma', text: 'Nosso agente inteligente ajuda você a encontrar o melhor produto.' },
-        { icon: '💊', title: 'Procedência', text: 'Trabalhamos apenas com farmácias certificadas e produtos originais.' }
-      ]
     }
   },
   computed: {
     ...mapState(['products']),
     ...mapGetters(['cartItemsCount']),
     categories() {
-      // Retorna apenas as categorias que possuem ao menos um produto
-      const allCats = this.$store.getters.categories;
-      return allCats.filter(cat => 
-        this.allProducts.some(p => p.categoriaNome === cat || p.categoria === cat)
-      );
+      // Retorna todas as categorias cadastradas
+      return this.$store.getters.categories || [];
     },
     recommendedProductsList() {
       if (!this.userRecommendations || this.userRecommendations.length === 0) return [];
@@ -158,14 +136,14 @@ export default {
     await this.initHome();
   },
   methods: {
-    ...mapActions(['addToCart', 'fetchCategories']),
+    ...mapActions(['addToCart', 'fetchCategories', 'fetchProducts']),
     async initHome() {
       this.loading = true;
       try {
         // O usuário logado já é tratado dentro da action fetchProducts no store
         await Promise.all([
           this.fetchProducts(),
-          this.fetchCategories()
+          this.fetchCategories({ activeOnly: true })
         ]);
 
         // Tentar recomendações se logado
@@ -185,24 +163,13 @@ export default {
     },
     getProdutosPorCategoria(cat) {
       if (!this.products) return [];
-      let lista = this.products.filter(p => p.category === cat);
-      
-      // Se tiver recomendações, ordena
-      if (this.userRecommendations.length > 0) {
-        lista.sort((a, b) => {
-          const idxA = this.userRecommendations.indexOf(a.id);
-          const idxB = this.userRecommendations.indexOf(b.id);
-          if (idxA === -1 && idxB === -1) return 0;
-          if (idxA === -1) return 1;
-          if (idxB === -1) return -1;
-          return idxA - idxB;
-        });
-      }
-      return lista.slice(0, 12);
+      return this.products.filter(p => p.category === cat);
     },
     handleAddToCart(product) {
       this.addToCart(product);
-      alert('Produto adicionado ao carrinho!');
+      if (window.$toast) {
+        window.$toast.addToast(`${product.name} adicionado ao carrinho!`, 'success');
+      }
     }
   }
 }

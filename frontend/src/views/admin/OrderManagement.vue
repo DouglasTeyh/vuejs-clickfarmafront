@@ -1,135 +1,191 @@
 <template>
-  <div class="cf-mgmt">
-    <div class="cf-mgmt-header">
-      <h4 class="cf-page-title"><span class="cf-dot gold"></span>Gestão Global de Pedidos</h4>
-      <div class="cf-mgmt-actions">
-        <div class="cf-search-wrap">
-          <i class="fas fa-search cf-search-icon"></i>
-          <input v-model="search" type="text" class="cf-search" placeholder="ID ou Cliente...">
+  <div class="cf-mgmt-premium">
+    <!-- ═══ HEADER OPERACIONAL ═══ -->
+    <header class="mgmt-header">
+      <div class="header-info">
+        <h3 class="editorial-title">Monitoramento de Fluxo</h3>
+        <p class="editorial-subtitle">Gestão centralizada de logística e transações da rede</p>
+      </div>
+      <div class="header-tools">
+        <div class="cf-input-group">
+          <i class="fas fa-search"></i>
+          <input v-model="search" type="text" placeholder="Localizar pedido ou cliente...">
         </div>
-        <button class="cf-btn-outline-sm" @click="fetchOrders">
-          <i class="fas fa-sync-alt me-1"></i>Atualizar
+        <button class="btn-refresh" @click="fetchOrders" :disabled="isLoading">
+          <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }"></i>
         </button>
       </div>
-    </div>
+    </header>
 
-    <div class="cf-table-card">
-      <div v-if="isLoading" class="cf-loading-row">
-        <div class="cf-spinner"></div><span>Carregando pedidos...</span>
+    <!-- ═══ GRID DE PEDIDOS ═══ -->
+    <div class="cf-table-card-premium">
+      <div v-if="isLoading" class="loading-overlay-premium">
+        <div class="cf-spinner"></div>
+        <span>Sincronizando base de dados...</span>
       </div>
-      <div v-else class="cf-table-wrap">
-        <table class="cf-table">
+
+      <div v-else class="table-scroll cf-hide-scrollbar">
+        <table class="editorial-table">
           <thead>
             <tr>
-              <th>ID / Código</th>
-              <th>Cliente</th>
-              <th>Data</th>
-              <th>Total</th>
-              <th>Status</th>
-              <th class="text-center">Ações</th>
+              <th class="ps-5">Identificador</th>
+              <th>Comprador</th>
+              <th>Operação</th>
+              <th>Montante</th>
+              <th>Status do Fluxo</th>
+              <th class="text-center pe-5">Ações</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="order in filteredOrders" :key="order.id">
-              <td class="cf-mono">#{{ order.codigoPedido || order.id }}</td>
-              <td>
-                <div class="cf-td-bold">{{ order.nomeCliente || order.usuario?.nome || 'Cliente #' + order.usuarioId }}</div>
+            <tr v-for="order in filteredOrders" :key="order.id" class="row-hover">
+              <td class="ps-5">
+                <div class="id-badge">#{{ order.codigoPedido || order.id }}</div>
               </td>
-              <td class="cf-td-muted">{{ formatDate(order.dataPedido) }}</td>
-              <td class="cf-td-bold text-success">R$ {{ Number(order.valorTotal || 0).toFixed(2) }}</td>
               <td>
-                <span class="cf-status-badge" :class="statusClass(order.status)">
-                  {{ order.status?.replace(/_/g, ' ') }}
-                </span>
+                <div class="entity-cell">
+                  <div class="entity-avatar">
+                    {{ (order.nomeCliente || order.usuario?.nome || '?').charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="entity-meta">
+                    <span class="entity-name">{{ order.nomeCliente || order.usuario?.nome || 'Consumidor' }}</span>
+                    <span class="entity-sub">{{ order.usuario?.email || 'ID: ' + order.usuarioId }}</span>
+                  </div>
+                </div>
               </td>
-              <td class="text-center">
-                <button class="cf-icon-btn" @click="viewDetails(order)" title="Ver Detalhes">
-                  <i class="fas fa-eye"></i>
+              <td>
+                <div class="date-cell">
+                  <span class="date-val">{{ formatDate(order.dataPedido).split(',')[0] }}</span>
+                  <span class="time-val">{{ formatDate(order.dataPedido).split(',')[1] }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="price-cell">
+                  <span class="currency">R$</span>
+                  <span class="amount">{{ Number(order.valorTotal || 0).toFixed(2) }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="status-pill" :class="statusClass(order.status)">
+                  <span class="pill-dot"></span>
+                  <span class="pill-text">{{ order.status?.replace(/_/g, ' ') }}</span>
+                </div>
+              </td>
+              <td class="text-center pe-5">
+                <button class="action-btn-view" @click="viewDetails(order)">
+                  <i class="fas fa-file-invoice"></i>
+                  <span>Dossiê</span>
                 </button>
               </td>
             </tr>
             <tr v-if="filteredOrders.length === 0">
-              <td colspan="6" class="cf-empty">Nenhum pedido encontrado.</td>
+              <td colspan="6" class="empty-state">
+                <div class="empty-wrap">
+                  <i class="fas fa-box-open"></i>
+                  <p>Nenhum registro encontrado no critério de busca.</p>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Modal de Detalhes -->
-    <div v-if="selectedOrder" class="cf-modal-overlay" @click.self="selectedOrder = null">
-      <div class="cf-modal-box animate__animated animate__fadeInUp">
-        <div class="cf-modal-header">
-          <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon-wrap bg-gold-light">
-              <i class="fas fa-shopping-bag text-warning"></i>
-            </div>
-            <div>
-              <h5 class="mb-0 fw-bold">Detalhes do Pedido</h5>
-              <p class="mb-0 text-muted small">#{{ selectedOrder.codigoPedido || selectedOrder.id }}</p>
+    <!-- ═══ MODAL: DOSSIÊ DO PEDIDO ═══ -->
+    <div v-if="selectedOrder" class="modal-premium-overlay" @click.self="selectedOrder = null">
+      <div class="dossier-modal animate__animated animate__fadeInUp">
+        <header class="dossier-header">
+          <div class="header-brand">
+            <div class="dossier-icon"><i class="fas fa-clipboard-check"></i></div>
+            <div class="dossier-meta">
+              <h5>Dossiê Operacional</h5>
+              <span class="dossier-id">CÓDIGO: #{{ selectedOrder.codigoPedido || selectedOrder.id }}</span>
             </div>
           </div>
-          <button class="btn-close-custom" @click="selectedOrder = null"><i class="fas fa-times"></i></button>
-        </div>
+          <button class="close-modal" @click="selectedOrder = null"><i class="fas fa-times"></i></button>
+        </header>
 
-        <div class="cf-modal-body p-4">
-          <div class="row g-4">
-            <div class="col-md-6">
-              <label class="cf-label-premium">Informações do Cliente</label>
-              <div class="cf-detail-box">
-                <p class="mb-1"><strong>Nome:</strong> {{ selectedOrder.nomeCliente || selectedOrder.usuario?.nome }}</p>
-                <p class="mb-0"><strong>Email:</strong> {{ selectedOrder.usuario?.email || '—' }}</p>
+        <div class="dossier-content cf-hide-scrollbar">
+          <div class="dossier-grid">
+            <!-- Coluna: Informações -->
+            <div class="dossier-col">
+              <h6 class="dossier-section-label">Origem do Pedido</h6>
+              <div class="dossier-card-premium ivory">
+                <div class="entity-card-lg">
+                  <div class="lg-avatar">
+                    {{ (selectedOrder.nomeCliente || selectedOrder.usuario?.nome || '?').charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="lg-meta">
+                    <span class="lg-name">{{ selectedOrder.nomeCliente || selectedOrder.usuario?.nome }}</span>
+                    <span class="lg-sub">{{ selectedOrder.usuario?.email || 'Cliente não autenticado' }}</span>
+                  </div>
+                </div>
+                <div class="dossier-data-line">
+                  <span class="data-label">Transação em</span>
+                  <span class="data-val">{{ formatDate(selectedOrder.dataPedido) }}</span>
+                </div>
               </div>
-            </div>
-            <div class="col-md-6">
-              <label class="cf-label-premium">Status Atual</label>
-              <div class="d-flex align-items-center gap-2 mb-3">
-                <span class="cf-status-badge" :class="statusClass(selectedOrder.status)">
-                  {{ selectedOrder.status?.replace(/_/g, ' ') }}
-                </span>
-              </div>
-              <div class="input-group input-group-sm">
-                <select v-model="newStatus" class="form-select form-select-sm">
-                  <option v-for="s in statusOptions" :key="s" :value="s">{{ s.replace(/_/g, ' ') }}</option>
-                </select>
-                <button class="btn btn-primary btn-sm" @click="updateStatus" :disabled="isUpdating">
-                  Atualizar
-                </button>
-              </div>
-            </div>
 
-            <div class="col-12">
-              <label class="cf-label-premium">Itens do Pedido</label>
-              <div class="cf-table-card border">
-                <table class="cf-table">
-                  <thead class="bg-light">
-                    <tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="it in selectedOrder.itens" :key="it.id">
-                      <td>{{ it.nomeProduto || it.produto?.nome }}</td>
-                      <td>{{ it.quantidade }}</td>
-                      <td>R$ {{ Number(it.precoUnitario || 0).toFixed(2) }}</td>
-                      <td class="fw-bold">R$ {{ Number((it.precoUnitario * it.quantidade) || 0).toFixed(2) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <h6 class="dossier-section-label mt-4">Gestão de Fluxo</h6>
+              <div class="dossier-card-premium gold">
+                <div class="status-selector-wrap">
+                  <div class="selector-current">
+                    <span class="label">Status Atual:</span>
+                    <div class="status-pill small" :class="statusClass(selectedOrder.status)">
+                      {{ selectedOrder.status?.replace(/_/g, ' ') }}
+                    </div>
+                  </div>
+                  <div class="selector-action">
+                    <select v-model="newStatus" class="cf-select-modern">
+                      <option v-for="s in statusOptions" :key="s" :value="s">{{ s.replace(/_/g, ' ') }}</option>
+                    </select>
+                    <button class="btn-update-status" @click="updateStatus" :disabled="isUpdating">
+                      <i v-if="isUpdating" class="fas fa-circle-notch fa-spin"></i>
+                      <span v-else>Atualizar</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="col-12 text-end">
-              <div class="h5 mb-0">Total: <span class="text-success fw-bold">R$ {{ Number(selectedOrder.valorTotal || 0).toFixed(2) }}</span></div>
+            <!-- Coluna: Itens -->
+            <div class="dossier-col">
+              <h6 class="dossier-section-label">Composição do Carrinho</h6>
+              <div class="dossier-items-container">
+                <div v-for="it in selectedOrder.itens" :key="it.id" class="dossier-item-row">
+                  <div class="item-info">
+                    <span class="item-name">{{ it.nomeProduto || it.produto?.nome }}</span>
+                    <span class="item-sub">{{ it.produto?.dosagem || 'Concentração não informada' }}</span>
+                  </div>
+                  <div class="item-math">
+                    <span class="item-qty">{{ it.quantidade }}x</span>
+                    <span class="item-subtotal">R$ {{ Number((it.precoUnitario * it.quantidade) || 0).toFixed(2) }}</span>
+                  </div>
+                </div>
+                
+                <div class="dossier-total-box">
+                  <div class="total-row">
+                    <span class="label">Total Bruto</span>
+                    <span class="val">R$ {{ Number(selectedOrder.valorTotal || 0).toFixed(2) }}</span>
+                  </div>
+                  <div class="total-row primary">
+                    <span class="label">Investimento Total</span>
+                    <span class="val-lg">R$ {{ Number(selectedOrder.valorTotal || 0).toFixed(2) }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="cf-modal-footer">
-          <button class="btn btn-light fw-bold px-4" @click="selectedOrder = null">Fechar</button>
-        </div>
+        <footer class="dossier-footer">
+          <button class="btn-print-dossier"><i class="fas fa-print me-2"></i>Imprimir Comprovante</button>
+          <button class="btn-close-dossier" @click="selectedOrder = null">Concluir Revisão</button>
+        </footer>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import pedidoService from '@/services/pedidoService';
@@ -199,9 +255,9 @@ export default {
         await pedidoService.atualizarStatus(this.selectedOrder.id, this.newStatus);
         this.selectedOrder.status = this.newStatus;
         await this.fetchOrders();
-        alert('Status atualizado com sucesso!');
+        alert('Status operacional atualizado com sucesso!');
       } catch (err) {
-        alert('Erro ao atualizar status.');
+        alert('Erro ao sincronizar status.');
       } finally {
         this.isUpdating = false;
       }
@@ -211,66 +267,34 @@ export default {
 </script>
 
 <style scoped>
-.cf-mgmt { padding-bottom: 2rem; }
-.cf-mgmt-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-.cf-page-title { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--cf-text-dark); display: flex; align-items: center; gap: 0.6rem; }
-.cf-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.cf-dot.gold { background: var(--cf-gold); }
-.cf-mgmt-actions { display: flex; gap: 0.75rem; align-items: center; }
+.cf-mgmt { padding-bottom: 2rem; animation: fadeIn 0.5s ease-out; }
 
-.cf-search-wrap { position: relative; }
-.cf-search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--cf-text-faint); font-size: 0.85rem; }
-.cf-search { padding: 0.55rem 1rem 0.55rem 2.4rem; border: 1px solid var(--cf-border-mid); border-radius: 12px; font-family: var(--cf-sans); font-size: 0.88rem; color: var(--cf-text-dark); background: var(--cf-white); outline: none; transition: all 0.2s; width: 240px; }
-.cf-search:focus { border-color: var(--cf-green); box-shadow: 0 0 0 4px rgba(42,92,69,0.06); }
+/* Custom Styling */
+.cf-table-card { background: #fff; border-radius: 24px; border: 1px solid var(--cf-border); box-shadow: var(--cf-shadow-sm); overflow: hidden; }
 
-.cf-btn-outline-sm { padding: 0.45rem 0.9rem; background: none; border: 1px solid var(--cf-border-mid); border-radius: 10px; font-family: var(--cf-sans); font-size: 0.78rem; color: var(--cf-text-muted); cursor: pointer; transition: all 0.18s; }
-.cf-btn-outline-sm:hover { border-color: var(--cf-green); color: var(--cf-green); }
+.cf-user-initials { width: 36px; height: 36px; border-radius: 12px; background: var(--cf-ivory); color: var(--cf-gold); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 800; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(184,149,80,0.1); }
+.cf-user-initials.lg { width: 54px; height: 54px; font-size: 1.4rem; }
 
-.cf-table-card { background: var(--cf-white); border: 1px solid var(--cf-border); border-radius: 16px; box-shadow: var(--cf-shadow-sm); overflow: hidden; }
-.cf-table-wrap { overflow-x: auto; scrollbar-width: thin; }
-.cf-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-.cf-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cf-text-muted); font-weight: 600; padding: 1rem; border-bottom: 1px solid var(--cf-border); background: var(--cf-ivory); white-space: nowrap; }
-.cf-table td { padding: 1rem; border-bottom: 1px solid var(--cf-border); font-size: 0.88rem; vertical-align: middle; }
-.cf-table tbody tr:last-child td { border-bottom: none; }
-.cf-table tbody tr:hover td { background: rgba(42,92,69,0.02); }
-
-.cf-td-bold { font-weight: 600; color: var(--cf-text-dark); }
-.cf-td-muted { color: var(--cf-text-muted); font-size: 0.8rem; }
-.cf-mono { font-family: 'DM Mono', monospace !important; font-size: 0.8rem; color: var(--cf-text-mid); }
-
-.cf-icon-btn { background: var(--cf-white); border: 1px solid var(--cf-border-mid); border-radius: 8px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--cf-text-muted); transition: all 0.2s; }
-.cf-icon-btn:hover { border-color: var(--cf-green); color: var(--cf-green); background: var(--cf-green-xlight); }
-
-/* Status Badges */
-.cf-status-badge { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; padding: 0.25rem 0.8rem; border-radius: 20px; text-transform: uppercase; }
+.cf-status-badge { font-size: 0.62rem; font-weight: 800; padding: 0.35rem 0.8rem; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.1em; display: inline-flex; align-items: center; }
 .s-pending   { background: #FFF8EC; color: #9A6700; }
 .s-paid      { background: var(--cf-green-xlight); color: var(--cf-green); }
 .s-prep      { background: #FFF0E6; color: #9A4500; }
 .s-sent      { background: #EAF1FB; color: #2a6099; }
 .s-transit   { background: #F0EAFB; color: #5a2a99; }
-.s-done      { background: var(--cf-green-xlight); color: var(--cf-green-dark); }
-.s-cancelled { background: #F9EDED; color: var(--cf-danger); }
+.s-done      { background: var(--cf-green-xlight); color: var(--cf-green-dark); box-shadow: inset 0 0 0 1px rgba(42,92,69,0.1); }
+.s-cancelled { background: #fef2f2; color: #dc2626; }
 
-/* Modal */
-.cf-modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(6px); padding: 20px; }
-.cf-modal-box { background: white; border-radius: 24px; width: 800px; max-width: 100%; max-height: calc(100vh - 60px); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); display: flex; flex-direction: column; overflow: hidden; }
-.cf-modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-.modal-icon-wrap { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-.cf-modal-body { flex: 1; overflow-y: auto; background: #fafafa; }
-.cf-modal-footer { padding: 1.25rem 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 1rem; background: #fff; flex-shrink: 0; }
+.cf-detail-card { background: var(--cf-ivory); border: 1px solid var(--cf-border-mid); border-radius: 18px; }
+.cf-status-update-box { display: flex; gap: 0.5rem; background: #fff; padding: 0.4rem; border-radius: 14px; border: 1px solid var(--cf-border); }
 
-.cf-detail-box { background: #fff; border: 1px solid var(--cf-border); border-radius: 12px; padding: 1rem; }
-.cf-label-premium { font-size: 0.72rem; font-weight: 600; color: var(--cf-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.45rem; display: block; }
+.cf-select-premium { border: none; outline: none; background: transparent; font-size: 0.85rem; font-weight: 700; color: var(--cf-text-dark); padding: 0 0.5rem; cursor: pointer; }
 
-.btn-close-custom { background: var(--cf-ivory); border: none; width: 34px; height: 34px; border-radius: 50%; color: var(--cf-text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-.btn-close-custom:hover { background: var(--cf-cream); color: var(--cf-text-dark); transform: rotate(90deg); }
+.total-badge { background: var(--cf-ivory); padding: 1.25rem 2rem; border-radius: 20px; border: 1px dashed var(--cf-green-mid); }
 
-.cf-loading-row { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 5rem 2rem; color: var(--cf-text-muted); }
-.cf-spinner { width: 28px; height: 28px; border: 3px solid var(--cf-border); border-top-color: var(--cf-green); border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* Layout Utils */
+.cf-avatar-row { display: flex; align-items: center; gap: 0.85rem; }
+.extra-small { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.letter-spacing-1 { letter-spacing: 0.08em; }
 
-@media (max-width: 768px) {
-  .cf-modal-overlay { padding: 0; }
-  .cf-modal-box { border-radius: 0; height: 100vh; max-height: 100vh; }
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>

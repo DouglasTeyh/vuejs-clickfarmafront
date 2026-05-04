@@ -7,6 +7,7 @@ import com.clickfarma.backend.repository.FarmaciaRepository;
 import com.clickfarma.backend.repository.PedidoRepository;
 import com.clickfarma.backend.repository.ProdutoRepository;
 import com.clickfarma.backend.repository.UsuarioRepository;
+import com.clickfarma.backend.repository.MotoboyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
@@ -32,7 +33,7 @@ public class DashboardService {
     private FarmaciaRepository farmaciaRepository;
 
     @Autowired
-    private com.clickfarma.backend.repository.MotoboyRepository motoboyRepository;
+    private MotoboyRepository motoboyRepository;
 
     public Map<String, Object> obterResumoGeral() {
         Map<String, Object> resumo = new HashMap<>();
@@ -53,7 +54,7 @@ public class DashboardService {
                 .filter(v -> v != null)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal comissaoTotal = faturamentoTotal.multiply(new BigDecimal("0.005"));
+        BigDecimal comissaoTotal = faturamentoTotal.multiply(new BigDecimal("0.05"));
 
         dashboard.put("faturamentoTotal", faturamentoTotal);
         dashboard.put("comissaoTotal", comissaoTotal);
@@ -180,7 +181,7 @@ public class DashboardService {
                 .filter(v -> v != null)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal comissao = faturamentoBruto.multiply(new BigDecimal("0.005"));
+        BigDecimal comissao = faturamentoBruto.multiply(new BigDecimal("0.05"));
         BigDecimal faturamentoLiquido = faturamentoBruto.subtract(comissao);
 
         long pedidosPendentes = pedidosFarmacia.stream()

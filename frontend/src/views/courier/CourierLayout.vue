@@ -1,7 +1,17 @@
 <template>
   <div class="cf-courier-shell">
-    <!-- Overlay mobile -->
-    <div v-if="sidebarOpen && isMobile" class="cf-sidebar-overlay" @click="sidebarOpen = false"></div>
+    <div v-if="!isMobile" class="desktop-block">
+      <div class="block-content">
+        <i class="fas fa-mobile-alt fa-4x mb-3 text-primary"></i>
+        <h2>Acesso Restrito</h2>
+        <p>O aplicativo para Entregadores está disponível apenas para dispositivos móveis.</p>
+        <p class="text-muted small">Acesse este link pelo navegador do seu celular.</p>
+      </div>
+    </div>
+    
+    <template v-else>
+      <!-- Overlay mobile -->
+      <div v-if="sidebarOpen" class="cf-sidebar-overlay" @click="sidebarOpen = false"></div>
 
     <!-- ═══ SIDEBAR ═══ -->
     <nav class="cf-sidebar" :class="{ 'sidebar-open': sidebarOpen }">
@@ -80,7 +90,8 @@
       <div class="cf-content">
         <router-view />
       </div>
-    </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -133,6 +144,15 @@ export default {
   background: var(--cf-ivory); font-family: var(--cf-sans); 
   overflow-x: hidden; width: 100%;
 }
+
+.desktop-block {
+  position: fixed; inset: 0; background: #f8fafc; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 2rem;
+}
+.desktop-block .block-content { max-width: 400px; }
+.desktop-block h2 { font-weight: 700; color: #1e293b; margin-bottom: 1rem; }
+
 
 .cf-sidebar {
   width: 250px; height: 100vh; background: #1e293b;

@@ -332,7 +332,8 @@ export default createStore({
     isQuickViewOpen: false,
     // Auth Modal
     isAuthModalOpen: false,
-    authModalMode: 'login'
+    authModalMode: 'login',
+    authRedirectPath: null
   },
 
   getters: {
@@ -352,12 +353,20 @@ export default createStore({
     quickViewProduct: (state) => state.quickViewProduct,
     isQuickViewOpen: (state) => state.isQuickViewOpen,
     isAuthModalOpen: (state) => state.isAuthModalOpen,
-    authModalMode: (state) => state.authModalMode
+    authModalMode: (state) => state.authModalMode,
+    authRedirectPath: (state) => state.authRedirectPath
   },
 
   mutations: {
     SET_USER(state, user) {
-      state.user = user;
+      if (user) {
+        if (user.nome && !user.name) user.name = user.nome;
+        state.user = user;
+        localStorage.setItem('user', JSON.stringify(user));
+      } else {
+        state.user = null;
+        localStorage.removeItem('user');
+      }
     },
     SET_AUTH_TOKEN(state, token) {
       state.authToken = token;
@@ -442,16 +451,18 @@ export default createStore({
       state.isQuickViewOpen = false;
       // Não limpamos o produto imediatamente para evitar saltos na animação
     },
-    setCart(state, cart) {
+    SET_CART(state, cart) {
       state.cart = cart;
     },
     // Auth Modal Mutations
-    OPEN_AUTH_MODAL(state, mode = 'login') {
+    OPEN_AUTH_MODAL(state, { mode = 'login', redirect = null } = {}) {
       state.authModalMode = mode;
+      state.authRedirectPath = redirect;
       state.isAuthModalOpen = true;
     },
     CLOSE_AUTH_MODAL(state) {
       state.isAuthModalOpen = false;
+      state.authRedirectPath = null;
     }
   },
 
@@ -520,12 +531,12 @@ export default createStore({
       }
     },
 
-    openLoginModal({ commit }) {
-      commit('OPEN_AUTH_MODAL', 'login');
+    openLoginModal({ commit }, redirect = null) {
+      commit('OPEN_AUTH_MODAL', { mode: 'login', redirect });
     },
 
-    openRegisterModal({ commit }) {
-      commit('OPEN_AUTH_MODAL', 'register');
+    openRegisterModal({ commit }, redirect = null) {
+      commit('OPEN_AUTH_MODAL', { mode: 'register', redirect });
     },
 
     closeAuthModal({ commit }) {
@@ -580,7 +591,7 @@ export default createStore({
           description: p.descricao,
           inStock: p.estoque !== null ? p.estoque > 0 : true,
           estoque: p.estoque !== null ? p.estoque : 10,
-          images: [p.imagemUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800']
+          images: [p.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800']
         }));
         
         commit('SET_PRODUCTS', mappedProducts);
@@ -590,18 +601,19 @@ export default createStore({
       }
     },
 
-    async fetchCategories({ commit }) {
+    async fetchCategories({ commit }, { activeOnly = false } = {}) {
       try {
-        console.log('📡 Buscando categorias da API...');
+        console.log(`📡 Buscando categorias da API (ativas: ${activeOnly})...`);
         const api = require('../services/api').default;
-        const response = await api.get('/categorias');
-        // Extrai apenas os nomes das categorias se necessário, ou armazena o objeto completo
+        const endpoint = activeOnly ? '/categorias/ativas' : '/categorias';
+        const response = await api.get(endpoint);
         const categories = response.data.map(c => c.nome || c);
         commit('SET_CATEGORIES', categories);
       } catch (error) {
         console.error('❌ Erro ao carregar categorias:', error);
-        // Fallback caso falhe
-        commit('SET_CATEGORIES', ['Medicamentos', 'Cosméticos', 'Higiene', 'Vitaminas', 'Maternidade']);
+        if (!activeOnly) {
+          commit('SET_CATEGORIES', ['Medicamentos', 'Cosméticos', 'Higiene', 'Vitaminas', 'Maternidade']);
+        }
       }
     },
     async addToCart({ commit, state, dispatch }, product) {
@@ -853,15 +865,6 @@ export default createStore({
       }
     },
 
-    async requestPasswordReset({ commit }, email) {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return { success: true };
-      } catch (error) {
-        throw new Error('Erro ao solicitar redefinição de senha');
-      }
-    },
-
     async updateUserProfile({ commit }, userData) {
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -906,6 +909,30 @@ export default createStore({
     },
     closeQuickView({ commit }) {
       commit('CLOSE_QUICK_VIEW');
+    },
+    async requestPasswordReset(_, email) {
+      try {
+        const response = await authService.requestPasswordReset(email);
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async resetPassword(_, data) {
+      try {
+        const response = await authService.resetPassword(data);
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async changePassword(_, passwordData) {
+      try {
+        const response = await authService.changePassword(passwordData);
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
     }
   }
 });

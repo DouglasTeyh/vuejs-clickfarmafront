@@ -1,148 +1,184 @@
 <template>
-  <div class="cf-mgmt">
-    <div class="cf-mgmt-header">
-      <h4 class="cf-page-title"><span class="cf-dot green"></span>Farmácias Parceiras</h4>
-      <div class="cf-mgmt-actions">
-        <div class="cf-search-wrap">
-          <i class="fas fa-search cf-search-icon"></i>
-          <input v-model="busca" type="text" class="cf-search" placeholder="Buscar farmácia...">
+  <div class="cf-mgmt-premium">
+    <!-- ═══ HEADER DA REDE ═══ -->
+    <header class="mgmt-header">
+      <div class="header-info">
+        <h3 class="editorial-title">Rede de Unidades</h3>
+        <p class="editorial-subtitle">Governança de parceiros e infraestrutura de repasses PIX</p>
+      </div>
+      <div class="header-tools">
+        <div class="cf-input-group">
+          <i class="fas fa-search"></i>
+          <input v-model="busca" type="text" placeholder="Buscar unidade, CNPJ ou cidade...">
         </div>
+        <button class="btn-refresh" @click="carregar" :disabled="isLoading">
+          <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }"></i>
+        </button>
       </div>
-    </div>
+    </header>
 
-    <div class="cf-table-card">
-      <div v-if="isLoading" class="cf-loading-row">
+    <!-- ═══ GRID DE UNIDADES ═══ -->
+    <div class="cf-table-card-premium">
+      <div v-if="isLoading" class="loading-overlay-premium">
         <div class="cf-spinner"></div>
-        <span>Carregando farmácias...</span>
+        <span>Mapeando rede de parceiros...</span>
       </div>
-      <div v-else class="cf-table-wrap">
-        <table class="cf-table">
+
+      <div v-else class="table-scroll cf-hide-scrollbar">
+        <table class="editorial-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Farmácia</th>
-              <th>CNPJ</th>
-              <th>Cidade</th>
-              <th>Telefone</th>
-              <th>Cadastro</th>
-              <th class="text-center">Ações</th>
+              <th class="ps-5">Unidade</th>
+              <th>Documentação</th>
+              <th>Logradouro</th>
+              <th>Operacional</th>
+              <th>Status Fiscal</th>
+              <th class="text-center pe-5">Ações</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="f in filtradas" :key="f.id">
-              <td class="cf-td-faint">#{{ f.id }}</td>
-              <td>
-                <div class="cf-avatar-row">
-                  <div class="cf-icon-avatar green"><i class="fas fa-store"></i></div>
-                  <div>
-                    <div class="cf-td-bold">{{ f.nome }}</div>
-                    <div class="cf-td-muted">{{ f.email }}</div>
+            <tr v-for="f in filtradas" :key="f.id" class="row-hover">
+              <td class="ps-5">
+                <div class="entity-cell">
+                  <div class="entity-avatar green">
+                    <i class="fas fa-hospital"></i>
+                  </div>
+                  <div class="entity-meta">
+                    <span class="entity-name">{{ f.nome }}</span>
+                    <span class="entity-sub">ID: #{{ f.id }} • {{ f.email }}</span>
                   </div>
                 </div>
               </td>
-              <td class="cf-mono">{{ f.cnpj }}</td>
-              <td><span class="cf-tag">{{ f.cidade || '—' }}</span></td>
-              <td class="cf-td-muted">{{ f.telefone || '—' }}</td>
-              <td class="cf-td-muted">{{ d(f.dataCadastro) }}</td>
-              <td class="text-center">
-                <button class="cf-icon-btn" @click="abrirEdicao(f)" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                <button class="cf-icon-btn danger" @click="confirmarDelete(f)" title="Remover"><i class="fas fa-trash"></i></button>
+              <td>
+                <div class="doc-cell">
+                  <span class="doc-val">{{ f.cnpj }}</span>
+                  <span class="doc-label">CNPJ REGISTRADO</span>
+                </div>
+              </td>
+              <td>
+                <div class="loc-cell">
+                  <span class="loc-city">{{ f.cidade || 'Localização não definida' }}</span>
+                  <span class="loc-addr">{{ f.endereco?.split(',')[0] }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="contact-cell">
+                  <i class="fas fa-phone-alt me-2 text-muted"></i>
+                  <span class="contact-val">{{ f.telefone || 'Sem contato' }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="status-pill active">
+                  <span class="pill-dot"></span>
+                  <span class="pill-text">Operação Ativa</span>
+                </div>
+              </td>
+              <td class="text-center pe-5">
+                <div class="action-group">
+                  <button class="action-btn-circle" @click="abrirEdicao(f)" title="Configurar Unidade">
+                    <i class="fas fa-sliders"></i>
+                  </button>
+                  <button class="action-btn-circle danger" @click="confirmarDelete(f)" title="Suspender Operação">
+                    <i class="fas fa-ban"></i>
+                  </button>
+                </div>
               </td>
             </tr>
-            <tr v-if="!filtradas.length"><td colspan="7" class="cf-empty">{{ busca ? 'Nenhuma farmácia encontrada.' : 'Nenhuma farmácia cadastrada.' }}</td></tr>
+            <tr v-if="!filtradas.length">
+              <td colspan="6" class="empty-state">
+                <div class="empty-wrap">
+                  <i class="fas fa-store-slash"></i>
+                  <p>Nenhuma farmácia localizada nos registros ativos.</p>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Modal de Edição/Criação -->
-    <div v-if="modalEdicao" class="cf-modal-overlay" @click.self="fecharModal">
-      <div class="cf-modal-box animate__animated animate__fadeInDown">
-        <div class="cf-modal-header">
-          <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon-wrap bg-primary-subtle">
-              <i class="fas fa-store text-primary"></i>
-            </div>
-            <div>
-              <h5 class="mb-0 fw-bold">Editar Farmácia</h5>
-              <p class="mb-0 text-muted small">ID: #{{ editandoId }}</p>
+    <!-- ═══ MODAL: CONFIGURAÇÃO DE UNIDADE ═══ -->
+    <div v-if="modalEdicao" class="modal-premium-overlay" @click.self="fecharModal">
+      <div class="config-modal animate__animated animate__fadeInUp">
+        <header class="config-header">
+          <div class="header-brand">
+            <div class="config-icon"><i class="fas fa-cog"></i></div>
+            <div class="config-meta">
+              <h5>Configurar Unidade</h5>
+              <span class="config-id">REGISTRO MESTRE #{{ editandoId }}</span>
             </div>
           </div>
-          <button class="btn-close-custom" @click="fecharModal"><i class="fas fa-times"></i></button>
-        </div>
-        
-        <div class="cf-modal-body p-4">
-          <div class="row g-4">
-            <div class="col-md-6">
-              <label class="cf-label-premium">Nome da Unidade</label>
-              <input v-model="form.nome" class="cf-input-premium" placeholder="Nome Fantasia">
+          <button class="close-modal" @click="fecharModal"><i class="fas fa-times"></i></button>
+        </header>
+
+        <div class="config-content cf-hide-scrollbar">
+          <div class="config-grid">
+            <div class="form-group col-span-2">
+              <label class="editorial-label">Razão Social / Nome Fantasia</label>
+              <input v-model="form.nome" class="editorial-input" placeholder="Ex: Farmácia Clickfar Filial 01">
             </div>
-            <div class="col-md-6">
-              <label class="cf-label-premium">CNPJ</label>
-              <input v-model="form.cnpj" class="cf-input-premium" placeholder="00.000.000/0000-00">
+            
+            <div class="form-group">
+              <label class="editorial-label">CNPJ Operacional</label>
+              <input v-model="form.cnpj" class="editorial-input" placeholder="00.000.000/0001-00">
             </div>
-            <div class="col-md-8">
-              <label class="cf-label-premium">Endereço Completo</label>
-              <input v-model="form.endereco" class="cf-input-premium" placeholder="Rua, Número, Bairro">
+
+            <div class="form-group">
+              <label class="editorial-label">Cidade / UF</label>
+              <input v-model="form.cidade" class="editorial-input" placeholder="Cidade - UF">
             </div>
-            <div class="col-md-4">
-              <label class="cf-label-premium">Cidade</label>
-              <input v-model="form.cidade" class="cf-input-premium">
+
+            <div class="form-group col-span-2">
+              <label class="editorial-label">Logradouro Completo</label>
+              <input v-model="form.endereco" class="editorial-input" placeholder="Rua, Número, Bairro, Complemento">
             </div>
-            <div class="col-md-6">
-              <label class="cf-label-premium">E-mail de Contato</label>
-              <input v-model="form.email" type="email" class="cf-input-premium">
+
+            <div class="section-divider col-span-2">
+              <span>Inteligência Financeira (Repasses)</span>
             </div>
-            <div class="col-md-6">
-              <label class="cf-label-premium">Telefone/WhatsApp</label>
-              <input v-model="form.telefone" class="cf-input-premium">
-            </div>
-            <!-- Campos PIX -->
-            <div class="col-md-4">
-              <label class="cf-label-premium">Tipo de Chave PIX</label>
-              <select v-model="form.tipoChavePix" class="cf-input-premium">
+
+            <div class="form-group">
+              <label class="editorial-label">Modalidade de Chave PIX</label>
+              <select v-model="form.tipoChavePix" class="editorial-select">
                 <option value="CNPJ">CNPJ</option>
-                <option value="EMAIL">E-mail</option>
+                <option value="EMAIL">E-mail Corporativo</option>
                 <option value="TELEFONE">Telefone</option>
                 <option value="ALEATORIA">Chave Aleatória</option>
               </select>
             </div>
-            <div class="col-md-8">
-              <label class="cf-label-premium">Chave PIX</label>
-              <input v-model="form.chavePix" class="cf-input-premium" placeholder="Insira a chave para repasses">
+
+            <div class="form-group">
+              <label class="editorial-label">Chave de Destino PIX</label>
+              <input v-model="form.chavePix" class="editorial-input" placeholder="Insira a chave validada">
             </div>
           </div>
         </div>
-        
-        <div class="cf-modal-footer">
-          <button class="btn btn-light fw-bold px-4" @click="fecharModal">Cancelar</button>
-          <button class="btn btn-primary fw-bold px-4" @click="salvar" :disabled="salvando">
-            <span v-if="salvando" class="spinner-border spinner-border-sm me-2"></span>
-            Salvar Alterações
+
+        <footer class="config-footer">
+          <button class="btn-cancel" @click="fecharModal">Descartar</button>
+          <button class="btn-save" @click="salvar" :disabled="salvando">
+            <i v-if="salvando" class="fas fa-circle-notch fa-spin me-2"></i>
+            Sincronizar Unidade
           </button>
-        </div>
+        </footer>
       </div>
     </div>
 
-    <!-- Modal confirmação delete -->
-    <div v-if="paraDeletar" class="cf-modal-overlay" @click.self="paraDeletar = null">
-      <div class="cf-modal-box animate__animated animate__headShake" style="max-width:400px">
-        <div class="cf-modal-header bg-danger-subtle py-3">
-          <h5 class="mb-0 text-danger fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Remoção</h5>
-        </div>
-        <div class="cf-modal-body text-center p-4">
-          <p class="mb-2">Deseja remover permanentemente a farmácia:</p>
-          <h5 class="fw-bold text-dark mb-3">{{ paraDeletar.nome }}</h5>
-          <p class="text-muted small mb-0">Esta ação desativará o acesso da unidade ao painel.</p>
-        </div>
-        <div class="cf-modal-footer bg-light border-0">
-          <button class="btn btn-light fw-bold flex-grow-1" @click="paraDeletar = null">Cancelar</button>
-          <button class="btn btn-danger fw-bold flex-grow-1" @click="deletar">Confirmar</button>
+    <!-- ═══ MODAL: SUSPENSÃO DE OPERAÇÃO ═══ -->
+    <div v-if="paraDeletar" class="modal-premium-overlay warning" @click.self="paraDeletar = null">
+      <div class="alert-modal animate__animated animate__headShake">
+        <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <h4>Suspender Unidade?</h4>
+        <p>A unidade <strong>{{ paraDeletar.nome }}</strong> será bloqueada de receber novos pedidos imediatamente.</p>
+        <div class="alert-actions">
+          <button class="btn-cancel flex-1" @click="paraDeletar = null">Manter Operação</button>
+          <button class="btn-confirm-delete flex-1" @click="deletar">Sim, Bloquear</button>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import api from '@/services/api';
@@ -186,105 +222,90 @@ export default {
 </script>
 
 <style scoped>
-.cf-mgmt { padding-bottom: 2rem; }
-.cf-mgmt-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-.cf-page-title { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--cf-text-dark); display: flex; align-items: center; gap: 0.6rem; }
-.cf-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.cf-dot.green { background: var(--cf-green); }
+.cf-mgmt-premium { animation: fadeIn 0.6s var(--cf-ease); }
 
-.cf-search-wrap { position: relative; }
-.cf-search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--cf-text-faint); font-size: 0.85rem; }
-.cf-search {
-  padding: 0.6rem 1rem 0.6rem 2.4rem; border: 1px solid var(--cf-border-mid); border-radius: 12px;
-  font-family: var(--cf-sans); font-size: 0.88rem; color: var(--cf-text-dark); background: var(--cf-white);
-  transition: all 0.2s; width: 280px; outline: none;
-}
-.cf-search:focus { border-color: var(--cf-green); box-shadow: 0 0 0 4px rgba(42,92,69,0.06); }
+/* Header */
+.mgmt-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; }
+.editorial-title { font-family: var(--cf-serif); font-size: 2.2rem; font-weight: 500; color: var(--cf-text-dark); margin: 0; }
+.editorial-subtitle { font-size: 0.95rem; color: var(--cf-text-muted); margin: 0.25rem 0 0; }
 
-.cf-table-card { background: var(--cf-white); border: 1px solid var(--cf-border); border-radius: 16px; box-shadow: var(--cf-shadow-sm); overflow: hidden; }
-.cf-table-wrap { overflow-x: auto; scrollbar-width: thin; }
-.cf-table { width: 100%; border-collapse: collapse; min-width: 800px; }
-.cf-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cf-text-muted); font-weight: 600; padding: 1rem; border-bottom: 1px solid var(--cf-border); background: var(--cf-ivory); white-space: nowrap; }
-.cf-table td { padding: 1rem; border-bottom: 1px solid var(--cf-border); font-size: 0.88rem; vertical-align: middle; }
-.cf-table tbody tr:last-child td { border-bottom: none; }
-.cf-table tbody tr:hover td { background: rgba(42,92,69,0.02); }
+.header-tools { display: flex; align-items: center; gap: 1rem; }
+.cf-input-group { background: #fff; border: 1px solid var(--cf-border); border-radius: 14px; padding: 0.65rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; width: 320px; box-shadow: var(--cf-shadow-sm); }
+.cf-input-group i { color: var(--cf-text-faint); font-size: 0.9rem; }
+.cf-input-group input { border: none; outline: none; font-size: 0.9rem; width: 100%; color: var(--cf-text-dark); }
+.btn-refresh { width: 46px; height: 46px; border-radius: 14px; background: var(--cf-ivory); border: 1px solid var(--cf-border); color: var(--cf-green); cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+.btn-refresh:hover { background: var(--cf-green-xlight); transform: rotate(180deg); }
 
-.cf-avatar-row { display: flex; align-items: center; gap: 0.8rem; }
-.cf-icon-avatar { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
-.cf-icon-avatar.green { background: var(--cf-green-xlight); color: var(--cf-green); }
-.cf-td-bold { font-weight: 600; color: var(--cf-text-dark); }
-.cf-td-muted { color: var(--cf-text-muted); font-size: 0.8rem; }
-.cf-td-faint { color: var(--cf-text-faint); font-size: 0.8rem; }
-.cf-mono { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--cf-text-mid); }
-.cf-tag { font-size: 0.72rem; padding: 0.25rem 0.8rem; border-radius: 20px; background: var(--cf-cream); color: var(--cf-text-mid); font-weight: 500; }
+/* Table Premium */
+.cf-table-card-premium { background: #fff; border-radius: 28px; border: 1px solid var(--cf-border); box-shadow: var(--cf-shadow-sm); overflow: hidden; }
+.loading-overlay-premium { padding: 8rem 0; display: flex; flex-direction: column; align-items: center; gap: 1rem; color: var(--cf-text-muted); }
 
-.cf-icon-btn { background: var(--cf-white); border: 1px solid var(--cf-border-mid); border-radius: 8px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--cf-text-muted); font-size: 0.85rem; margin: 0 3px; transition: all 0.2s; }
-.cf-icon-btn:hover { border-color: var(--cf-green); color: var(--cf-green); background: var(--cf-green-xlight); }
-.cf-icon-btn.danger:hover { border-color: var(--cf-danger); color: var(--cf-danger); background: #FFF5F5; }
+.editorial-table { width: 100%; border-collapse: collapse; }
+.editorial-table th { padding: 1.25rem 1rem; background: var(--cf-ivory-light); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cf-text-faint); border-bottom: 1px solid var(--cf-border); }
+.editorial-table td { padding: 1.5rem 1rem; vertical-align: middle; border-bottom: 1px solid rgba(0,0,0,0.03); }
 
-.cf-empty { text-align: center; color: var(--cf-text-faint); padding: 4rem 2rem; font-size: 0.9rem; }
-.cf-loading-row { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 5rem 2rem; color: var(--cf-text-muted); font-size: 0.9rem; }
-.cf-spinner { width: 28px; height: 28px; border: 3px solid var(--cf-border); border-top-color: var(--cf-green); border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.entity-cell { display: flex; align-items: center; gap: 1rem; }
+.entity-avatar { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.entity-avatar.green { background: var(--cf-green-xlight); color: var(--cf-green); }
+.entity-meta { display: flex; flex-direction: column; }
+.entity-name { font-size: 1rem; font-weight: 700; color: var(--cf-text-dark); }
+.entity-sub { font-size: 0.72rem; color: var(--cf-text-faint); }
 
-/* ─── Modal Premium ClickFarma ─── */
-.cf-modal-overlay {
-  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); 
-  z-index: 2000; display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(6px); padding: 20px;
-}
-.cf-modal-box {
-  background: white; border-radius: 24px; width: 800px; max-width: 100%;
-  max-height: calc(100vh - 60px);
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); 
-  display: flex; flex-direction: column;
-  overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
-}
-.cf-modal-header { 
-  padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9;
-  display: flex; justify-content: space-between; align-items: center;
-  flex-shrink: 0;
-}
-.modal-icon-wrap {
-  width: 44px; height: 44px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
-}
-.cf-modal-body { 
-  flex: 1; overflow-y: auto; background: #fafafa;
-  scrollbar-width: thin; scrollbar-color: var(--cf-green-light) transparent;
-}
-.cf-modal-body::-webkit-scrollbar { width: 6px; }
-.cf-modal-body::-webkit-scrollbar-thumb { background: var(--cf-green-light); border-radius: 10px; }
+.doc-cell { display: flex; flex-direction: column; }
+.doc-val { font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--cf-text-dark); }
+.doc-label { font-size: 0.6rem; font-weight: 800; color: var(--cf-text-faint); }
 
-.cf-modal-footer {
-  padding: 1.25rem 1.5rem; border-top: 1px solid #f1f5f9;
-  display: flex; justify-content: flex-end; gap: 1rem;
-  background: #fff; flex-shrink: 0;
-}
+.loc-cell { display: flex; flex-direction: column; }
+.loc-city { font-size: 0.85rem; font-weight: 700; color: var(--cf-text-dark); }
+.loc-addr { font-size: 0.72rem; color: var(--cf-text-muted); }
 
-@media (max-width: 768px) {
-  .cf-modal-overlay { padding: 0; }
-  .cf-modal-box { border-radius: 0; height: 100vh; max-height: 100vh; }
-  .cf-modal-footer { padding: 1rem; flex-direction: column; align-items: stretch; }
-  .cf-modal-footer .btn { width: 100%; }
-  .modal-icon-wrap { display: none; }
-  .cf-search { width: 100%; }
-  .cf-mgmt-header { flex-direction: column; align-items: stretch; }
-}
+.contact-cell { font-size: 0.85rem; font-weight: 700; color: var(--cf-text-muted); }
 
-/* Form Elements */
-.cf-label-premium { font-size: 0.72rem; font-weight: 600; color: var(--cf-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.45rem; display: block; }
-.cf-input-premium {
-  width: 100%; padding: 0.7rem 1rem; border-radius: 10px;
-  border: 1px solid var(--cf-border-mid); background: #fff;
-  font-size: 0.92rem; transition: all 0.2s; outline: none;
-}
-.cf-input-premium:focus { border-color: var(--cf-green); box-shadow: 0 0 0 4px rgba(42,92,69,0.06); }
+.status-pill { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.4rem 1rem; border-radius: 50px; background: var(--cf-ivory); border: 1px solid var(--cf-border); }
+.pill-dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+.pill-text { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--cf-text-muted); }
+.status-pill.active { background: var(--cf-green-xlight); border-color: rgba(34,197,94,0.1); }
+.status-pill.active .pill-dot { background: #22c55e; }
+.status-pill.active .pill-text { color: var(--cf-green); }
 
-.btn-close-custom {
-  background: var(--cf-ivory); border: none; width: 34px; height: 34px;
-  border-radius: 50%; color: var(--cf-text-muted); cursor: pointer;
-  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-}
-.btn-close-custom:hover { background: var(--cf-cream); color: var(--cf-text-dark); transform: rotate(90deg); }
+.action-group { display: flex; gap: 0.5rem; justify-content: center; }
+.action-btn-circle { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--cf-border); background: #fff; color: var(--cf-text-muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.action-btn-circle:hover { border-color: var(--cf-gold); color: var(--cf-gold); background: var(--cf-ivory); }
+.action-btn-circle.danger:hover { border-color: #ef4444; color: #ef4444; background: #fff1f2; }
+
+/* Config Modal */
+.modal-premium-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.config-modal { background: #fff; width: 100%; max-width: 800px; border-radius: 32px; box-shadow: 0 30px 100px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
+
+.config-header { padding: 1.5rem 2.5rem; background: var(--cf-ivory-light); border-bottom: 1px solid var(--cf-border); display: flex; justify-content: space-between; align-items: center; }
+.header-brand { display: flex; align-items: center; gap: 1.25rem; }
+.config-icon { width: 48px; height: 48px; border-radius: 14px; background: var(--cf-green); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.config-meta h5 { font-family: var(--cf-serif); font-size: 1.4rem; font-weight: 600; margin: 0; }
+.config-id { font-size: 0.65rem; font-weight: 800; color: var(--cf-text-faint); text-transform: uppercase; letter-spacing: 0.1em; }
+.close-modal { background: none; border: none; color: var(--cf-text-faint); cursor: pointer; font-size: 1.2rem; }
+
+.config-content { padding: 2.5rem; }
+.config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.col-span-2 { grid-column: span 2; }
+
+.editorial-label { display: block; font-size: 0.65rem; font-weight: 800; color: var(--cf-text-faint); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+.editorial-input, .editorial-select { width: 100%; padding: 0.85rem 1.25rem; border-radius: 14px; border: 1px solid var(--cf-border); outline: none; font-size: 0.9rem; font-weight: 600; color: var(--cf-text-dark); transition: all 0.2s; background: var(--cf-ivory-light); }
+.editorial-input:focus { border-color: var(--cf-gold); background: #fff; box-shadow: 0 0 0 4px rgba(184,149,80,0.1); }
+
+.section-divider { grid-column: span 2; padding-top: 1rem; border-top: 1px solid var(--cf-border); margin: 1rem 0; font-size: 0.7rem; font-weight: 800; color: var(--cf-gold); text-transform: uppercase; letter-spacing: 0.15em; }
+
+.config-footer { padding: 1.5rem 2.5rem; background: var(--cf-ivory-light); border-top: 1px solid var(--cf-border); display: flex; justify-content: flex-end; gap: 1rem; }
+.btn-cancel { background: #fff; border: 1px solid var(--cf-border); padding: 0.85rem 2rem; border-radius: 50px; font-weight: 700; font-size: 0.85rem; color: var(--cf-text-muted); cursor: pointer; }
+.btn-save { background: var(--cf-green); color: #fff; border: none; padding: 0.85rem 2.5rem; border-radius: 50px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(42,92,69,0.2); }
+.btn-save:hover { background: var(--cf-green-dark); transform: translateY(-2px); }
+
+/* Alert Modal */
+.alert-modal { background: #fff; padding: 3rem; border-radius: 32px; width: 100%; max-width: 440px; text-align: center; box-shadow: 0 25px 80px rgba(0,0,0,0.15); }
+.alert-icon { width: 70px; height: 70px; background: #fff1f2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem; }
+.alert-modal h4 { font-family: var(--cf-serif); font-size: 1.6rem; font-weight: 600; margin-bottom: 1rem; }
+.alert-modal p { color: var(--cf-text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
+.alert-actions { display: flex; gap: 1rem; }
+.btn-confirm-delete { background: #ef4444; color: #fff; border: none; padding: 0.85rem 1rem; border-radius: 50px; font-weight: 700; cursor: pointer; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 </style>

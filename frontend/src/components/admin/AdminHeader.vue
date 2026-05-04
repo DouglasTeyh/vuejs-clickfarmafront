@@ -6,8 +6,8 @@
         <h1>{{ currentPageTitle }}</h1>
       </div>
       <div class="header-right">
-        <span class="user-info">👋 Olá, Admin</span>
-        <button @click="logout" class="logout-btn">🚪 Sair</button>
+        <span class="user-info"><i class="fas fa-user-circle me-1"></i> Olá, Admin</span>
+        <button @click="logout" class="logout-btn"><i class="fas fa-sign-out-alt me-1"></i> Sair</button>
       </div>
     </div>
   </header>

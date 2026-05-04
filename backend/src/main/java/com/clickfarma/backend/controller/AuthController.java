@@ -18,10 +18,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import java.util.UUID;
+import java.time.LocalDateTime;
+import com.clickfarma.backend.service.EmailNotificationService;
+import org.springframework.beans.factory.annotation.Value;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
 public class AuthController {
 
     @Autowired
@@ -41,6 +45,12 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmailNotificationService emailNotificationService;
+
+    @Value("${app.frontend.url:http://localhost:8081}")
+    private String frontendUrl;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
@@ -138,8 +148,21 @@ public class AuthController {
                 motoboyRepository.save(motoboy);
             }
 
+            // Gerar token para o usuário recém-criado
+            UserDetails userDetails = org.springframework.security.core.userdetails.User.withUsername(savedUser.getEmail())
+                    .password(savedUser.getSenha())
+                    .authorities(savedUser.getRole())
+                    .build();
+            String token = jwtUtil.generateToken(userDetails);
+
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new MensagemResponseDTO("Cadastro realizado com sucesso!", true));
+                    .body(new LoginResponseDTO(
+                            token,
+                            savedUser.getId(),
+                            savedUser.getNome(),
+                            savedUser.getEmail(),
+                            savedUser.getRole()
+                    ));
 
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -150,5 +173,46 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok(new MensagemResponseDTO("Logout realizado com sucesso!", true));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
+
+        if (usuario != null) {
+            String token = UUID.randomUUID().toString();
+            usuario.setResetPasswordToken(token);
+            usuario.setResetPasswordTokenExpiry(LocalDateTime.now().plusHours(1));
+            usuarioRepository.save(usuario);
+
+            String link = frontendUrl + "/reset-password?token=" + token;
+            emailNotificationService.enviarLinkRedefinicaoSenha(usuario.getEmail(), usuario.getNome(), link);
+        }
+
+        return ResponseEntity.ok(new MensagemResponseDTO("Se o e-mail estiver cadastrado, você receberá as instruções em instantes.", true));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> payload) {
+        String token = payload.get("token");
+        String newPassword = payload.get("password");
+
+        if (token == null || newPassword == null || newPassword.length() < 6) {
+            return ResponseEntity.badRequest().body(new MensagemResponseDTO("Dados inválidos", false));
+        }
+
+        Usuario usuario = usuarioRepository.findByResetPasswordToken(token).orElse(null);
+
+        if (usuario == null || usuario.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.badRequest().body(new MensagemResponseDTO("Token inválido ou expirado", false));
+        }
+
+        usuario.setSenha(passwordEncoder.encode(newPassword));
+        usuario.setResetPasswordToken(null);
+        usuario.setResetPasswordTokenExpiry(null);
+        usuarioRepository.save(usuario);
+
+        return ResponseEntity.ok(new MensagemResponseDTO("Senha redefinida com sucesso!", true));
     }
 }

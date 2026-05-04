@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;  // ← ADICIONE ESTA IMPORT
+import java.util.Optional;
 
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
@@ -21,23 +21,29 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     List<Produto> findByEstoqueLessThan(Integer limite);
 
     @Query("SELECT p FROM Produto p WHERE " +
-            "(:nome IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :nome, '%'))) AND " +
+            "(:nome IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :nome, '%')) OR " +
+            " LOWER(p.descricao) LIKE LOWER(CONCAT('%', :nome, '%')) OR " +
+            " LOWER(p.principioAtivo) LIKE LOWER(CONCAT('%', :nome, '%'))) AND " +
             "(:categoriaId IS NULL OR p.categoria.id = :categoriaId) AND " +
             "(:precoMin IS NULL OR p.preco >= :precoMin) AND " +
             "(:precoMax IS NULL OR p.preco <= :precoMax) AND " +
-            "(:cidade IS NULL OR LOWER(p.farmacia.cidade) = LOWER(:cidade))")
+            "(:cidade IS NULL OR LOWER(p.farmacia.cidade) = LOWER(:cidade)) AND " +
+            "(:emPromocao IS NULL OR p.emPromocao = :emPromocao)")
     List<Produto> buscarProdutosFiltrados(
             @Param("nome") String nome,
             @Param("categoriaId") Long categoriaId,
             @Param("precoMin") BigDecimal precoMin,
             @Param("precoMax") BigDecimal precoMax,
-            @Param("cidade") String cidade);
+            @Param("cidade") String cidade,
+            @Param("emPromocao") Boolean emPromocao);
 
     List<Produto> findByFarmaciaCidadeIgnoreCase(String cidade);
 
     // ========== MÉTODOS ADICIONAIS ==========
 
     List<Produto> findByNomeStartingWithIgnoreCase(String nome);
+
+    List<Produto> findByPrincipioAtivoStartingWithIgnoreCase(String principioAtivo);
 
     @Query("SELECT p FROM Produto p WHERE " +
             "LOWER(p.nome) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +

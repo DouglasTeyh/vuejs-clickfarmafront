@@ -1,77 +1,109 @@
 <template>
   <div class="cf-mgmt">
-    <div class="cf-mgmt-header">
-      <h4 class="cf-page-title"><span class="cf-dot gold"></span>Gestão de Repasses e Pagamentos</h4>
-      <div class="cf-mgmt-actions">
-        <button class="cf-btn-primary" @click="showGenerateModal = true">
-          <i class="fas fa-plus me-2"></i>Gerar Novo Repasse
+    <div class="dash-welcome mb-4">
+      <div class="welcome-text">
+        <h3 class="dash-page-title">Conciliação Financeira</h3>
+        <p class="text-muted mb-0">Gestão de repasses, auditoria de PIX e fechamento de ciclos operacionais.</p>
+      </div>
+      <div class="dash-actions">
+        <button class="cf-btn-primary shadow-sm" @click="showGenerateModal = true">
+          <i class="fas fa-plus-circle me-2"></i>Gerar Ciclo de Repasse
         </button>
       </div>
     </div>
 
-    <!-- Filtros/Abas -->
-    <div class="cf-tabs mb-4">
-      <button class="cf-tab" :class="{ active: tab === 'TODOS' }" @click="tab = 'TODOS'">Todos</button>
-      <button class="cf-tab" :class="{ active: tab === 'PENDENTE' }" @click="tab = 'PENDENTE'">Pendentes</button>
-      <button class="cf-tab" :class="{ active: tab === 'PAGO' }" @click="tab = 'PAGO'">Pagos</button>
+    <!-- Filtros/Abas Premium -->
+    <div class="cf-tabs-container mb-4">
+      <div class="cf-tabs-wrapper shadow-sm">
+        <button class="cf-tab-premium" :class="{ active: tab === 'TODOS' }" @click="tab = 'TODOS'">
+          <i class="fas fa-list-ul me-2 opacity-50"></i>Todos os Registros
+        </button>
+        <button class="cf-tab-premium" :class="{ active: tab === 'PENDENTE' }" @click="tab = 'PENDENTE'">
+          <i class="fas fa-clock me-2 opacity-50"></i>Repasses Pendentes
+        </button>
+        <button class="cf-tab-premium" :class="{ active: tab === 'PAGO' }" @click="tab = 'PAGO'">
+          <i class="fas fa-check-double me-2 opacity-50"></i>Liquidações Concluídas
+        </button>
+      </div>
     </div>
 
     <div class="cf-table-card">
       <div v-if="isLoading" class="cf-loading-row">
-        <div class="cf-spinner"></div><span>Carregando repasses...</span>
+        <div class="cf-spinner"></div><span>Processando extratos financeiros...</span>
       </div>
-      <div v-else class="cf-table-wrap">
+      <div v-else class="table-responsive cf-hide-scrollbar">
         <table class="cf-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Destinatário</th>
-              <th>Tipo</th>
+              <th class="ps-4">ID</th>
+              <th>Beneficiário / Destino</th>
+              <th>Categoria</th>
               <th>Período</th>
-              <th>Valor Líquido</th>
-              <th>Chave PIX</th>
+              <th>Montante Líquido</th>
+              <th>Canal de Pagamento</th>
               <th>Status</th>
-              <th class="text-center">Ações</th>
+              <th class="text-center pe-4">Ações</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="p in filteredPagamentos" :key="p.id">
-              <td class="cf-td-muted">#{{ p.id }}</td>
-              <td>
-                <div class="cf-td-bold">{{ p.farmacia?.nome || p.motoboy?.nome }}</div>
-                <div class="cf-td-muted small">{{ p.tipo }}</div>
+              <td class="ps-4">
+                <div class="cf-td-bold text-muted small">#{{ p.id }}</div>
               </td>
               <td>
-                <span class="badge" :class="p.tipo === 'FARMACIA' ? 'bg-success-subtle text-success' : 'bg-info-subtle text-info'">
+                <div class="cf-avatar-row">
+                  <div class="cf-icon-avatar shadow-sm" :class="p.tipo === 'FARMACIA' ? 'bg-primary-subtle text-primary' : 'bg-warning-subtle text-warning'">
+                    <i :class="p.tipo === 'FARMACIA' ? 'fas fa-hospital' : 'fas fa-motorcycle'"></i>
+                  </div>
+                  <div>
+                    <div class="cf-td-bold text-dark">{{ p.farmacia?.nome || p.motoboy?.nome }}</div>
+                    <div class="text-muted extra-small fw-bold">{{ p.tipo === 'FARMACIA' ? 'Unidade Parceira' : 'Operador Logístico' }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="cf-role-badge shadow-sm" :style="p.tipo === 'FARMACIA' ? 'background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9' : 'background:#FFF8E1;color:#F57F17;border:1px solid #FFECB3'">
                   {{ p.tipo }}
                 </span>
               </td>
-              <td class="cf-td-muted">{{ p.referenciaPeriodo }}</td>
-              <td class="cf-td-bold text-success">R$ {{ Number(p.valorLiquido || 0).toFixed(2) }}</td>
               <td>
-                <div class="cf-pix-box" v-if="p.chavePix" @click="copyPix(p.chavePix)">
-                  <span class="small fw-bold text-muted">{{ p.tipoChavePix }}:</span>
-                  <span class="ms-1">{{ p.chavePix }}</span>
-                  <i class="fas fa-copy ms-2 opacity-50"></i>
-                </div>
-                <span v-else class="text-muted italic small">Não cadastrada</span>
+                <div class="text-dark small fw-bold"><i class="fas fa-calendar-day me-1 opacity-50"></i> {{ p.referenciaPeriodo }}</div>
+                <div class="text-muted extra-small">Ciclo Mensal</div>
               </td>
               <td>
-                <span class="cf-status-badge" :class="statusClass(p.status)">
+                <div class="text-success fw-bold">R$ {{ Number(p.valorLiquido || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
+                <div class="text-muted extra-small">Taxas Deduzidas</div>
+              </td>
+              <td>
+                <div class="cf-pix-pill shadow-sm" v-if="p.chavePix" @click="copyPix(p.chavePix)">
+                  <span class="label">{{ p.tipoChavePix }}</span>
+                  <span class="value">{{ p.chavePix }}</span>
+                  <i class="fas fa-copy ms-1"></i>
+                </div>
+                <span v-else class="text-muted extra-small fw-bold italic opacity-50">PIX não informado</span>
+              </td>
+              <td>
+                <span class="cf-status-badge shadow-sm" :class="statusClass(p.status)">
+                  <i class="fas fa-circle me-1 small opacity-50"></i>
                   {{ p.status }}
                 </span>
               </td>
-              <td class="text-center">
-                <button v-if="p.status === 'PENDENTE'" class="cf-btn-pago" @click="prepararPagamento(p)">
-                  Confirmar Pagamento
-                </button>
-                <button class="cf-icon-btn ms-1" @click="viewDetails(p)">
-                  <i class="fas fa-info-circle"></i>
-                </button>
+              <td class="text-center pe-4">
+                <div class="d-flex justify-content-center gap-2">
+                  <button v-if="p.status === 'PENDENTE'" class="cf-btn-action success shadow-sm" @click="prepararPagamento(p)" title="Liquidar Repasse">
+                    <i class="fas fa-money-bill-transfer me-1"></i> Liquidar
+                  </button>
+                  <button class="cf-icon-btn shadow-sm" @click="viewDetails(p)" title="Detalhes do Lançamento">
+                    <i class="fas fa-receipt"></i>
+                  </button>
+                </div>
               </td>
             </tr>
             <tr v-if="filteredPagamentos.length === 0">
-              <td colspan="8" class="cf-empty">Nenhum registro encontrado.</td>
+              <td colspan="8" class="cf-empty py-5">
+                <i class="fas fa-file-invoice-dollar fa-3x mb-3 opacity-10"></i>
+                <p class="fw-bold text-muted">Nenhum lançamento financeiro localizado.</p>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -80,23 +112,32 @@
 
     <!-- Modal Gerar Repasse -->
     <div v-if="showGenerateModal" class="cf-modal-overlay" @click.self="showGenerateModal = false">
-      <div class="cf-modal-box animate__animated animate__fadeInDown" style="width: 500px">
-        <div class="cf-modal-header">
-          <h5 class="mb-0 fw-bold">Gerar Novo Repasse</h5>
-          <button class="btn-close-custom" @click="showGenerateModal = false"><i class="fas fa-times"></i></button>
+      <div class="cf-modal-box animate__animated animate__fadeInUp dash-card" style="width: 520px">
+        <div class="cf-modal-header border-bottom bg-light-subtle">
+          <div class="d-flex align-items-center gap-3">
+            <div class="modal-icon-wrap bg-primary-subtle text-primary shadow-sm">
+              <i class="fas fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+              <h5 class="mb-0 fw-bold">Gerar Novo Repasse</h5>
+              <p class="mb-0 text-muted extra-small fw-bold text-uppercase letter-spacing-1">Configuração de Ciclo</p>
+            </div>
+          </div>
+          <button class="btn-close-custom shadow-sm" @click="showGenerateModal = false"><i class="fas fa-times"></i></button>
         </div>
-        <div class="cf-modal-body p-4">
-          <div class="row g-3">
+        <div class="cf-modal-body p-4 bg-white">
+          <div class="row g-4">
             <div class="col-12">
-              <label class="cf-label-premium">Tipo de Destinatário</label>
+              <label class="cf-label-premium">Categoria de Destinatário</label>
               <select v-model="gen.tipo" class="cf-input-premium">
-                <option value="FARMACIA">Farmácia</option>
-                <option value="MOTOBOY">Entregador (Motoboy)</option>
+                <option value="FARMACIA">Unidade Farmacêutica</option>
+                <option value="MOTOBOY">Operador de Entrega</option>
               </select>
             </div>
             <div class="col-12">
-              <label class="cf-label-premium">Destinatário</label>
+              <label class="cf-label-premium">Selecionar Parceiro</label>
               <select v-model="gen.id" class="cf-input-premium">
+                <option :value="null" disabled>Selecione um parceiro ativo...</option>
                 <template v-if="gen.tipo === 'FARMACIA'">
                   <option v-for="f in farmacias" :key="f.id" :value="f.id">{{ f.nome }}</option>
                 </template>
@@ -106,16 +147,17 @@
               </select>
             </div>
             <div class="col-12">
-              <label class="cf-label-premium">Período de Referência (AAAA-MM)</label>
+              <label class="cf-label-premium">Mês de Referência</label>
               <input v-model="gen.periodo" type="month" class="cf-input-premium">
+              <small class="text-muted extra-small mt-1 d-block"><i class="fas fa-info-circle me-1"></i>O sistema calculará automaticamente as vendas deste período.</small>
             </div>
           </div>
         </div>
-        <div class="cf-modal-footer">
-          <button class="btn btn-light" @click="showGenerateModal = false">Cancelar</button>
-          <button class="cf-btn-primary" @click="gerarPagamento" :disabled="isGenerating">
-            <span v-if="isGenerating" class="spinner-border spinner-border-sm me-2"></span>
-            Gerar Repasse
+        <div class="cf-modal-footer bg-light-subtle p-3 border-top">
+          <button class="btn btn-outline-secondary fw-bold px-4 rounded-pill" @click="showGenerateModal = false">Cancelar</button>
+          <button class="cf-btn-primary px-4 shadow-sm" @click="gerarPagamento" :disabled="isGenerating">
+            <i v-if="isGenerating" class="spinner-border spinner-border-sm me-2"></i>
+            Processar Lançamento
           </button>
         </div>
       </div>
@@ -123,26 +165,43 @@
 
     <!-- Modal Confirmar Pagamento -->
     <div v-if="pagando" class="cf-modal-overlay" @click.self="pagando = null">
-      <div class="cf-modal-box animate__animated animate__fadeInUp" style="width: 450px">
-        <div class="cf-modal-header bg-success-subtle">
-          <h5 class="mb-0 fw-bold text-success">Confirmar Pagamento</h5>
+      <div class="cf-modal-box animate__animated animate__fadeInUp dash-card" style="width: 480px">
+        <div class="cf-modal-header border-bottom bg-success-subtle">
+          <div class="d-flex align-items-center gap-3 text-success">
+            <div class="modal-icon-wrap bg-white shadow-sm">
+              <i class="fas fa-check-to-slot"></i>
+            </div>
+            <div>
+              <h5 class="mb-0 fw-bold">Liquidar Repasse</h5>
+              <p class="mb-0 extra-small fw-bold text-uppercase letter-spacing-1">Confirmação de Baixa</p>
+            </div>
+          </div>
         </div>
-        <div class="cf-modal-body p-4 text-center">
-          <p>Você confirma que realizou o PIX de</p>
-          <h3 class="fw-bold text-success">R$ {{ Number(pagando.valorLiquido).toFixed(2) }}</h3>
-          <p class="text-muted">para <strong>{{ pagando.farmacia?.nome || pagando.motoboy?.nome }}</strong>?</p>
+        <div class="cf-modal-body p-4 text-center bg-white">
+          <p class="text-muted mb-1">Confirmação de transferência enviada para:</p>
+          <h5 class="fw-bold text-dark mb-3">{{ pagando.farmacia?.nome || pagando.motoboy?.nome }}</h5>
           
-          <div class="cf-pix-display mb-4">
-            <span class="cf-label-premium">Chave PIX ({{ pagando.tipoChavePix }})</span>
-            <div class="h5 fw-bold">{{ pagando.chavePix }}</div>
+          <div class="cf-amount-display mb-4 shadow-sm">
+            <div class="label text-muted">Montante a Liquidar</div>
+            <div class="value text-success">R$ {{ Number(pagando.valorLiquido).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
+          </div>
+          
+          <div class="cf-pix-display-full mb-4 shadow-sm">
+            <div class="label text-muted small fw-bold mb-1">DADOS DE DESTINO ({{ pagando.tipoChavePix }})</div>
+            <div class="pix-value font-monospace fw-bold">{{ pagando.chavePix }}</div>
+            <button class="btn btn-sm btn-link text-primary fw-bold text-decoration-none mt-1" @click="copyPix(pagando.chavePix)">
+              <i class="fas fa-copy me-1"></i> Copiar Chave
+            </button>
           </div>
 
-          <label class="cf-label-premium text-start">Observações/Comprovante</label>
-          <textarea v-model="obs" class="cf-input-premium" rows="2" placeholder="Opcional..."></textarea>
+          <div class="text-start">
+            <label class="cf-label-premium">Referência / ID Transação</label>
+            <textarea v-model="obs" class="cf-input-premium" rows="2" placeholder="Ex: Protocolo de transferência ou data..."></textarea>
+          </div>
         </div>
-        <div class="cf-modal-footer">
-          <button class="btn btn-light flex-grow-1" @click="pagando = null">Cancelar</button>
-          <button class="btn btn-success flex-grow-1 fw-bold" @click="confirmarPagamento" :disabled="isPaying">
+        <div class="cf-modal-footer bg-light-subtle p-3 border-top">
+          <button class="btn btn-outline-secondary fw-bold px-4 rounded-pill flex-grow-1" @click="pagando = null">Cancelar</button>
+          <button class="btn btn-success fw-bold px-4 rounded-pill flex-grow-1 shadow-sm" @click="confirmarPagamento" :disabled="isPaying">
             Confirmar e Baixar
           </button>
         </div>
@@ -199,7 +258,8 @@ export default {
     async copyPix(pix) {
       try {
         await navigator.clipboard.writeText(pix);
-        alert('Chave PIX copiada!');
+        if (window.$toast) window.$toast.addToast('Chave PIX copiada!', 'success');
+        else alert('Chave PIX copiada!');
       } catch { alert('Erro ao copiar.'); }
     },
     async gerarPagamento() {
@@ -213,9 +273,9 @@ export default {
         }
         await this.fetchPagamentos();
         this.showGenerateModal = false;
-        alert('Repasse gerado com sucesso!');
+        if (window.$toast) window.$toast.addToast('Repasse gerado com sucesso!', 'success');
       } catch (err) {
-        alert(err.response?.data?.erro || 'Erro ao gerar repasse. Verifique se já existe repasse para este período.');
+        alert(err.response?.data?.erro || 'Erro ao gerar repasse.');
       } finally { this.isGenerating = false; }
     },
     prepararPagamento(p) { this.pagando = p; this.obs = ''; },
@@ -225,68 +285,53 @@ export default {
         await paymentService.marcarComoPago(this.pagando.id, this.obs);
         await this.fetchPagamentos();
         this.pagando = null;
-        alert('Pagamento confirmado!');
+        if (window.$toast) window.$toast.addToast('Pagamento confirmado!', 'success');
       } catch (err) { alert('Erro ao confirmar pagamento.'); }
       finally { this.isPaying = false; }
     },
     viewDetails(p) {
-       alert(`Observações: ${p.observacoes || 'Nenhuma'}\nCriado em: ${new Date(p.dataCriacao).toLocaleString()}`);
+       alert(`Detalhamento:\nObservações: ${p.observacoes || 'Nenhuma'}\nCriado em: ${new Date(p.dataCriacao).toLocaleString()}\nReferência: ${p.referenciaPeriodo}`);
     }
   }
 };
 </script>
 
 <style scoped>
-.cf-mgmt { padding-bottom: 2rem; }
-.cf-mgmt-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-.cf-page-title { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--cf-text-dark); display: flex; align-items: center; gap: 0.6rem; }
-.cf-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.cf-dot.gold { background: var(--cf-gold); }
+.cf-mgmt { padding-bottom: 2rem; animation: fadeIn 0.5s ease-out; }
 
-.cf-btn-primary { background: var(--cf-green); color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; }
-.cf-btn-primary:hover { background: var(--cf-green-dark); transform: translateY(-1px); }
+/* Tabs Premium */
+.cf-tabs-wrapper { display: flex; background: #fff; padding: 6px; border-radius: 16px; border: 1px solid var(--cf-border); gap: 6px; width: fit-content; }
+.cf-tab-premium { padding: 0.6rem 1.25rem; border-radius: 12px; border: none; background: transparent; color: var(--cf-text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.cf-tab-premium:hover { background: var(--cf-ivory); color: var(--cf-text-dark); }
+.cf-tab-premium.active { background: var(--cf-green); color: #fff; box-shadow: var(--cf-shadow-sm); }
 
-/* Tabs */
-.cf-tabs { display: flex; gap: 0.5rem; }
-.cf-tab { padding: 0.4rem 1.2rem; border-radius: 20px; border: 1px solid var(--cf-border-mid); background: #fff; color: var(--cf-text-muted); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
-.cf-tab.active { background: var(--cf-gold); border-color: var(--cf-gold); color: #fff; font-weight: 600; }
+.cf-table-card { background: #fff; border-radius: 24px; border: 1px solid var(--cf-border); box-shadow: var(--cf-shadow-sm); overflow: hidden; }
 
-.cf-table-card { background: #fff; border: 1px solid var(--cf-border); border-radius: 16px; box-shadow: var(--cf-shadow-sm); overflow: hidden; }
-.cf-table-wrap { overflow-x: auto; }
-.cf-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-.cf-table th { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cf-text-muted); padding: 1rem; border-bottom: 1px solid var(--cf-border); background: var(--cf-ivory); }
-.cf-table td { padding: 1rem; border-bottom: 1px solid var(--cf-border); font-size: 0.85rem; vertical-align: middle; }
+.cf-avatar-row { display: flex; align-items: center; gap: 0.85rem; }
+.cf-icon-avatar { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
 
-.cf-td-bold { font-weight: 600; color: var(--cf-text-dark); }
-.cf-td-muted { color: var(--cf-text-muted); font-size: 0.78rem; }
+.cf-pix-pill { display: inline-flex; align-items: center; background: var(--cf-ivory); border-radius: 20px; border: 1px solid var(--cf-border); padding: 0.25rem 0.75rem; cursor: pointer; transition: all 0.2s; }
+.cf-pix-pill:hover { border-color: var(--cf-gold); background: #fff; }
+.cf-pix-pill .label { font-size: 0.62rem; font-weight: 800; color: var(--cf-gold); text-transform: uppercase; margin-right: 0.5rem; }
+.cf-pix-pill .value { font-size: 0.75rem; font-weight: 600; color: var(--cf-text-dark); }
 
-.cf-pix-box { display: inline-flex; align-items: center; padding: 0.35rem 0.7rem; background: var(--cf-ivory); border-radius: 8px; border: 1px dashed var(--cf-border-mid); cursor: pointer; transition: all 0.2s; }
-.cf-pix-box:hover { border-color: var(--cf-gold); background: var(--cf-gold-light); }
+.cf-btn-action { border: none; border-radius: 10px; padding: 0.4rem 0.85rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.cf-btn-action.success { background: var(--cf-green-xlight); color: var(--cf-green); border: 1px solid rgba(42,92,69,0.2); }
+.cf-btn-action.success:hover { background: var(--cf-green); color: #fff; }
 
-.cf-btn-pago { background: var(--cf-green-xlight); color: var(--cf-green); border: 1px solid rgba(42,92,69,0.2); padding: 0.35rem 0.75rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.cf-btn-pago:hover { background: var(--cf-green); color: #fff; }
+.cf-amount-display { background: var(--cf-ivory); border-radius: 16px; padding: 1.25rem; text-align: center; border: 1px dashed var(--cf-border-mid); }
+.cf-amount-display .label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.cf-amount-display .value { font-size: 1.8rem; font-weight: 800; }
 
-.cf-status-badge { font-size: 0.62rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 20px; text-transform: uppercase; }
-.s-pending { background: #FFF8EC; color: #9A6700; }
-.s-paid { background: var(--cf-green-xlight); color: var(--cf-green); }
-.s-cancelled { background: #F9EDED; color: var(--cf-danger); }
+.cf-pix-display-full { background: #f8fafc; border-radius: 16px; padding: 1.25rem; border: 1px solid #e2e8f0; }
 
-/* Modal */
-.cf-modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(6px); padding: 20px; }
-.cf-modal-box { background: white; border-radius: 24px; max-width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); display: flex; flex-direction: column; overflow: hidden; }
-.cf-modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-.cf-modal-body { flex: 1; overflow-y: auto; }
-.cf-modal-footer { padding: 1.25rem 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 0.75rem; background: #fff; }
+.cf-status-badge { font-size: 0.62rem; font-weight: 800; padding: 0.35rem 0.85rem; border-radius: 20px; text-transform: uppercase; display: inline-flex; align-items: center; }
+.s-pending { background: #FFF8EC; color: #9A6700; border: 1px solid #FFECB3; }
+.s-paid { background: #E8F5E9; color: #2E7D32; border: 1px solid #C8E6C9; }
+.s-cancelled { background: #F9EDED; color: var(--cf-danger); border: 1px solid #F8D7DA; }
 
-.cf-input-premium { width: 100%; padding: 0.7rem 1rem; border-radius: 10px; border: 1px solid var(--cf-border-mid); background: #fff; font-size: 0.9rem; outline: none; transition: all 0.2s; }
-.cf-input-premium:focus { border-color: var(--cf-green); box-shadow: 0 0 0 4px rgba(42,92,69,0.06); }
-.cf-label-premium { font-size: 0.7rem; font-weight: 600; color: var(--cf-text-muted); text-transform: uppercase; margin-bottom: 0.3rem; display: block; }
+.extra-small { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.letter-spacing-1 { letter-spacing: 0.08em; }
 
-.cf-pix-display { background: var(--cf-ivory); border: 1px solid var(--cf-border); border-radius: 12px; padding: 1rem; }
-
-.btn-close-custom { background: var(--cf-ivory); border: none; width: 32px; height: 32px; border-radius: 50%; color: var(--cf-text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-.cf-loading-row { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 4rem; color: var(--cf-text-muted); }
-.cf-spinner { width: 24px; height: 24px; border: 2px solid var(--cf-border); border-top-color: var(--cf-green); border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>

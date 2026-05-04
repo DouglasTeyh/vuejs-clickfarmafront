@@ -1,60 +1,194 @@
 <template>
-  <div class="cf-mgmt">
-    <div class="cf-mgmt-header">
-      <h4 class="cf-page-title"><span class="cf-dot green"></span>Gerenciar Usuários</h4>
-      <div class="cf-mgmt-actions">
-        <select v-model="filtroRole" class="cf-select">
-          <option value="">Todos os perfis</option>
-          <option value="CUSTOMER">Clientes</option>
-          <option value="PHARMACY">Farmácias</option>
-          <option value="COURIER">Entregadores</option>
-          <option value="ADMIN">Admins</option>
-        </select>
-        <div class="cf-search-wrap">
-          <i class="fas fa-search cf-search-icon"></i>
-          <input v-model="busca" type="text" class="cf-search" placeholder="Buscar usuário...">
+  <div class="cf-mgmt-premium">
+    <!-- ═══ HEADER DE GOVERNANÇA ═══ -->
+    <header class="mgmt-header">
+      <div class="header-info">
+        <h3 class="editorial-title">Gestão de Identidades</h3>
+        <p class="editorial-subtitle">Administração de permissões e controle de acesso da rede</p>
+      </div>
+      <div class="header-tools">
+        <div class="cf-filter-bar shadow-sm">
+          <div class="filter-search">
+            <i class="fas fa-search"></i>
+            <input v-model="busca" type="text" placeholder="Localizar usuário ou e-mail...">
+          </div>
+          <div class="filter-divider"></div>
+          <div class="filter-select">
+            <i class="fas fa-id-badge"></i>
+            <select v-model="filtroRole">
+              <option value="">Todos os Perfis</option>
+              <option value="CUSTOMER">Consumidores</option>
+              <option value="PHARMACY">Farmacêuticos</option>
+              <option value="COURIER">Logística/Entregadores</option>
+              <option value="ADMIN">Administradores</option>
+            </select>
+          </div>
         </div>
+        <button class="btn-refresh-circle" @click="carregarUsuarios" :disabled="isLoading">
+          <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══ GRID DE USUÁRIOS ═══ -->
+    <div class="cf-table-card-premium">
+      <div v-if="isLoading" class="loading-overlay-premium">
+        <div class="cf-spinner"></div>
+        <span>Sincronizando banco de identidades...</span>
+      </div>
+
+      <div v-else class="table-scroll cf-hide-scrollbar">
+        <table class="editorial-table">
+          <thead>
+            <tr>
+              <th class="ps-5">Identidade</th>
+              <th>Credencial</th>
+              <th>Perfil de Acesso</th>
+              <th>Localização</th>
+              <th>Data Cadastro</th>
+              <th class="text-center pe-5">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="u in filtrados" :key="u.id" class="row-hover">
+              <td class="ps-5">
+                <div class="user-cell">
+                  <div class="user-avatar-premium" :style="`background:${corRole(u.role)}15; color:${corRole(u.role)}`">
+                    {{ u.nome?.charAt(0)?.toUpperCase() || '?' }}
+                  </div>
+                  <div class="user-meta">
+                    <span class="user-name">{{ u.nome }}</span>
+                    <span class="user-id">ID: #{{ u.id }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="cred-cell">
+                  <span class="cred-email">{{ u.email }}</span>
+                  <span class="cred-phone">{{ u.telefone || 'Telefone não vinculado' }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="role-pill" :style="`background:${corRole(u.role)}10; border-color:${corRole(u.role)}30; color:${corRole(u.role)}`">
+                  <span class="pill-dot" :style="`background:${corRole(u.role)}`"></span>
+                  <span class="pill-text">{{ u.role || 'GUEST' }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="loc-cell-user">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span>{{ u.cidade || '—' }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="date-cell-user">
+                  <span class="date-val">{{ d(u.dataCadastro) }}</span>
+                </div>
+              </td>
+              <td class="text-center pe-5">
+                <div class="action-group">
+                  <button class="action-btn-user" @click="abrirEdicao(u)" title="Editar Perfil">
+                    <i class="fas fa-user-edit"></i>
+                  </button>
+                  <button class="action-btn-user danger" @click="confirmarExclusao(u)" title="Revogar Acesso">
+                    <i class="fas fa-user-slash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="!filtrados.length">
+              <td colspan="6" class="empty-state">
+                <div class="empty-wrap">
+                  <i class="fas fa-user-lock"></i>
+                  <p>Nenhum perfil localizado sob estes critérios.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <div class="cf-table-card">
-      <div v-if="isLoading" class="cf-loading-row">
-        <div class="cf-spinner"></div><span>Carregando usuários...</span>
-      </div>
-      <div v-else class="cf-table-wrap">
-        <table class="cf-table">
-          <thead>
-            <tr><th>ID</th><th>Usuário</th><th>Email</th><th>Perfil</th><th>Cidade</th><th>Cadastro</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="u in filtrados" :key="u.id">
-              <td class="cf-td-faint">#{{ u.id }}</td>
-              <td>
-                <div class="cf-avatar-row">
-                  <div class="cf-user-avatar" :style="`background:${corRole(u.role)}15;color:${corRole(u.role)}`">
-                    {{ u.nome?.charAt(0)?.toUpperCase() || '?' }}
-                  </div>
-                  <span class="cf-td-bold">{{ u.nome }}</span>
-                </div>
-              </td>
-              <td class="cf-td-muted">{{ u.email }}</td>
-              <td><span class="cf-role-badge" :style="`background:${corRole(u.role)}12;color:${corRole(u.role)}`">{{ u.role || '—' }}</span></td>
-              <td class="cf-td-muted">{{ u.cidade || '—' }}</td>
-              <td class="cf-td-muted">{{ d(u.dataCadastro) }}</td>
-            </tr>
-            <tr v-if="!filtrados.length"><td colspan="6" class="cf-empty">Nenhum usuário encontrado.</td></tr>
-          </tbody>
-        </table>
+    <!-- ═══ MODAL: PERFIL ADMINISTRATIVO ═══ -->
+    <div v-if="showModal" class="modal-premium-overlay" @click.self="fecharModal">
+      <div class="user-modal animate__animated animate__fadeInUp">
+        <header class="modal-header-premium">
+          <div class="header-brand">
+            <div class="modal-icon"><i class="fas fa-shield-halved"></i></div>
+            <div class="modal-meta">
+              <h5>Perfil Administrativo</h5>
+              <span class="modal-sub">EDITANDO IDENTIDADE #{{ form.id }}</span>
+            </div>
+          </div>
+          <button class="close-modal" @click="fecharModal"><i class="fas fa-times"></i></button>
+        </header>
+
+        <div class="modal-content-premium cf-hide-scrollbar">
+          <div class="user-config-grid">
+            <div class="form-group col-span-2">
+              <label class="editorial-label">Nome Completo do Portador</label>
+              <input v-model="form.nome" class="editorial-input lg" type="text" placeholder="Nome social ou fantasia">
+            </div>
+
+            <div class="form-group">
+              <label class="editorial-label">Perfil de Autorização</label>
+              <select v-model="form.role" class="editorial-select-premium">
+                <option value="CUSTOMER">Consumidor (Padrão)</option>
+                <option value="PHARMACY">Estabelecimento Farmacêutico</option>
+                <option value="COURIER">Operador Logístico</option>
+                <option value="ADMIN">Autoridade Administrativa</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="editorial-label">Telefone de Contato</label>
+              <input v-model="form.telefone" class="editorial-input" type="text" placeholder="(00) 00000-0000">
+            </div>
+
+            <div class="form-group col-span-2">
+              <label class="editorial-label">E-mail de Acesso (Identificador Único)</label>
+              <div class="locked-input">
+                <i class="fas fa-lock"></i>
+                <input v-model="form.email" type="email" disabled>
+                <span>Este dado é imutável para fins de auditoria de conta.</span>
+              </div>
+            </div>
+
+            <div class="form-group col-span-2">
+              <label class="editorial-label">Localização Base (Cidade / UF)</label>
+              <input v-model="form.cidade" class="editorial-input" type="text" placeholder="Ex: Rio de Janeiro - RJ">
+            </div>
+          </div>
+        </div>
+
+        <footer class="modal-footer-premium">
+          <button class="btn-cancel-modal" @click="fecharModal">Descartar</button>
+          <button class="btn-save-modal" @click="salvarAlteracoes" :disabled="isSaving">
+            <i v-if="isSaving" class="fas fa-circle-notch fa-spin me-2"></i>
+            Atualizar Identidade
+          </button>
+        </footer>
       </div>
     </div>
   </div>
 </template>
 
+
 <script>
 import api from '@/services/api';
 export default {
   name: 'UserManagement',
-  data() { return { usuarios: [], isLoading: true, busca: '', filtroRole: '' }; },
+  data() { 
+    return { 
+      usuarios: [], 
+      isLoading: true, 
+      isSaving: false,
+      busca: '', 
+      filtroRole: '',
+      showModal: false,
+      form: { id: null, nome: '', email: '', role: '', telefone: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '' }
+    }; 
+  },
   computed: {
     filtrados() {
       return this.usuarios.filter(u => {
@@ -65,60 +199,68 @@ export default {
     }
   },
   async mounted() {
-    this.isLoading = true;
-    try { const { data } = await api.get('/usuarios'); this.usuarios = data; }
-    catch (e) { console.error(e); }
-    finally { this.isLoading = false; }
+    await this.carregarUsuarios();
   },
   methods: {
+    async carregarUsuarios() {
+      this.isLoading = true;
+      try { const { data } = await api.get('/usuarios'); this.usuarios = data; }
+      catch (e) { console.error(e); }
+      finally { this.isLoading = false; }
+    },
     corRole(r) { return { ADMIN:'#2A5C45', PHARMACY:'#3D7A5E', COURIER:'#B89550', CUSTOMER:'#868680' }[r] || '#B0AFA9'; },
-    d(dt) { if (!dt) return '—'; return new Date(dt).toLocaleDateString('pt-BR'); }
+    d(dt) { if (!dt) return '—'; return new Date(dt).toLocaleDateString('pt-BR'); },
+    
+    abrirEdicao(u) {
+      this.form = { ...u };
+      this.showModal = true;
+    },
+    fecharModal() {
+      this.showModal = false;
+      this.form = { id: null, nome: '', email: '', role: '', telefone: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '' };
+    },
+    async salvarAlteracoes() {
+      this.isSaving = true;
+      try {
+        await api.put(`/usuarios/${this.form.id}`, this.form);
+        if (window.$toast) window.$toast.addToast('Usuário atualizado com sucesso!', 'success');
+        await this.carregarUsuarios();
+        this.fecharModal();
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao atualizar usuário.');
+      } finally {
+        this.isSaving = false;
+      }
+    },
+    async confirmarExclusao(u) {
+      if (confirm(`Deseja realmente excluir o usuário ${u.nome}? Esta ação é irreversível.`)) {
+        try {
+          await api.delete(`/usuarios/${u.id}`);
+          if (window.$toast) window.$toast.addToast('Usuário removido!', 'success');
+          await this.carregarUsuarios();
+        } catch (err) {
+          console.error(err);
+          alert('Erro ao excluir usuário.');
+        }
+      }
+    }
   }
 };
 </script>
 
 <style scoped>
-.cf-mgmt { padding-bottom: 2rem; }
-.cf-mgmt-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-.cf-page-title { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--cf-text-dark); display: flex; align-items: center; gap: 0.6rem; }
-.cf-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.cf-dot.green { background: var(--cf-green); }
-.cf-mgmt-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+.cf-mgmt { padding-bottom: 2rem; animation: fadeIn 0.5s ease-out; }
 
-.cf-select {
-  padding: 0.55rem 1rem; border: 1px solid var(--cf-border-mid); border-radius: 12px;
-  font-family: var(--cf-sans); font-size: 0.88rem; color: var(--cf-text-dark); background: var(--cf-white);
-  outline: none; cursor: pointer; transition: all 0.2s;
-}
-.cf-select:focus { border-color: var(--cf-green); box-shadow: 0 0 0 4px rgba(42,92,69,0.06); }
+.cf-table-card { background: #fff; border-radius: 24px; border: 1px solid var(--cf-border); box-shadow: var(--cf-shadow-sm); overflow: hidden; }
 
-.cf-search-wrap { position: relative; }
-.cf-search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--cf-text-faint); font-size: 0.85rem; }
-.cf-search { padding: 0.55rem 1rem 0.55rem 2.4rem; border: 1px solid var(--cf-border-mid); border-radius: 12px; font-family: var(--cf-sans); font-size: 0.88rem; color: var(--cf-text-dark); background: var(--cf-white); outline: none; transition: all 0.2s; width: 240px; }
-.cf-search:focus { border-color: var(--cf-green); box-shadow: 0 0 0 4px rgba(42,92,69,0.06); }
+.cf-avatar-row { display: flex; align-items: center; gap: 0.85rem; }
+.cf-user-avatar { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; flex-shrink: 0; }
 
-@media (max-width: 768px) {
-  .cf-mgmt-header { flex-direction: column; align-items: stretch; }
-  .cf-mgmt-actions { flex-direction: column; align-items: stretch; }
-  .cf-search, .cf-select { width: 100%; }
-}
+.cf-role-badge { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; padding: 0.35rem 0.85rem; border-radius: 20px; text-transform: uppercase; display: inline-flex; align-items: center; }
 
-.cf-table-card { background: var(--cf-white); border: 1px solid var(--cf-border); border-radius: 16px; box-shadow: var(--cf-shadow-sm); overflow: hidden; }
-.cf-table-wrap { overflow-x: auto; scrollbar-width: thin; }
-.cf-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-.cf-table th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cf-text-muted); font-weight: 600; padding: 1rem; border-bottom: 1px solid var(--cf-border); background: var(--cf-ivory); white-space: nowrap; }
-.cf-table td { padding: 1rem; border-bottom: 1px solid var(--cf-border); font-size: 0.88rem; vertical-align: middle; }
-.cf-table tbody tr:last-child td { border-bottom: none; }
-.cf-table tbody tr:hover td { background: rgba(42,92,69,0.02); }
+.extra-small { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.letter-spacing-1 { letter-spacing: 0.08em; }
 
-.cf-avatar-row { display: flex; align-items: center; gap: 0.8rem; }
-.cf-user-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
-.cf-td-bold { font-weight: 600; color: var(--cf-text-dark); }
-.cf-td-muted { color: var(--cf-text-muted); font-size: 0.8rem; }
-.cf-td-faint { color: var(--cf-text-faint); font-size: 0.8rem; }
-.cf-role-badge { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; padding: 0.25rem 0.8rem; border-radius: 20px; text-transform: uppercase; }
-.cf-empty { text-align: center; color: var(--cf-text-faint); padding: 4rem 2rem; font-size: 0.9rem; }
-.cf-loading-row { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 5rem 2rem; color: var(--cf-text-muted); font-size: 0.9rem; }
-.cf-spinner { width: 28px; height: 28px; border: 3px solid var(--cf-border); border-top-color: var(--cf-green); border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>

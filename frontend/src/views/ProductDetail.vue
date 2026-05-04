@@ -18,7 +18,7 @@
             <div class="main-image-wrapper mb-3 overflow-hidden">
               <img v-if="product.imageUrl" :src="product.imageUrl" class="product-img-large" style="width:100%; height:100%; object-fit: contain;">
               <div v-else class="cf-product-visual-large">
-                <span class="cf-visual-icon">{{ getCategoryIcon(product.category) }}</span>
+                <i :class="getCategoryIcon(product.category)" class="cf-visual-icon text-primary"></i>
               </div>
             </div>
             <div v-if="product.images && product.images.length > 1" class="thumbnail-row d-flex gap-3">
@@ -128,7 +128,13 @@ export default {
       } catch (e) { /* ignore */ }
     },
     getCategoryIcon(cat) {
-      return { 'Medicamentos':'💊','Cosméticos':'🧴','Higiene':'🚿','Vitaminas':'🌿','Maternidade':'👶' }[cat] || '📦'
+      return { 
+        'Medicamentos': 'fas fa-pills',
+        'Cosméticos': 'fas fa-pump-soap',
+        'Higiene': 'fas fa-shower',
+        'Vitaminas': 'fas fa-leaf',
+        'Maternidade': 'fas fa-baby'
+      }[cat] || 'fas fa-box'
     },
     handleAddToCart(product) {
       this.addToCart(product);

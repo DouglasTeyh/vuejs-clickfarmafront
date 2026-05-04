@@ -64,4 +64,14 @@ public class MotoboyController {
             return ResponseEntity.badRequest().body(new MensagemResponseDTO(e.getMessage(), false));
         }
     }
+
+    @PatchMapping("/{id}/localizacao")
+    public ResponseEntity<?> atualizarLocalizacao(@PathVariable Long id, @RequestParam Double lat, @RequestParam Double lng) {
+        try {
+            motoboyService.atualizarLocalizacao(id, lat, lng);
+            return ResponseEntity.ok(new MensagemResponseDTO("Localização atualizada com sucesso", true));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new MensagemResponseDTO(e.getMessage(), false));
+        }
+    }
 }

@@ -11,6 +11,7 @@ import Addresses from '../views/Addresses.vue'
 import ResetPassword from '../views/ResetPassword.vue'
 import Prescriptions from '../views/Prescriptions.vue'
 import OrderConfirmation from '../views/OrderConfirmation.vue'
+import ForgotPassword from '../views/ForgotPassword.vue'
 // import BackendOrderTracking from '../views/BackendOrderTracking.vue' // Removido pois o arquivo não existe
 
 
@@ -53,12 +54,20 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: Login
+    component: Home,
+    beforeEnter: (to, from, next) => {
+      store.dispatch('openLoginModal')
+      next('/')
+    }
   },
   {
     path: '/register',
     name: 'Register',
-    component: Register
+    component: Home,
+    beforeEnter: (to, from, next) => {
+      store.dispatch('openRegisterModal')
+      next('/')
+    }
   },
   {
     path: '/cart',
@@ -85,10 +94,15 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword
+  },
+  {
     path: '/reset-password',
     name: 'ResetPassword',
     component: ResetPassword,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/prescriptions',
@@ -185,12 +199,20 @@ const routes = [
   {
     path: '/pharmacy/login',
     name: 'PharmacyLogin',
-    component: () => import('../views/pharmacy/PharmacyLogin.vue')
+    component: Home,
+    beforeEnter: (to, from, next) => {
+      store.dispatch('openLoginModal')
+      next('/')
+    }
   },
   {
     path: '/pharmacy/register',
     name: 'PharmacyRegister',
-    component: () => import('../views/pharmacy/PharmacyRegister.vue')
+    component: Home,
+    beforeEnter: (to, from, next) => {
+      store.dispatch('openRegisterModal')
+      next('/')
+    }
   },
   {
     path: '/pharmacy',
@@ -233,7 +255,11 @@ const routes = [
   {
     path: '/courier/login',
     name: 'CourierLogin',
-    component: () => import('../views/courier/CourierLogin.vue')
+    component: Home,
+    beforeEnter: (to, from, next) => {
+      store.dispatch('openLoginModal')
+      next('/')
+    }
   },
   {
     path: '/courier',
@@ -265,7 +291,11 @@ const routes = [
   {
     path: '/admin/login',
     name: 'AdminLogin',
-    component: AdminLogin
+    component: Home,
+    beforeEnter: (to, from, next) => {
+      store.dispatch('openLoginModal')
+      next('/')
+    }
   },
   {
     path: '/admin',
@@ -330,6 +360,8 @@ const routes = [
   }
 ]
 
+import store from '../store'
+
 const router = createRouter({
   history: createWebHistory(),
   routes
@@ -352,14 +384,14 @@ router.beforeEach((to, from, next) => {
   const isCourier = user.role?.toUpperCase() === 'COURIER'
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    if (to.path.startsWith('/admin')) {
-      next('/admin/login')
-    } else if (to.path.startsWith('/pharmacy')) {
-      next('/pharmacy/login')
-    } else if (to.path.startsWith('/courier')) {
-      next('/courier/login')
+    // Em vez de redirecionar, abrimos o modal global
+    store.dispatch('openLoginModal', to.fullPath)
+    
+    // Se viemos de algum lugar, permanecemos lá. Se é um acesso direto, vamos para home.
+    if (from.path === '/' && to.path !== '/') {
+        next('/')
     } else {
-      next('/login')
+        next(false)
     }
   } else if (to.meta.requiresAdmin && !isAdmin) {
     next('/')

@@ -1,89 +1,103 @@
 <template>
-  <div class="category-management fade-in-up">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h3 class="mb-0 fw-bold"><i class="fas fa-tags me-2 text-primary"></i>Gestão de Categorias</h3>
-      <button class="btn btn-primary" @click="abrirModalCriacao">
-        <i class="fas fa-plus me-2"></i>Nova Categoria
-      </button>
-    </div>
-
-    <!-- Tabela de Categorias -->
-    <div class="card shadow-sm border-0 cf-card-premium overflow-hidden">
-      <div class="card-body p-0">
-        <div v-if="isLoading" class="text-center p-5">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="mt-2 text-muted">Carregando categorias...</p>
-        </div>
-        <div v-else class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>ID</th>
-                <th>Nome da Categoria</th>
-                <th>Descrição</th>
-                <th class="text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="cat in categorias" :key="cat.id">
-                <td>#{{ cat.id }}</td>
-                <td>
-                  <div class="fw-bold">{{ cat.nome }}</div>
-                </td>
-                <td>{{ cat.descricao || 'Sem descrição' }}</td>
-                <td class="text-center">
-                  <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary" @click="abrirModalEdicao(cat)" title="Editar">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-outline-danger" @click="deletarCategoria(cat.id)" title="Excluir">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="categorias.length === 0">
-                <td colspan="4" class="text-center p-5 text-muted">Nenhuma categoria cadastrada.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+  <div class="cf-mgmt">
+    <div class="dash-welcome mb-4">
+      <div class="welcome-text">
+        <h3 class="dash-page-title">Arquitetura de Categorias</h3>
+        <p class="text-muted mb-0">Estruture a navegação do catálogo através de taxonomias otimizadas para SEO.</p>
+      </div>
+      <div class="dash-actions">
+        <button class="cf-btn-primary shadow-sm" @click="abrirModalCriacao">
+          <i class="fas fa-layer-group me-2"></i>Nova Categoria
+        </button>
       </div>
     </div>
 
-    <!-- Modal Criar/Editar -->
+    <!-- Tabela de Categorias Premium -->
+    <div class="cf-table-card">
+      <div v-if="isLoading" class="cf-loading-row">
+        <div class="cf-spinner"></div><span>Indexando estrutura taxonômica...</span>
+      </div>
+      <div v-else class="table-responsive cf-hide-scrollbar">
+        <table class="cf-table">
+          <thead>
+            <tr>
+              <th class="ps-4" style="width: 120px;">ID</th>
+              <th>Denominação</th>
+              <th>Escopo / Descrição</th>
+              <th class="text-center pe-4" style="width: 180px;">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="cat in categorias" :key="cat.id">
+              <td class="ps-4">
+                <div class="cf-td-bold text-muted small">#{{ cat.id }}</div>
+              </td>
+              <td>
+                <div class="cf-avatar-row">
+                  <div class="cf-cat-badge shadow-sm"><i class="fas fa-tags"></i></div>
+                  <div class="cf-td-bold text-dark">{{ cat.nome }}</div>
+                </div>
+              </td>
+              <td>
+                <div class="text-muted small fw-bold">{{ cat.descricao || 'Nenhuma descrição técnica informada.' }}</div>
+                <div class="extra-small text-gold opacity-75 mt-1 fw-bold text-uppercase letter-spacing-1">Segmento Ativo</div>
+              </td>
+              <td class="text-center pe-4">
+                <div class="d-flex justify-content-center gap-2">
+                  <button class="cf-icon-btn shadow-sm" @click="abrirModalEdicao(cat)" title="Editar Taxonomia">
+                    <i class="fas fa-pen-nib"></i>
+                  </button>
+                  <button class="cf-icon-btn danger shadow-sm" @click="deletarCategoria(cat.id)" title="Remover Segmento">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="categorias.length === 0">
+              <td colspan="4" class="cf-empty py-5">
+                <i class="fas fa-sitemap fa-3x mb-3 opacity-10"></i>
+                <p class="fw-bold text-muted">Aguardando definição de estrutura de categorias.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal Criar/Editar Premium -->
     <div v-if="showModal" class="cf-modal-overlay" @click.self="showModal = false">
-      <div class="cf-modal-box animate__animated animate__zoomIn" style="width: 500px;">
-        <div class="cf-modal-header">
+      <div class="cf-modal-box animate__animated animate__fadeInUp dash-card" style="width: 520px;">
+        <div class="cf-modal-header border-bottom bg-light-subtle">
           <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon-wrap bg-primary">
-              <i class="fas fa-tag text-white"></i>
+            <div class="modal-icon-wrap bg-primary-subtle text-primary shadow-sm">
+              <i class="fas fa-tag"></i>
             </div>
             <div>
-              <h5 class="mb-0 fw-bold">{{ editandoId ? 'Editar Categoria' : 'Nova Categoria' }}</h5>
+              <h5 class="mb-0 fw-bold">{{ editandoId ? 'Refinar Categoria' : 'Nova Taxonomia' }}</h5>
+              <p class="mb-0 text-muted extra-small fw-bold text-uppercase letter-spacing-1">Configuração de Catálogo</p>
             </div>
           </div>
-          <button class="btn-close-custom" @click="showModal = false"><i class="fas fa-times"></i></button>
+          <button class="btn-close-custom shadow-sm" @click="showModal = false"><i class="fas fa-times"></i></button>
         </div>
         
-        <div class="cf-modal-body p-4">
+        <div class="cf-modal-body p-4 bg-white">
            <form id="categoryForm" @submit.prevent="salvarCategoria">
-            <div class="mb-3">
-              <label class="cf-label-premium">Nome da Categoria</label>
-              <input type="text" class="cf-input-premium" v-model="form.nome" required placeholder="Ex: Higiene, Vitaminas...">
+            <div class="mb-4">
+              <label class="cf-label-premium">Nome de Exibição</label>
+              <input type="text" class="cf-input-premium" v-model="form.nome" required placeholder="Ex: Higiene Pessoal, Dermocosméticos...">
             </div>
-            <div class="mb-3">
-              <label class="cf-label-premium">Descrição (Opcional)</label>
-              <textarea class="cf-input-premium" v-model="form.descricao" rows="3"></textarea>
+            <div class="mb-0">
+              <label class="cf-label-premium">Descrição Técnica (Opcional)</label>
+              <textarea class="cf-input-premium" v-model="form.descricao" rows="4" placeholder="Detalhe o escopo desta categoria para melhor indexação..."></textarea>
             </div>
            </form>
         </div>
 
-        <div class="cf-modal-footer">
-          <button type="button" class="btn btn-light fw-bold px-4" @click="showModal = false">Cancelar</button>
-          <button type="submit" form="categoryForm" class="btn btn-primary fw-bold px-4" :disabled="isSaving">
-            <span v-if="isSaving" class="spinner-border spinner-border-sm me-2"></span>
-            {{ editandoId ? 'Atualizar' : 'Criar' }}
+        <div class="cf-modal-footer bg-light-subtle p-3 border-top">
+          <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill" @click="showModal = false">Cancelar</button>
+          <button type="submit" form="categoryForm" class="cf-btn-primary px-4 shadow-sm" :disabled="isSaving">
+            <i v-if="isSaving" class="spinner-border spinner-border-sm me-2"></i>
+            {{ editandoId ? 'Sincronizar Alterações' : 'Efetivar Categoria' }}
           </button>
         </div>
       </div>
@@ -144,8 +158,8 @@ export default {
         }
         this.showModal = false;
         await this.fetchCategorias();
-        // Opcional: Atualizar o store do Vuex
-        this.$store.dispatch('fetchCategories');
+        if (this.$store) this.$store.dispatch('fetchCategories');
+        if (window.$toast) window.$toast.addToast('Estrutura atualizada!', 'success');
       } catch (err) {
         console.error('Erro ao salvar categoria:', err);
         alert('Erro ao salvar categoria.');
@@ -158,7 +172,7 @@ export default {
         try {
           await api.delete(`/categorias/${id}`);
           await this.fetchCategorias();
-          this.$store.dispatch('fetchCategories');
+          if (this.$store) this.$store.dispatch('fetchCategories');
         } catch (err) {
           alert('Erro ao deletar categoria. Verifique se existem produtos vinculados a ela.');
         }
@@ -169,38 +183,16 @@ export default {
 </script>
 
 <style scoped>
-.category-management { padding-bottom: 2rem; }
-.cf-card-premium { border-radius: 16px; border: 1px solid rgba(0,0,0,0.05); background: white; box-shadow: var(--cf-shadow-sm); }
+.cf-mgmt { padding-bottom: 2rem; animation: fadeIn 0.5s ease-out; }
 
-/* Modal Styles consistent with other admin views */
-.cf-modal-overlay {
-  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); 
-  z-index: 2000; display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(6px); padding: 20px;
-}
-.cf-modal-box {
-  background: white; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); 
-  display: flex; flex-direction: column; overflow: hidden;
-}
-.cf-modal-header { 
-  padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.modal-icon-wrap {
-  width: 44px; height: 44px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
-}
-.cf-modal-footer {
-  padding: 1.25rem 1.5rem; border-top: 1px solid #f1f5f9;
-  display: flex; justify-content: flex-end; gap: 1rem;
-}
-.cf-label-premium { font-size: 0.72rem; font-weight: 600; color: var(--cf-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.45rem; display: block; }
-.cf-input-premium {
-  width: 100%; padding: 0.7rem 1rem; border-radius: 10px;
-  border: 1px solid var(--cf-border-mid); background: #fff;
-  font-size: 0.92rem; outline: none;
-}
-.cf-input-premium:focus { border-color: var(--cf-green); }
-.btn-close-custom { background: none; border: none; cursor: pointer; }
-.table th { font-size: 0.68rem; text-transform: uppercase; color: var(--cf-text-muted); }
+.cf-table-card { background: #fff; border-radius: 24px; border: 1px solid var(--cf-border); box-shadow: var(--cf-shadow-sm); overflow: hidden; }
+
+.cf-cat-badge { width: 40px; height: 40px; border-radius: 12px; background: var(--cf-ivory); color: var(--cf-gold); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; border: 1px solid rgba(184,149,80,0.1); }
+
+.cf-avatar-row { display: flex; align-items: center; gap: 1rem; }
+
+.extra-small { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.letter-spacing-1 { letter-spacing: 0.08em; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>

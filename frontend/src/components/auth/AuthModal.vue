@@ -14,6 +14,13 @@
           <p class="text-muted">{{ isLoginMode ? 'Entre para gerenciar seus pedidos' : 'Junte-se à ClickFarma hoje mesmo' }}</p>
         </div>
 
+
+        <!-- General Error Alert -->
+        <div v-if="error" class="alert-danger-soft mb-4 shake-error">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>{{ error }}</span>
+        </div>
+
         <!-- Role Selector (Only in Register) -->
         <div v-if="!isLoginMode" class="role-selector mb-4">
           <button 
@@ -43,12 +50,13 @@
         </div>
 
         <!-- Login Form -->
-        <form v-if="isLoginMode" @submit.prevent="handleLogin" class="auth-form">
+        <form v-if="isLoginMode" @submit.prevent="handleLogin" class="auth-form" :class="{ 'shake-error': shake }">
           <div class="mb-3">
             <label class="form-label">Email</label>
             <input 
               type="email" 
               class="form-control" 
+              :class="{ 'is-invalid': error && !loginData.email }"
               v-model="loginData.email" 
               placeholder="seu@email.com"
               required
@@ -62,6 +70,7 @@
             <input 
               type="password" 
               class="form-control" 
+              :class="{ 'is-invalid': error && !loginData.senha }"
               v-model="loginData.senha" 
               placeholder="Sua senha"
               required
@@ -198,7 +207,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 import { cepService } from '@/services/cepService'
 import { cnpjService } from '@/services/cnpjService'
 
@@ -217,6 +226,8 @@ export default {
       loading: false,
       loadingCep: false,
       validatingCnpj: false,
+      error: null,
+      shake: false,
       loginData: {
         email: '',
         senha: ''
@@ -239,6 +250,9 @@ export default {
       }
     }
   },
+  computed: {
+    ...mapState(['authRedirectPath'])
+  },
   watch: {
     initialMode(newMode) {
       this.isLoginMode = newMode === 'login';
@@ -254,15 +268,48 @@ export default {
     },
     async handleLogin() {
       this.loading = true;
+      this.error = null;
+      this.shake = false;
+
       try {
-        await this.login(this.loginData);
+        const user = await this.login(this.loginData);
+        console.log('Login result:', user);
+        
+        if (window.$toast) {
+            const nameToSplit = (user && (user.nome || user.name)) || 'Usuário';
+            const firstName = String(nameToSplit).split(' ')[0];
+            window.$toast.addToast(`Bem-vindo de volta, ${firstName}!`, 'success');
+        }
+
         this.close();
-        this.$router.go(0);
-      } catch (error) {
-        alert(error.message || 'Erro ao entrar. Verifique suas credenciais.');
+        
+        // Lógica de redirecionamento baseada no Role
+        const role = user.role?.toUpperCase();
+        
+        if (role === 'PHARMACY') {
+          this.$router.push('/pharmacy/dashboard');
+        } else if (role === 'COURIER') {
+          this.$router.push('/courier/dashboard');
+        } else if (role === 'ADMIN') {
+          this.$router.push('/admin/dashboard');
+        } else {
+          // Cliente: Continua no site
+          if (this.authRedirectPath) {
+            this.$router.push(this.authRedirectPath);
+          } else {
+            this.$router.go(0);
+          }
+        }
+      } catch (err) {
+        this.error = err.message || 'Email ou senha incorretos. Tente novamente.';
+        this.triggerShake();
       } finally {
         this.loading = false;
       }
+    },
+    triggerShake() {
+      this.shake = true;
+      setTimeout(() => { this.shake = false; }, 500);
     },
     async validateCnpj() {
       if (!this.registerData.cnpj || this.registerData.cnpj.length < 14) return;
@@ -283,7 +330,8 @@ export default {
           }
         }
       } catch (error) {
-        alert(error.message);
+        this.error = error.message;
+        this.triggerShake();
         this.registerData.cnpj = '';
       } finally {
         this.validatingCnpj = false;
@@ -301,13 +349,16 @@ export default {
         this.registerData.cidade = data.cidade;
         this.registerData.estado = data.estado;
       } catch (error) {
-        alert('CEP não encontrado ou erro na consulta.');
+        if (window.$toast) window.$toast.addToast('CEP não encontrado.', 'warning');
       } finally {
         this.loadingCep = false;
       }
     },
     async handleRegister() {
       this.loading = true;
+      this.error = null;
+      this.shake = false;
+
       try {
         // Validação extra para farmácia
         if (this.registerData.role === 'PHARMACY' && !this.registerData.cnpj) {
@@ -317,11 +368,35 @@ export default {
           throw new Error('Chave PIX é obrigatória para farmácias.');
         }
 
-        await this.register(this.registerData);
-        alert('Conta criada com sucesso! Você já pode entrar.');
-        this.isLoginMode = true;
-      } catch (error) {
-        alert(error.message || 'Erro ao criar conta.');
+        const user = await this.register(this.registerData);
+        console.log('Register result:', user);
+        
+        if (window.$toast) {
+            const nameToSplit = (user && (user.nome || user.name)) || 'Novo Usuário';
+            const firstName = String(nameToSplit).split(' ')[0];
+            window.$toast.addToast(`Conta criada com sucesso! Bem-vindo, ${firstName}.`, 'success');
+        }
+
+        this.close();
+
+        // Lógica de redirecionamento idêntica ao login
+        const role = user.role?.toUpperCase();
+        if (role === 'PHARMACY') {
+          this.$router.push('/pharmacy/dashboard');
+        } else if (role === 'COURIER') {
+          this.$router.push('/courier/dashboard');
+        } else if (role === 'ADMIN') {
+          this.$router.push('/admin/dashboard');
+        } else {
+          if (this.authRedirectPath) {
+            this.$router.push(this.authRedirectPath);
+          } else {
+            this.$router.go(0);
+          }
+        }
+      } catch (err) {
+        this.error = err.message || 'Erro ao criar conta. Tente novamente.';
+        this.triggerShake();
       } finally {
         this.loading = false;
       }
@@ -408,5 +483,40 @@ export default {
 @media (max-width: 768px) {
   .auth-modal-content.wide-modal { max-width: 100%; }
   .role-selector { flex-direction: column; }
+}
+
+/* Error Styles */
+.error-message {
+  color: var(--cf-danger);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.alert-danger-soft {
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 0.75rem;
+  border-radius: var(--cf-r-md);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.is-invalid {
+  border-color: var(--cf-danger) !important;
+}
+
+.shake-error {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 </style>

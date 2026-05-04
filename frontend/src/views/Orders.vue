@@ -69,7 +69,7 @@
                <div class="order-items-preview mb-4">
                   <div v-for="item in order.items" :key="item.id" class="d-flex align-items-center py-2 border-bottom-cf">
                      <div class="item-visual-sm me-3">
-                        📦
+                        <i class="fas fa-box text-primary"></i>
                      </div>
                      <div class="flex-grow-1">
                         <h6 class="item-name-sm mb-0">{{ item.name }}</h6>

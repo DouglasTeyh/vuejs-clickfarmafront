@@ -12,13 +12,53 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.clickfarma.backend.service.FileStorageService;
+import com.clickfarma.backend.repository.FarmaciaRepository;
+import com.clickfarma.backend.model.Farmacia;
+import org.springframework.web.multipart.MultipartFile;
+
+import reactor.core.publisher.Mono;
+
 @RestController
 @RequestMapping("/api/produtos")
-@CrossOrigin(origins = "http://localhost:8082")
 public class ProdutoController {
 
     @Autowired
     private ProdutoService produtoService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
+
+    @Autowired
+    private FarmaciaRepository farmaciaRepository;
+
+    // POST - Upload de imagem do produto
+    @PostMapping("/{id}/upload-image")
+    public ResponseEntity<?> uploadImagem(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            ProdutoResponseDTO produtoDTO = produtoService.buscarPorId(id);
+            if (produtoDTO.getFarmaciaId() == null) {
+                return ResponseEntity.badRequest().body(new MensagemResponseDTO("Produto sem farmácia vinculada", false));
+            }
+
+            Farmacia farmacia = farmaciaRepository.findById(produtoDTO.getFarmaciaId())
+                    .orElseThrow(() -> new RuntimeException("Farmácia não encontrada"));
+
+            String imageUrl = fileStorageService.salvarImagemProduto(file, farmacia.getNome());
+            
+            // Atualizar o produto com a nova URL
+            ProdutoRequestDTO updateDTO = new ProdutoRequestDTO();
+            updateDTO.setImageUrl(imageUrl);
+            produtoService.atualizarProduto(id, updateDTO);
+
+            return ResponseEntity.ok(new MensagemResponseDTO("Imagem enviada com sucesso!", true, imageUrl));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MensagemResponseDTO("Erro ao enviar imagem: " + e.getMessage(), false));
+        }
+    }
 
     // POST - Criar novo produto
     @PostMapping
@@ -76,10 +116,26 @@ public class ProdutoController {
             @RequestParam(required = false) BigDecimal precoMin,
             @RequestParam(required = false) BigDecimal precoMax,
             @RequestParam(required = false) Boolean emEstoque,
-            @RequestParam(required = false) String cidade) {
+            @RequestParam(required = false) String cidade,
+            @RequestParam(required = false) Boolean emPromocao) {
 
         return ResponseEntity.ok(produtoService.buscarComFiltros(
-                nome, categoriaId, precoMin, precoMax, emEstoque, cidade));
+                nome, categoriaId, precoMin, precoMax, emEstoque, cidade, emPromocao));
+    }
+
+    // GET - Sugestões de produtos (autocomplete)
+    @GetMapping("/sugestoes")
+    public ResponseEntity<List<String>> listarSugestoes(@RequestParam String query) {
+        if (query.length() < 3) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(produtoService.listarSugestoes(query));
+    }
+
+    // GET - Busca Inteligente via IA
+    @GetMapping("/busca-ia")
+    public Mono<List<ProdutoResponseDTO>> buscaIA(@RequestParam String query) {
+        return produtoService.buscarPorIA(query);
     }
 
     // PUT - Atualizar produto completo

@@ -61,14 +61,20 @@ public class Usuario {
     @Column(name = "telegram_link_expires_at")
     private LocalDateTime telegramLinkExpiresAt;
 
+    @Column(name = "reset_password_token", length = 100)
+    private String resetPasswordToken;
+
+    @Column(name = "reset_password_token_expiry")
+    private LocalDateTime resetPasswordTokenExpiry;
+
     @Column(name = "data_cadastro")
     private LocalDateTime dataCadastro;
 
     @Column(length = 50)
     private String role; // "ADMIN", "PHARMACY", "COURIER", "CUSTOMER"
 
-    @Column(length = 100)
-    private String cidade;
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Endereco> enderecos = new ArrayList<>();
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
     private List<Pedido> pedidos = new ArrayList<>();
@@ -137,14 +143,20 @@ public class Usuario {
     public LocalDateTime getTelegramLinkExpiresAt() { return telegramLinkExpiresAt; }
     public void setTelegramLinkExpiresAt(LocalDateTime telegramLinkExpiresAt) { this.telegramLinkExpiresAt = telegramLinkExpiresAt; }
 
+    public String getResetPasswordToken() { return resetPasswordToken; }
+    public void setResetPasswordToken(String resetPasswordToken) { this.resetPasswordToken = resetPasswordToken; }
+
+    public LocalDateTime getResetPasswordTokenExpiry() { return resetPasswordTokenExpiry; }
+    public void setResetPasswordTokenExpiry(LocalDateTime resetPasswordTokenExpiry) { this.resetPasswordTokenExpiry = resetPasswordTokenExpiry; }
+
     public LocalDateTime getDataCadastro() { return dataCadastro; }
     public void setDataCadastro(LocalDateTime dataCadastro) { this.dataCadastro = dataCadastro; }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public String getCidade() { return cidade; }
-    public void setCidade(String cidade) { this.cidade = cidade; }
+    public List<Endereco> getEnderecos() { return enderecos; }
+    public void setEnderecos(List<Endereco> enderecos) { this.enderecos = enderecos; }
 
     public List<Pedido> getPedidos() { return pedidos; }
     public void setPedidos(List<Pedido> pedidos) { this.pedidos = pedidos; }

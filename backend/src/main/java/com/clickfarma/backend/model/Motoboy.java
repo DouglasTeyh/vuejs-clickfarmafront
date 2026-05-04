@@ -54,8 +54,18 @@ public class Motoboy {
     @Column(name = "data_cadastro")
     private LocalDateTime dataCadastro;
 
+    @Column(name = "latitude_atual")
+    private Double latitudeAtual;
+
+    @Column(name = "longitude_atual")
+    private Double longitudeAtual;
+
+    @Column(name = "atrasos")
+    private Integer atrasos = 0;
+
     public Motoboy() {
         this.dataCadastro = LocalDateTime.now();
+        this.atrasos = 0;
     }
 
     public Motoboy(String nome, String cpf, Usuario usuario) {
@@ -103,4 +113,13 @@ public class Motoboy {
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
     public LocalDateTime getDataCadastro() { return dataCadastro; }
     public void setDataCadastro(LocalDateTime dataCadastro) { this.dataCadastro = dataCadastro; }
+
+    public Double getLatitudeAtual() { return latitudeAtual; }
+    public void setLatitudeAtual(Double latitudeAtual) { this.latitudeAtual = latitudeAtual; }
+
+    public Double getLongitudeAtual() { return longitudeAtual; }
+    public void setLongitudeAtual(Double longitudeAtual) { this.longitudeAtual = longitudeAtual; }
+
+    public Integer getAtrasos() { return atrasos; }
+    public void setAtrasos(Integer atrasos) { this.atrasos = atrasos; }
 }

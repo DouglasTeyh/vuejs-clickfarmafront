@@ -1,139 +1,170 @@
 <template>
-  <div class="cf-pharm-shell">
+  <div class="cf-pharmacy-shell">
     <!-- Overlay mobile -->
     <div v-if="sidebarOpen && isMobile" class="cf-sidebar-overlay" @click="sidebarOpen = false"></div>
 
-    <!-- ═══ SIDEBAR ═══ -->
-    <nav class="cf-sidebar" :class="{ 'sidebar-open': sidebarOpen }">
-      <div class="cf-sidebar-logo">
-        <div class="logo-mark"><i class="fas fa-leaf"></i></div>
-        <div>
-          <div class="logo-name">ClickFarma</div>
-          <div class="logo-sub">{{ currentUser?.nome || 'Farmácia' }}</div>
-        </div>
-        <button v-if="isMobile" @click="sidebarOpen = false" class="cf-close-btn">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <div class="cf-divider"></div>
-
-      <div class="cf-section-label">PAINEL</div>
-      <ul class="cf-nav">
-        <li>
-          <router-link to="/pharmacy/dashboard" class="cf-nav-link"
-            :class="{ active: $route.path === '/pharmacy/dashboard' }" @click="sidebarOpen = false">
-            <i class="fas fa-chart-line cf-nav-icon"></i>
-            <span>Visão Geral</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/pharmacy/products" class="cf-nav-link"
-            :class="{ active: $route.path === '/pharmacy/products' }" @click="sidebarOpen = false">
-            <i class="fas fa-pills cf-nav-icon"></i>
-            <span>Meus Produtos</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/pharmacy/orders" class="cf-nav-link d-flex justify-content-between align-items-center"
-            :class="{ active: $route.path === '/pharmacy/orders' }" @click="sidebarOpen = false">
-            <span class="d-flex align-items-center gap-2">
-              <i class="fas fa-clipboard-list cf-nav-icon"></i>
-              Pedidos
-            </span>
-            <span v-if="pedidosPendentes > 0" class="cf-badge-alert">{{ pedidosPendentes }}</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/pharmacy/financial" class="cf-nav-link"
-            :class="{ active: $route.path === '/pharmacy/financial' }" @click="sidebarOpen = false">
-            <i class="fas fa-hand-holding-usd cf-nav-icon"></i>
-            <span>Financeiro (Repasses)</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/pharmacy/settings" class="cf-nav-link"
-            :class="{ active: $route.path === '/pharmacy/settings' }" @click="sidebarOpen = false">
-            <i class="fas fa-cog cf-nav-icon"></i>
-            <span>Configurações</span>
-          </router-link>
-        </li>
-      </ul>
-
-      <div class="cf-sidebar-footer">
-        <div class="cf-user-info">
-          <div class="cf-avatar">{{ currentUser?.nome?.charAt(0)?.toUpperCase() || 'F' }}</div>
-          <div>
-            <div class="cf-uname">{{ currentUser?.nome || 'Farmácia' }}</div>
-            <div class="cf-urole">Parceiro ClickFarma</div>
+    <!-- ═══ SIDEBAR PREMIUM ═══ -->
+    <aside class="cf-sidebar" :class="{ 'sidebar-open': sidebarOpen, 'collapsed': isCollapsed && !isMobile }">
+      <!-- Logo Section -->
+      <div class="sidebar-header">
+        <div class="brand-wrap">
+          <div class="brand-logo">
+            <i class="fas fa-hospital-user"></i>
+          </div>
+          <div class="brand-meta" v-if="!isCollapsed || isMobile">
+            <h1 class="brand-name">Click<span>Farma</span></h1>
+            <span class="brand-tag">Painel da Unidade</span>
           </div>
         </div>
-        <button @click="logout" class="cf-logout-btn" title="Sair">
-          <i class="fas fa-sign-out-alt"></i>
+        <button class="collapse-btn d-none d-lg-flex" @click="isCollapsed = !isCollapsed">
+          <i class="fas" :class="isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'"></i>
         </button>
       </div>
-    </nav>
 
-    <!-- ═══ MAIN ═══ -->
-    <div class="cf-main">
-      <header class="cf-topbar">
-        <div class="cf-topbar-left">
-          <button @click="sidebarOpen = !sidebarOpen" class="cf-menu-btn d-md-none">
-            <i class="fas fa-bars"></i>
+      <div class="sidebar-content cf-hide-scrollbar">
+        <nav class="sidebar-nav">
+          <!-- Visão Geral -->
+          <router-link to="/pharmacy/dashboard" class="nav-link" :class="{ active: $route.path === '/pharmacy/dashboard' }" @click="handleNavClick">
+            <div class="link-icon"><i class="fas fa-chart-pie"></i></div>
+            <span class="link-text" v-if="!isCollapsed || isMobile">Painel de Controle</span>
+            <div class="link-hover-pill"></div>
+          </router-link>
+
+          <h6 class="nav-label" v-if="!isCollapsed || isMobile">Operacional</h6>
+          <router-link to="/pharmacy/orders" class="nav-link" :class="{ active: $route.path === '/pharmacy/orders' }" @click="handleNavClick">
+            <div class="link-icon">
+              <i class="fas fa-receipt"></i>
+              <span class="badge-dot" v-if="pedidosPendentes > 0"></span>
+            </div>
+            <span class="link-text" v-if="!isCollapsed || isMobile">Gestão de Pedidos</span>
+            <div class="link-hover-pill"></div>
+          </router-link>
+
+          <h6 class="nav-label" v-if="!isCollapsed || isMobile">Inventário</h6>
+          <router-link to="/pharmacy/products" class="nav-link" :class="{ active: $route.path === '/pharmacy/products' }" @click="handleNavClick">
+            <div class="link-icon"><i class="fas fa-boxes-stacked"></i></div>
+            <span class="link-text" v-if="!isCollapsed || isMobile">Meus Produtos</span>
+            <div class="link-hover-pill"></div>
+          </router-link>
+
+          <h6 class="nav-label" v-if="!isCollapsed || isMobile">Administrativo</h6>
+          <router-link to="/pharmacy/financial" class="nav-link" :class="{ active: $route.path === '/pharmacy/financial' }" @click="handleNavClick">
+            <div class="link-icon"><i class="fas fa-wallet"></i></div>
+            <span class="link-text" v-if="!isCollapsed || isMobile">Financeiro</span>
+            <div class="link-hover-pill"></div>
+          </router-link>
+          <router-link to="/pharmacy/settings" class="nav-link" :class="{ active: $route.path === '/pharmacy/settings' }" @click="handleNavClick">
+            <div class="link-icon"><i class="fas fa-sliders"></i></div>
+            <span class="link-text" v-if="!isCollapsed || isMobile">Configurações</span>
+            <div class="link-hover-pill"></div>
+          </router-link>
+        </nav>
+      </div>
+
+      <!-- Pharmacy Profile Section -->
+      <div class="sidebar-footer">
+        <div class="user-profile-card">
+          <div class="user-avatar-wrap">
+            <img :src="farmaciaLogo || 'https://cdn-icons-png.flaticon.com/512/883/883360.png'" class="user-avatar">
+            <div class="status-indicator online"></div>
+          </div>
+          <div class="user-details" v-if="!isCollapsed || isMobile">
+            <p class="user-name">{{ farmaciaNome || 'Farmácia' }}</p>
+            <p class="user-role">Parceiro Oficial</p>
+          </div>
+          <button @click="handleLogout" class="logout-btn" title="Sair do Painel">
+            <i class="fas fa-power-off"></i>
           </button>
-          <div class="cf-breadcrumb">
-            <span class="cf-bc-root">Farmácia</span>
-            <i class="fas fa-chevron-right cf-bc-sep"></i>
-            <span class="cf-bc-page">{{ pageTitle }}</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN CONTENT AREA ═══ -->
+    <main class="cf-main">
+      <!-- Top Navigation Bar -->
+      <header class="cf-topbar shadow-sm">
+        <div class="topbar-left">
+          <button @click="sidebarOpen = !sidebarOpen" class="mobile-toggle d-lg-none">
+            <i class="fas fa-bars-staggered"></i>
+          </button>
+          
+          <div class="page-identity">
+            <nav class="cf-breadcrumb d-none d-md-flex">
+              <router-link to="/pharmacy/dashboard" class="bc-item">Unidade</router-link>
+              <i class="fas fa-chevron-right bc-sep"></i>
+              <span class="bc-item active">{{ pageTitle }}</span>
+            </nav>
+            <h2 class="topbar-page-title">{{ pageTitle }}</h2>
           </div>
         </div>
-        <div class="cf-topbar-right">
-          <span v-if="pedidosPendentes > 0" class="cf-topbar-alert">
-            <i class="fas fa-bell me-1"></i>
-            {{ pedidosPendentes }} pedido{{ pedidosPendentes > 1 ? 's' : '' }} pendente{{ pedidosPendentes > 1 ? 's' : '' }}
-          </span>
+
+        <div class="topbar-right">
+          <div class="global-tools">
+            <button class="tool-icon-btn">
+              <i class="far fa-bell"></i>
+              <span class="notif-badge" v-if="pedidosPendentes > 0"></span>
+            </button>
+            <div class="divider"></div>
+            <div class="pharmacy-badge">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <span class="status-label d-none d-md-block">Terminal Autorizado</span>
+            </div>
+          </div>
         </div>
       </header>
 
-      <div class="cf-content">
-        <router-view />
-      </div>
-    </div>
+      <!-- View Wrapper -->
+      <section class="cf-content">
+        <router-view v-slot="{ Component }">
+          <transition name="view-fade" mode="out-in">
+            <div :key="$route.path">
+              <component :is="Component" />
+            </div>
+          </transition>
+        </router-view>
+      </section>
+    </main>
   </div>
 </template>
 
+
 <script>
+import api from '@/services/api';
+
 export default {
   name: 'PharmacyLayout',
   data() {
     return {
-      currentUser: null,
-      pedidosPendentes: 0,
-      farmaciaId: null,
-      pollingInterval: null,
       sidebarOpen: false,
-      isMobile: false
+      isCollapsed: false,
+      isMobile: false,
+      userName: 'Farmacêutico',
+      farmaciaNome: '',
+      farmaciaLogo: '',
+      pedidosPendentes: 0,
+      pollingInterval: null
     };
   },
   computed: {
     pageTitle() {
-      const titles = {
-        '/pharmacy/dashboard': 'Visão Geral',
-        '/pharmacy/products':  'Meus Produtos',
-        '/pharmacy/orders':    'Pedidos',
-        '/pharmacy/financial': 'Financeiro (Repasses)',
-        '/pharmacy/settings':  'Configurações'
+      const routes = {
+        '/pharmacy/dashboard': 'Central de Inteligência',
+        '/pharmacy/products':  'Gestão de Inventário',
+        '/pharmacy/orders':    'Fluxo de Pedidos',
+        '/pharmacy/financial': 'Tesouraria & Repasses',
+        '/pharmacy/settings':  'Configurações da Unidade'
       };
-      return titles[this.$route.path] || 'Painel da Farmácia';
+      return routes[this.$route.path] || 'ClickFarma Terminal';
     }
   },
   async mounted() {
     this.checkMobile();
-    window.addEventListener('resize', this.checkMobile);
-    const raw = localStorage.getItem('user');
-    if (raw) this.currentUser = JSON.parse(raw);
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    this.userName = user.nome || 'Farmacêutico';
+    await this.fetchFarmaciaInfo(user.email);
     await this.carregarBadge();
     this.pollingInterval = setInterval(() => this.carregarBadge(), 30000);
+    window.addEventListener('resize', this.checkMobile);
   },
   beforeUnmount() {
     clearInterval(this.pollingInterval);
@@ -141,207 +172,172 @@ export default {
   },
   methods: {
     checkMobile() {
-      this.isMobile = window.innerWidth < 768;
-      if (!this.isMobile) this.sidebarOpen = false;
+      this.isMobile = window.innerWidth < 1024;
+      if (!this.isMobile && this.sidebarOpen) this.sidebarOpen = false;
+    },
+    async fetchFarmaciaInfo(email) {
+      try {
+        const { data } = await api.get('/farmacias');
+        const f = data.find(x => x.email === email);
+        if (f) {
+          this.farmaciaNome = f.nome;
+          this.farmaciaLogo = f.fotoUrl;
+        }
+      } catch (err) { console.error(err); }
     },
     async carregarBadge() {
       try {
-        const api = (await import('@/services/api')).default;
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const farmaciasRes = await api.get('/farmacias');
-        const farmacia = farmaciasRes.data.find(f => f.email === user.email);
-        if (!farmacia) return;
-        this.farmaciaId = farmacia.id;
-        const res = await api.get(`/pedidos/farmacia/${farmacia.id}`);
-        this.pedidosPendentes = res.data.filter(p =>
-          p.status === 'AGUARDANDO_PAGAMENTO' || p.status === 'PAGO'
-        ).length;
-      } catch {}
+        const { data: farmacias } = await api.get('/farmacias');
+        const f = farmacias.find(x => x.email === user.email);
+        if (f) {
+          const res = await api.get(`/pedidos/farmacia/${f.id}`);
+          this.pedidosPendentes = res.data.filter(p =>
+            p.status === 'AGUARDANDO_PAGAMENTO' || p.status === 'PAGO'
+          ).length;
+        }
+      } catch (err) { console.error(err); }
     },
-    logout() {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      this.$router.push('/pharmacy/login');
+    handleNavClick() {
+      if (this.isMobile) this.sidebarOpen = false;
+    },
+    handleLogout() {
+      if(confirm('Deseja encerrar sua sessão com segurança?')) {
+        localStorage.clear();
+        this.$router.push('/login');
+      }
     }
   }
 };
 </script>
 
+
 <style scoped>
-.cf-pharm-shell {
-  display: flex; min-height: 100vh;
-  background: var(--cf-ivory); font-family: var(--cf-sans);
+/* ═══ Shell & Base ═══ */
+.cf-pharmacy-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--cf-ivory);
+  font-family: var(--cf-sans);
+  color: var(--cf-text-dark);
 }
 
-/* ══════════════════════════════════════
-   SHELL DO PAINEL — Identidade ClickFarma
-   ══════════════════════════════════════ */
-.cf-pharm-shell {
-  display: flex; min-height: 100vh;
-  background: var(--cf-ivory); font-family: var(--cf-sans);
-  overflow-x: hidden; width: 100%;
-}
-
-/* ─── SIDEBAR ─── */
+/* ═══ Sidebar Premium ═══ */
 .cf-sidebar {
-  width: 250px; height: 100vh;
+  width: 280px;
   background: var(--cf-green-dark);
-  position: fixed; left: 0; top: 0; z-index: 1050;
-  display: flex; flex-direction: column;
-  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-.cf-sidebar::-webkit-scrollbar { display: none; }
-
-.cf-sidebar-logo {
-  display: flex; align-items: center; gap: 0.8rem;
-  padding: 1.3rem 1.2rem; flex-shrink: 0;
-}
-.logo-mark {
-  width: 36px; height: 36px; border-radius: 9px;
-  background: var(--cf-gold); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; flex-shrink: 0;
-}
-.logo-name { font-family: var(--cf-serif); color: #fff; font-size: 1rem; line-height: 1.1; }
-.logo-sub  { font-size: 0.6rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
-.cf-close-btn { margin-left: auto; background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; }
-
-.cf-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0 1.2rem; flex-shrink: 0; }
-.cf-section-label {
-  font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase;
-  color: rgba(255,255,255,0.3); padding: 1rem 1.35rem 0.35rem; font-weight: 500; flex-shrink: 0;
-}
-
-.cf-nav { list-style: none; padding: 0 0.7rem; margin: 0; flex: 1; }
-.cf-nav-link {
-  display: flex; align-items: center; gap: 0.7rem;
-  padding: 0.62rem 0.85rem; border-radius: var(--cf-r-md);
-  color: rgba(255,255,255,0.6); text-decoration: none;
-  font-size: 0.875rem; font-weight: 400; margin-bottom: 2px;
-  border-left: 3px solid transparent;
-  transition: all 0.18s var(--cf-ease);
-}
-.cf-nav-link:hover { background: rgba(255,255,255,0.08); color: #fff; border-left-color: var(--cf-gold); }
-.cf-nav-link.active { background: rgba(184,149,80,0.18); color: var(--cf-gold); border-left-color: var(--cf-gold); font-weight: 500; }
-.cf-nav-icon { width: 15px; text-align: center; opacity: 0.7; flex-shrink: 0; }
-.cf-nav-link.active .cf-nav-icon { opacity: 1; }
-
-.cf-badge-alert {
-  font-size: 0.65rem; font-weight: 700; background: #8B3A3A;
-  color: #fff; border-radius: 10px; padding: 1px 7px; flex-shrink: 0;
-}
-
-.cf-sidebar-footer {
-  margin-top: auto; padding: 1rem 1.2rem;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  display: flex; align-items: center; gap: 0.7rem;
-  flex-shrink: 0; background: rgba(0,0,0,0.1);
-}
-.cf-avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--cf-gold); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.82rem; font-weight: 700; flex-shrink: 0;
-}
-.cf-uname { font-size: 0.78rem; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
-.cf-urole { font-size: 0.6rem; color: rgba(255,255,255,0.35); }
-.cf-logout-btn { background: none; border: none; color: rgba(255,255,255,0.35); cursor: pointer; font-size: 0.9rem; padding: 0.3rem; border-radius: 5px; margin-left: auto; flex-shrink: 0; transition: color 0.2s; }
-.cf-logout-btn:hover { color: var(--cf-gold); }
-
-.cf-sidebar-overlay { position: fixed; inset: 0; background: rgba(28,28,26,0.6); z-index: 1040; backdrop-filter: blur(4px); }
-
-/* ─── MAIN ─── */
-.cf-main {
-  margin-left: 250px;
-  flex: 1;
+  height: 100vh;
+  position: sticky;
+  top: 0;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  min-width: 0;
-  width: calc(100% - 250px);
-  overflow-x: hidden;
+  transition: all 0.4s var(--cf-ease);
+  z-index: 1050;
+  box-shadow: 10px 0 30px rgba(0,0,0,0.15);
 }
+.cf-sidebar.collapsed { width: 88px; }
 
-.cf-topbar {
-  height: 60px;
-  background: var(--cf-white);
-  border-bottom: 1px solid var(--cf-border);
+.sidebar-header {
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: var(--cf-shadow-xs);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.brand-wrap { display: flex; align-items: center; gap: 1rem; overflow: hidden; }
+.brand-logo {
+  width: 42px; height: 42px;
+  background: var(--cf-gold);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.1rem;
+  box-shadow: 0 4px 15px rgba(184,149,80,0.4);
   flex-shrink: 0;
 }
-.cf-topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-  flex: 1;
-}
-.cf-menu-btn {
-  background: none;
-  border: 1px solid var(--cf-border);
-  border-radius: var(--cf-r-sm);
-  padding: 0.35rem 0.55rem;
-  cursor: pointer;
-  color: var(--cf-text-muted);
-  transition: all 0.18s;
-  flex-shrink: 0;
-}
-.cf-menu-btn:hover { border-color: var(--cf-green); color: var(--cf-green); }
-.cf-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-width: 0;
+.brand-name {
+  font-family: var(--cf-serif);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
   white-space: nowrap;
 }
-.cf-bc-root { font-size: 0.72rem; color: var(--cf-text-muted); }
-.cf-bc-sep  { font-size: 0.55rem; color: var(--cf-text-faint); }
-.cf-bc-page {
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: var(--cf-text-dark);
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.brand-name span { color: var(--cf-gold); }
+.brand-tag { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.4); display: block; }
 
-.cf-topbar-alert {
-  font-size: 0.68rem;
-  color: #8B3A3A;
-  background: #F9EDED;
-  padding: 0.3rem 0.75rem;
-  border-radius: 20px;
-  border: 1px solid rgba(139,58,58,0.15);
-  font-weight: 500;
-  animation: pulse 2s ease-in-out infinite;
-  white-space: nowrap;
+.collapse-btn {
+  background: rgba(255,255,255,0.05); border: none;
+  width: 28px; height: 28px; border-radius: 8px;
+  color: rgba(255,255,255,0.3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
 }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+.collapse-btn:hover { background: var(--cf-gold); color: #fff; }
 
-.cf-content {
-  flex: 1;
-  padding: 1.5rem;
-  background: var(--cf-ivory);
-  animation: fadeInUp 0.32s var(--cf-ease) both;
-  min-width: 0;
-  width: 100%;
+.sidebar-content { flex: 1; overflow-y: auto; padding: 1.5rem 1rem; }
+.nav-group { margin-bottom: 2rem; }
+.nav-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.2); margin: 1.5rem 0 0.75rem 1rem; }
+
+.nav-link {
+  display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem;
+  color: rgba(255,255,255,0.5); text-decoration: none;
+  border-radius: 14px; transition: all 0.3s var(--cf-ease);
+  position: relative; margin-bottom: 0.25rem;
 }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.link-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; position: relative; }
+.nav-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.nav-link.active { background: rgba(184,149,80,0.15); color: var(--cf-gold); }
+.nav-link.active .link-hover-pill { position: absolute; left: -10px; width: 4px; height: 20px; background: var(--cf-gold); border-radius: 0 4px 4px 0; box-shadow: 2px 0 10px var(--cf-gold); }
+.link-text { font-size: 0.9rem; font-weight: 500; white-space: nowrap; }
 
-@media (max-width: 991px) {
-  .cf-sidebar { transform: translateX(-100%); width: 280px; }
-  .cf-sidebar.sidebar-open { transform: translateX(0); }
-  .cf-main { margin-left: 0; width: 100%; }
-  .cf-content { padding: 1rem; }
-  .cf-topbar { padding: 0 1rem; }
-  .cf-topbar-right { display: none; }
+.badge-dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #ef4444; border: 2px solid var(--cf-green-dark); border-radius: 50%; box-shadow: 0 0 10px #ef4444; }
+
+.sidebar-footer { padding: 1.5rem 1rem; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); }
+.user-profile-card { background: rgba(255,255,255,0.03); border-radius: 18px; padding: 0.75rem; display: flex; align-items: center; gap: 0.85rem; }
+.user-avatar-wrap { position: relative; }
+.user-avatar { width: 42px; height: 42px; background: #fff; border-radius: 12px; object-fit: cover; border: 2px solid var(--cf-gold); }
+.status-indicator { position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--cf-green-dark); }
+.status-indicator.online { background: #22c55e; }
+.user-name { font-size: 0.85rem; font-weight: 700; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+.user-role { font-size: 0.65rem; color: rgba(255,255,255,0.4); margin: 0; }
+.logout-btn { background: none; border: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.2s; }
+.logout-btn:hover { color: #ff6b6b; }
+
+/* ═══ Main Content ═══ */
+.cf-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.cf-topbar { height: 80px; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; z-index: 1000; position: sticky; top: 0; }
+.topbar-left { display: flex; align-items: center; gap: 2rem; }
+.mobile-toggle { background: var(--cf-ivory); border: 1px solid var(--cf-border); width: 44px; height: 44px; border-radius: 12px; color: var(--cf-text-dark); cursor: pointer; }
+.cf-breadcrumb { gap: 0.6rem; align-items: center; margin-bottom: 0.2rem; }
+.bc-item { font-size: 0.72rem; color: var(--cf-text-faint); text-decoration: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.bc-sep { font-size: 0.55rem; color: var(--cf-text-faint); opacity: 0.5; }
+.bc-item.active { color: var(--cf-gold); }
+.topbar-page-title { font-family: var(--cf-serif); font-size: 1.6rem; font-weight: 500; color: var(--cf-text-dark); margin: 0; }
+
+.topbar-right { display: flex; align-items: center; gap: 2rem; }
+.global-tools { display: flex; align-items: center; gap: 1.25rem; }
+.tool-icon-btn { width: 40px; height: 40px; border-radius: 12px; background: #fff; border: 1px solid var(--cf-border); color: var(--cf-text-muted); cursor: pointer; position: relative; transition: all 0.2s; }
+.tool-icon-btn:hover { border-color: var(--cf-green); color: var(--cf-green); background: var(--cf-ivory-light); }
+.notif-badge { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: #ef4444; border: 2px solid #fff; border-radius: 50%; }
+.divider { width: 1px; height: 30px; background: var(--cf-border); }
+.pharmacy-badge { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.8rem; background: var(--cf-green-xlight); border-radius: 50px; }
+.status-label { font-size: 0.65rem; font-weight: 800; color: var(--cf-green); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.cf-content { padding: 2.5rem; flex: 1; overflow-y: auto; }
+
+/* ═══ Transitions ═══ */
+.view-fade-enter-active, .view-fade-leave-active { transition: opacity 0.3s var(--cf-ease), transform 0.3s var(--cf-ease); }
+.view-fade-enter-from { opacity: 0; transform: translateY(10px); }
+.view-fade-leave-to { opacity: 0; transform: translateY(-10px); }
+
+.cf-sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1040; }
+
+@media (max-width: 1024px) {
+  .cf-sidebar { position: fixed; left: -280px; }
+  .cf-sidebar.sidebar-open { left: 0; }
+  .cf-sidebar.collapsed { width: 280px; }
+  .sidebar-header .collapse-btn { display: none; }
+  .cf-content { padding: 1.5rem; }
 }
 </style>

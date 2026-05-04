@@ -10,11 +10,16 @@
              :src="product.image || product.imageUrl" 
              :alt="product.name" 
              class="cf-product-img" />
-        <span v-else class="cf-product-icon">{{ getCategoryIcon(product.category) }}</span>
+        <div v-else class="cf-product-placeholder">
+          <i class="fas" :class="getCategoryIcon(product.category)"></i>
+        </div>
       </div>
 
-      <!-- Badge de estoque -->
+      <!-- Badge de estoque e Promoção -->
       <div class="cf-badges">
+        <span v-if="product.emPromocao" class="cf-promo-badge">
+          -{{ product.descontoPercentual ? product.descontoPercentual.toFixed(0) : 0 }}% OFF
+        </span>
         <span class="cf-stock-badge" :class="product.inStock ? 'badge-in' : 'badge-out'">
           {{ product.inStock ? 'Em estoque' : 'Indisponível' }}
         </span>
@@ -35,12 +40,17 @@
 
       <div class="cf-card-link" @click="showQuickView" style="cursor: pointer;">
         <h3 class="cf-product-name">{{ product.name }}</h3>
+        <div class="cf-product-meta mb-2">
+          <span class="cf-dosage"><i class="fas fa-flask me-1"></i>{{ product.dosagem || 'N/A' }}</span>
+          <span class="cf-pharmacy-name ms-2"><i class="fas fa-store me-1"></i>{{ product.farmaciaNome || 'ClickFarma' }}</span>
+        </div>
         <p class="cf-product-desc">{{ product.description }}</p>
       </div>
 
       <!-- Preço + botão -->
       <div class="cf-card-foot">
         <div class="cf-price-wrap">
+          <div v-if="product.emPromocao" class="cf-old-price">R$&nbsp;{{ formattedOldPrice }}</div>
           <span class="cf-price">R$&nbsp;{{ formattedPrice }}</span>
           <span class="cf-installment">12× de R$&nbsp;{{ installmentPrice }}</span>
         </div>
@@ -79,10 +89,15 @@ export default {
   },
   computed: {
     formattedPrice() {
-      return this.product.price.toFixed(2).replace('.', ',')
+      const price = this.product.emPromocao ? this.product.precoComDesconto : this.product.price;
+      return (price || 0).toFixed(2).replace('.', ',')
+    },
+    formattedOldPrice() {
+      return (this.product.price || 0).toFixed(2).replace('.', ',')
     },
     installmentPrice() {
-      return (this.product.price / 12).toFixed(2).replace('.', ',')
+      const price = this.product.emPromocao ? this.product.precoComDesconto : this.product.price;
+      return ((price || 0) / 12).toFixed(2).replace('.', ',')
     },
     shortButtonText() {
       if (this.addingToCart) return '...'
@@ -94,7 +109,14 @@ export default {
   methods: {
     ...mapActions(['openQuickView']),
     getCategoryIcon(cat) {
-      return { 'Medicamentos':'💊','Cosméticos':'🧴','Higiene':'🚿','Vitaminas':'🌿','Maternidade':'👶' }[cat] || '📦'
+      const icons = {
+        'Medicamentos': 'fa-pills',
+        'Cosméticos': 'fa-pump-soap',
+        'Higiene': 'fa-shower',
+        'Vitaminas': 'fa-leaf',
+        'Maternidade': 'fa-baby'
+      }
+      return icons[cat] || 'fa-box'
     },
     showQuickView() {
       this.openQuickView(this.product)
@@ -189,6 +211,15 @@ export default {
   text-transform: uppercase;
   padding: 3px 9px;
   border-radius: 3px;
+  margin-left: 5px;
+}
+.cf-promo-badge {
+  background: var(--cf-gold);
+  color: white;
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 3px;
 }
 .badge-in  { background: var(--cf-green-light); color: var(--cf-green); }
 .badge-out { background: #F9EDED; color: var(--cf-danger); }
@@ -251,6 +282,29 @@ export default {
 }
 .cf-card-link:hover .cf-product-name { color: var(--cf-green); }
 
+.cf-product-placeholder {
+  font-size: 3rem;
+  color: var(--cf-green-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-product-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--cf-text-muted);
+}
+
+.cf-dosage, .cf-pharmacy-name {
+  background: var(--cf-cream);
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
 .cf-product-desc {
   font-size: 0.82rem;
   line-height: 1.55;
@@ -278,6 +332,13 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 1px;
+}
+
+.cf-old-price {
+  font-size: 0.75rem;
+  color: var(--cf-text-faint);
+  text-decoration: line-through;
+  margin-bottom: -2px;
 }
 
 .cf-price {

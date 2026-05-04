@@ -22,6 +22,10 @@
             />
           </div>
 
+          <div class="mb-4">
+            <AddressSelector />
+          </div>
+
           <div class="cart-items-list">
             <CartItem
                 v-for="item in cart"
@@ -53,6 +57,7 @@ import EmptyCart from '@/components/cart/EmptyCart.vue'
 import CartItem from '@/components/cart/CartItem.vue'
 import OrderSummary from '@/components/cart/OrderSummary.vue'
 import CartAIAdvisor from '@/components/cart/CartAIAdvisor.vue'
+import AddressSelector from '@/components/cart/AddressSelector.vue'
 
 export default {
   name: 'CartPage',
@@ -60,7 +65,8 @@ export default {
     EmptyCart,
     CartItem,
     OrderSummary,
-    CartAIAdvisor
+    CartAIAdvisor,
+    AddressSelector
   },
   computed: {
     ...mapState(['cart']),
