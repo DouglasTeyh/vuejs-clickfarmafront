@@ -333,7 +333,9 @@ export default createStore({
     // Auth Modal
     isAuthModalOpen: false,
     authModalMode: 'login',
-    authRedirectPath: null
+    authRedirectPath: null,
+    // Cart Drawer
+    isCartDrawerOpen: false
   },
 
   getters: {
@@ -361,8 +363,13 @@ export default createStore({
     SET_USER(state, user) {
       if (user) {
         if (user.nome && !user.name) user.name = user.nome;
-        state.user = user;
-        localStorage.setItem('user', JSON.stringify(user));
+        // Garantir que IDs específicos sejam preservados
+        state.user = {
+          ...user,
+          farmaciaId: user.farmaciaId || (state.user?.farmaciaId),
+          motoboyId: user.motoboyId || (state.user?.motoboyId)
+        };
+        localStorage.setItem('user', JSON.stringify(state.user));
       } else {
         state.user = null;
         localStorage.removeItem('user');
@@ -463,6 +470,16 @@ export default createStore({
     CLOSE_AUTH_MODAL(state) {
       state.isAuthModalOpen = false;
       state.authRedirectPath = null;
+    },
+    // Cart Drawer Mutations
+    OPEN_CART_DRAWER(state) {
+      state.isCartDrawerOpen = true;
+    },
+    CLOSE_CART_DRAWER(state) {
+      state.isCartDrawerOpen = false;
+    },
+    TOGGLE_CART_DRAWER(state) {
+      state.isCartDrawerOpen = !state.isCartDrawerOpen;
     }
   },
 
@@ -508,16 +525,11 @@ export default createStore({
           id: data.id,
           name: data.nome,
           email: data.email,
-          role: data.role
+          role: data.role,
+          farmaciaId: data.farmaciaId,
+          motoboyId: data.motoboyId
         });
         commit('SET_AUTH_TOKEN', data.token);
-        
-        localStorage.setItem('user', JSON.stringify({
-          id: data.id,
-          name: data.nome,
-          email: data.email,
-          role: data.role
-        }));
 
         console.log('✅ Login realizado com sucesso');
         
@@ -543,12 +555,10 @@ export default createStore({
       commit('CLOSE_AUTH_MODAL');
     },
 
-    // ⬇️⬇️⬇️ ACTION REGISTER CORRIGIDA ⬇️⬇️⬇️
     async register({ commit }, userData) {
       try {
         console.log('📤 Enviando registro para o backend:', userData);
 
-        // 👇 AGORA CHAMA O SERVIÇO DE VERDADE!
         const response = await authService.register(userData);
 
         const user = response.data;
@@ -560,7 +570,9 @@ export default createStore({
         return user;
       } catch (error) {
         console.error('❌ Erro no registro:', error.response?.data || error.message);
-        throw error.response?.data || { message: 'Erro de conexão com o servidor' };
+        const errorData = error.response?.data || {};
+        const errorMessage = errorData.mensagem || errorData.message || error.message || 'Erro de conexão com o servidor';
+        throw { message: errorMessage, data: errorData };
       }
     },
     // ⬆️⬆️⬆️ FIM DA CORREÇÃO ⬆️⬆️⬆️
@@ -577,7 +589,8 @@ export default createStore({
         
         // Se o usuário estiver logado e não houver cidade nos params, usa a cidade do usuário
         const finalParams = { ...params };
-        if (!finalParams.cidade && state.user && state.user.cidade) {
+        // Só filtra por cidade automaticamente se NÃO for uma busca por nome (para não ocultar resultados válidos)
+        if (!finalParams.nome && !finalParams.cidade && state.user && state.user.cidade) {
             finalParams.cidade = state.user.cidade;
         }
 
@@ -588,10 +601,19 @@ export default createStore({
           name: p.nome,
           price: p.preco,
           category: p.categoriaNome || 'Geral',
-          description: p.descricao,
+          description: p.descricao || p.descricaoBreve || '',
           inStock: p.estoque !== null ? p.estoque > 0 : true,
-          estoque: p.estoque !== null ? p.estoque : 10,
-          images: [p.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800']
+          estoque: p.estoque !== null ? p.estoque : 0,
+          imageUrl: p.imageUrl,
+          images: [p.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800'],
+          dosagem: p.dosagem,
+          farmaciaNome: p.farmaciaNome,
+          principioAtivo: p.principioAtivo,
+          laboratorio: p.laboratorio,
+          necessitaReceita: p.necessitaReceita,
+          emPromocao: p.emPromocao,
+          descontoPercentual: p.descontoPercentual,
+          precoComDesconto: p.precoComDesconto
         }));
         
         commit('SET_PRODUCTS', mappedProducts);
@@ -644,21 +666,36 @@ export default createStore({
           });
         } catch (e) { console.error('Erro ao sincronizar sacola:', e); }
       }
+
+      // Abrir a sacola após adicionar
+      dispatch('openCartDrawer');
     },
     async removeFromCart({ commit, state }, productId) {
 
       commit('REMOVE_FROM_CART', productId);
-      console.log('🗑️ Produto removido do carrinho:', productId);
-
-      // No backend, a lógica de remover um item específico da sacola
-      // Geralmente precisamos do ID do SacolaItem ou remover por produtoId
-      // Vou assumir que o controller tem DELETE /sacola/remover-produto/{usuarioId}/{produtoId} ou similar
-      // Para simplificar agora, vou apenas registrar que foi removido.
+      if (state.user) {
+        try {
+          const api = (await import('@/services/api')).default;
+          const { data } = await api.get(`/sacola/usuario/${state.user.id}`);
+          const item = data.find(i => i.produto.id === productId);
+          if (item) await api.delete(`/sacola/remover/${item.id}`);
+        } catch (e) { console.error('Erro ao remover do backend:', e); }
+      }
     },
     async updateCartQuantity({ commit, state }, payload) {
 
-      commit('UPDATE_CART_QUANTITY', payload);
-      console.log('📦 Quantidade atualizada:', payload);
+      commit('UPDATE_CART_QUANTITY', { productId, quantity });
+      if (state.user) {
+        try {
+          const api = (await import('@/services/api')).default;
+          const { data } = await api.get(`/sacola/usuario/${state.user.id}`);
+          const item = data.find(i => i.produto.id === productId);
+          if (item) {
+            await api.delete(`/sacola/remover/${item.id}`);
+            await api.post('/sacola/adicionar', { usuarioId: state.user.id, produtoId: productId, quantidade: quantity });
+          }
+        } catch (e) { console.error('Erro ao atualizar no backend:', e); }
+      }
     },
 
     clearCart({ commit }) {
@@ -672,10 +709,11 @@ export default createStore({
         const { data } = await api.get(`/sacola/usuario/${state.user.id}`);
         const cart = data.map(item => ({
           ...item.produto,
-          quantity: item.quantidade,
           id: item.produto.id,
           name: item.produto.nome,
-          price: item.produto.preco
+          price: item.produto.preco,
+          imageUrl: item.produto.imageUrl,
+          quantity: item.quantidade
         }));
         commit('SET_CART', cart);
       } catch (e) { console.error('Erro ao carregar sacola:', e); }
@@ -933,6 +971,17 @@ export default createStore({
       } catch (error) {
         throw error;
       }
+    },
+
+    // Cart Drawer Actions
+    openCartDrawer({ commit }) {
+      commit('OPEN_CART_DRAWER');
+    },
+    closeCartDrawer({ commit }) {
+      commit('CLOSE_CART_DRAWER');
+    },
+    toggleCartDrawer({ commit }) {
+      commit('TOGGLE_CART_DRAWER');
     }
   }
 });

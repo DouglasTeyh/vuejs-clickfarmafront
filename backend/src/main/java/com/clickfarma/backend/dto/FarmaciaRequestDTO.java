@@ -13,6 +13,8 @@ public class FarmaciaRequestDTO {
     private String fotoUrl;
     @NotBlank
     private String senha;
+    private String chavePix;
+    private String tipoChavePix;
 
     // Getters and Setters
     public String getNome() { return nome; }
@@ -38,4 +40,10 @@ public class FarmaciaRequestDTO {
 
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
+
+    public String getChavePix() { return chavePix; }
+    public void setChavePix(String chavePix) { this.chavePix = chavePix; }
+
+    public String getTipoChavePix() { return tipoChavePix; }
+    public void setTipoChavePix(String tipoChavePix) { this.tipoChavePix = tipoChavePix; }
 }

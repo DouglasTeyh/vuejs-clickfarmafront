@@ -13,7 +13,11 @@
           <!-- Lado Esquerdo: Galeria -->
           <div class="col-lg-6 cf-modal-gallery">
             <div class="cf-gallery-main">
-              <div class="cf-visual-placeholder">
+              <img v-if="product?.imageUrl || product?.images?.[currentImgIdx]" 
+                   :src="product?.images?.[currentImgIdx] || product?.imageUrl" 
+                   :alt="product?.name"
+                   class="cf-main-img">
+              <div v-else class="cf-visual-placeholder">
                   <i :class="getCategoryIcon(product?.category)" class="cf-large-icon text-primary"></i>
               </div>
             </div>
@@ -110,10 +114,12 @@ export default {
   },
   computed: {
     formattedPrice() {
-      return this.product?.price?.toFixed(2).replace('.', ',') || '0,00'
+      const price = this.product?.emPromocao ? this.product?.precoComDesconto : this.product?.price;
+      return price?.toFixed(2).replace('.', ',') || '0,00'
     },
     installmentPrice() {
-      return (this.product?.price / 12).toFixed(2).replace('.', ',') || '0,00'
+      const price = this.product?.emPromocao ? this.product?.precoComDesconto : this.product?.price;
+      return (price / 12).toFixed(2).replace('.', ',') || '0,00'
     },
     modalButtonText() {
       if (this.added) return 'Adicionado!'
@@ -230,6 +236,12 @@ export default {
     width: 100%; aspect-ratio: 1; 
     display: flex; align-items: center; justify-content: center;
 }
+.cf-main-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: var(--cf-r-lg);
+}
 .cf-large-icon { font-size: 8rem; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.06)); }
 
 .cf-gallery-thumbs { display: flex; gap: 12px; margin-top: 30px; }
@@ -287,9 +299,66 @@ export default {
 .modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 300ms ease; }
 .modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 
+/* ---- RESPONSIVO (PREMIUM MOBILE REBUILD) ---- */
 @media (max-width: 991px) {
-  .cf-modal-content { overflow-y: auto; }
-  .cf-modal-gallery { display: none; }
-  .cf-modal-info { padding: 40px 30px; }
+  .cf-modal-overlay {
+    align-items: flex-end; /* Modal estilo bottom-sheet no mobile */
+    padding: 0;
+  }
+  
+  .cf-product-modal {
+    max-height: 95vh;
+    border-radius: 24px 24px 0 0;
+    overflow-y: auto;
+  }
+
+  .cf-modal-content {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .cf-modal-gallery {
+    border-right: none;
+    border-bottom: 1px solid var(--cf-border);
+    padding: 30px;
+    height: 300px;
+  }
+
+  .cf-modal-info {
+    padding: 30px 20px;
+  }
+
+  .cf-modal-title {
+    font-size: 1.6rem;
+    margin-bottom: 15px;
+  }
+
+  .cf-modal-price-box {
+    padding: 1rem;
+  }
+
+  .cf-modal-price {
+    font-size: 1.8rem;
+  }
+
+  .cf-info-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cf-qty-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .cf-qty-group input {
+    flex-grow: 1;
+  }
+
+  .cf-modal-add-btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
 }
 </style>

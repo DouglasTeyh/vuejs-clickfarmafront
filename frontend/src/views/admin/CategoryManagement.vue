@@ -1,62 +1,73 @@
 <template>
-  <div class="cf-mgmt">
-    <div class="dash-welcome mb-4">
-      <div class="welcome-text">
-        <h3 class="dash-page-title">Arquitetura de Categorias</h3>
-        <p class="text-muted mb-0">Estruture a navegação do catálogo através de taxonomias otimizadas para SEO.</p>
+  <div class="cf-mgmt-premium">
+    <!-- ═══ HEADER DA REDE ═══ -->
+    <header class="mgmt-header">
+      <div class="header-info">
+        <h3 class="editorial-title">Arquitetura de Categorias</h3>
+        <p class="editorial-subtitle">Estruture a navegação do catálogo através de taxonomias otimizadas para SEO.</p>
       </div>
-      <div class="dash-actions">
-        <button class="cf-btn-primary shadow-sm" @click="abrirModalCriacao">
+      <div class="header-tools">
+        <button class="btn-save" @click="abrirModalCriacao" style="background: var(--cf-gold); box-shadow: 0 4px 15px rgba(184,149,80,0.3);">
           <i class="fas fa-layer-group me-2"></i>Nova Categoria
         </button>
       </div>
-    </div>
+    </header>
 
-    <!-- Tabela de Categorias Premium -->
-    <div class="cf-table-card">
-      <div v-if="isLoading" class="cf-loading-row">
-        <div class="cf-spinner"></div><span>Indexando estrutura taxonômica...</span>
+    <!-- ═══ GRID DE UNIDADES ═══ -->
+    <div class="cf-table-card-premium">
+      <div v-if="isLoading" class="loading-overlay-premium">
+        <div class="cf-spinner"></div>
+        <span>Indexando estrutura taxonômica...</span>
       </div>
-      <div v-else class="table-responsive cf-hide-scrollbar">
-        <table class="cf-table">
+
+      <div v-else class="table-scroll cf-hide-scrollbar">
+        <table class="editorial-table">
           <thead>
             <tr>
-              <th class="ps-4" style="width: 120px;">ID</th>
+              <th class="ps-5">Identificador</th>
               <th>Denominação</th>
               <th>Escopo / Descrição</th>
-              <th class="text-center pe-4" style="width: 180px;">Ações</th>
+              <th class="text-center pe-5">Ações</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="cat in categorias" :key="cat.id">
-              <td class="ps-4">
-                <div class="cf-td-bold text-muted small">#{{ cat.id }}</div>
+            <tr v-for="cat in categorias" :key="cat.id" class="row-hover">
+              <td class="ps-5">
+                <div class="id-badge">#{{ cat.id }}</div>
               </td>
               <td>
-                <div class="cf-avatar-row">
-                  <div class="cf-cat-badge shadow-sm"><i class="fas fa-tags"></i></div>
-                  <div class="cf-td-bold text-dark">{{ cat.nome }}</div>
+                <div class="entity-cell">
+                  <div class="entity-avatar gold">
+                    <i class="fas fa-tags"></i>
+                  </div>
+                  <div class="entity-meta">
+                    <span class="entity-name">{{ cat.nome }}</span>
+                  </div>
                 </div>
               </td>
               <td>
-                <div class="text-muted small fw-bold">{{ cat.descricao || 'Nenhuma descrição técnica informada.' }}</div>
-                <div class="extra-small text-gold opacity-75 mt-1 fw-bold text-uppercase letter-spacing-1">Segmento Ativo</div>
+                <div class="doc-cell">
+                  <span class="doc-val">{{ cat.descricao || 'Nenhuma descrição técnica informada.' }}</span>
+                  <span class="doc-label mt-1 text-gold">SEGMENTO ATIVO</span>
+                </div>
               </td>
-              <td class="text-center pe-4">
-                <div class="d-flex justify-content-center gap-2">
-                  <button class="cf-icon-btn shadow-sm" @click="abrirModalEdicao(cat)" title="Editar Taxonomia">
+              <td class="text-center pe-5">
+                <div class="action-group">
+                  <button class="action-btn-circle" @click="abrirModalEdicao(cat)" title="Editar Taxonomia">
                     <i class="fas fa-pen-nib"></i>
                   </button>
-                  <button class="cf-icon-btn danger shadow-sm" @click="deletarCategoria(cat.id)" title="Remover Segmento">
+                  <button class="action-btn-circle danger" @click="deletarCategoria(cat.id)" title="Remover Segmento">
                     <i class="fas fa-trash-can"></i>
                   </button>
                 </div>
               </td>
             </tr>
             <tr v-if="categorias.length === 0">
-              <td colspan="4" class="cf-empty py-5">
-                <i class="fas fa-sitemap fa-3x mb-3 opacity-10"></i>
-                <p class="fw-bold text-muted">Aguardando definição de estrutura de categorias.</p>
+              <td colspan="4" class="empty-state">
+                <div class="empty-wrap">
+                  <i class="fas fa-sitemap"></i>
+                  <p>Aguardando definição de estrutura de categorias.</p>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -64,42 +75,42 @@
       </div>
     </div>
 
-    <!-- Modal Criar/Editar Premium -->
-    <div v-if="showModal" class="cf-modal-overlay" @click.self="showModal = false">
-      <div class="cf-modal-box animate__animated animate__fadeInUp dash-card" style="width: 520px;">
-        <div class="cf-modal-header border-bottom bg-light-subtle">
-          <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon-wrap bg-primary-subtle text-primary shadow-sm">
-              <i class="fas fa-tag"></i>
-            </div>
-            <div>
-              <h5 class="mb-0 fw-bold">{{ editandoId ? 'Refinar Categoria' : 'Nova Taxonomia' }}</h5>
-              <p class="mb-0 text-muted extra-small fw-bold text-uppercase letter-spacing-1">Configuração de Catálogo</p>
+    <!-- ═══ MODAL: CONFIGURAÇÃO DE CATEGORIA ═══ -->
+    <div v-if="showModal" class="modal-premium-overlay" @click.self="showModal = false">
+      <div class="config-modal animate__animated animate__fadeInUp" style="max-width: 520px;">
+        <header class="config-header">
+          <div class="header-brand">
+            <div class="config-icon" style="background: var(--cf-gold);"><i class="fas fa-tag"></i></div>
+            <div class="config-meta">
+              <h5>{{ editandoId ? 'Refinar Categoria' : 'Nova Taxonomia' }}</h5>
+              <span class="config-id">Configuração de Catálogo</span>
             </div>
           </div>
-          <button class="btn-close-custom shadow-sm" @click="showModal = false"><i class="fas fa-times"></i></button>
-        </div>
-        
-        <div class="cf-modal-body p-4 bg-white">
-           <form id="categoryForm" @submit.prevent="salvarCategoria">
-            <div class="mb-4">
-              <label class="cf-label-premium">Nome de Exibição</label>
-              <input type="text" class="cf-input-premium" v-model="form.nome" required placeholder="Ex: Higiene Pessoal, Dermocosméticos...">
+          <button class="close-modal" @click="showModal = false"><i class="fas fa-times"></i></button>
+        </header>
+
+        <div class="config-content cf-hide-scrollbar">
+          <form id="categoryForm" @submit.prevent="salvarCategoria">
+            <div class="config-grid" style="grid-template-columns: 1fr;">
+              <div class="form-group col-span-2">
+                <label class="editorial-label">Nome de Exibição</label>
+                <input type="text" class="editorial-input" v-model="form.nome" required placeholder="Ex: Higiene Pessoal, Dermocosméticos...">
+              </div>
+              <div class="form-group col-span-2">
+                <label class="editorial-label">Descrição Técnica (Opcional)</label>
+                <textarea class="editorial-textarea" v-model="form.descricao" rows="4" placeholder="Detalhe o escopo desta categoria para melhor indexação..."></textarea>
+              </div>
             </div>
-            <div class="mb-0">
-              <label class="cf-label-premium">Descrição Técnica (Opcional)</label>
-              <textarea class="cf-input-premium" v-model="form.descricao" rows="4" placeholder="Detalhe o escopo desta categoria para melhor indexação..."></textarea>
-            </div>
-           </form>
+          </form>
         </div>
 
-        <div class="cf-modal-footer bg-light-subtle p-3 border-top">
-          <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill" @click="showModal = false">Cancelar</button>
-          <button type="submit" form="categoryForm" class="cf-btn-primary px-4 shadow-sm" :disabled="isSaving">
-            <i v-if="isSaving" class="spinner-border spinner-border-sm me-2"></i>
+        <footer class="config-footer">
+          <button type="button" class="btn-cancel" @click="showModal = false">Cancelar</button>
+          <button type="submit" form="categoryForm" class="btn-save" :disabled="isSaving" style="background: var(--cf-gold); box-shadow: 0 4px 15px rgba(184,149,80,0.3);">
+            <i v-if="isSaving" class="fas fa-circle-notch fa-spin me-2"></i>
             {{ editandoId ? 'Sincronizar Alterações' : 'Efetivar Categoria' }}
           </button>
-        </div>
+        </footer>
       </div>
     </div>
   </div>
@@ -182,17 +193,3 @@ export default {
 }
 </script>
 
-<style scoped>
-.cf-mgmt { padding-bottom: 2rem; animation: fadeIn 0.5s ease-out; }
-
-.cf-table-card { background: #fff; border-radius: 24px; border: 1px solid var(--cf-border); box-shadow: var(--cf-shadow-sm); overflow: hidden; }
-
-.cf-cat-badge { width: 40px; height: 40px; border-radius: 12px; background: var(--cf-ivory); color: var(--cf-gold); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; border: 1px solid rgba(184,149,80,0.1); }
-
-.cf-avatar-row { display: flex; align-items: center; gap: 1rem; }
-
-.extra-small { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-.letter-spacing-1 { letter-spacing: 0.08em; }
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-</style>

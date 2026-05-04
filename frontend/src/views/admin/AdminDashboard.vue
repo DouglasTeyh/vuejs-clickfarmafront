@@ -205,11 +205,16 @@ export default {
 </script>
 
 
+<style>
+@import '@/assets/admin-shared.css';
+</style>
+
 <style scoped>
 /* ═══ Shell & Base ═══ */
 .cf-admin-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--cf-ivory);
   font-family: var(--cf-sans);
   color: var(--cf-text-dark);
@@ -220,13 +225,12 @@ export default {
   width: 280px;
   background: var(--cf-green-dark);
   height: 100vh;
-  position: sticky;
-  top: 0;
   display: flex;
   flex-direction: column;
   transition: all 0.4s var(--cf-ease);
   z-index: 1050;
   box-shadow: 10px 0 30px rgba(0,0,0,0.15);
+  flex-shrink: 0;
 }
 .cf-sidebar.collapsed { width: 88px; }
 
@@ -384,6 +388,7 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100vh;
   min-width: 0;
 }
 
@@ -396,7 +401,7 @@ export default {
   justify-content: space-between;
   padding: 0 2rem;
   z-index: 1000;
-  position: sticky; top: 0;
+  flex-shrink: 0;
 }
 
 .topbar-left { display: flex; align-items: center; gap: 2rem; }
@@ -457,6 +462,7 @@ export default {
   padding: 2.5rem;
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* ═══ Transitions ═══ */

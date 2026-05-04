@@ -1,8 +1,5 @@
 package com.clickfarma.backend.service;
 
-import com.clickfarma.backend.model.Produto;
-import com.clickfarma.backend.repository.ProdutoRepository;
-import com.clickfarma.backend.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -79,7 +76,9 @@ public class AiRouterService {
         // Buscar IDs de produtos comprados recentemente
         List<Long> comprados = (usuarioId != null) ? 
             pedidoRepository.findByUsuarioId(usuarioId).stream()
+                .filter(p -> p.getItens() != null)
                 .flatMap(p -> p.getItens().stream())
+                .filter(item -> item.getProduto() != null)
                 .map(item -> item.getProduto().getId())
                 .distinct()
                 .limit(10)

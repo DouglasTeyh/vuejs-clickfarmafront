@@ -43,7 +43,7 @@
               <path d="m16.5 16.5 4 4" />
             </svg>
           </button>
-          <router-link :to="{ name: 'Checkout', params: { cart: JSON.stringify(cart) } }"
+          <button @click="toggleCartDrawer"
             class="cf-icon-btn position-relative" aria-label="Carrinho">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
@@ -51,7 +51,7 @@
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
             <span v-if="cartItemsCount > 0" class="cf-cart-badge">{{ cartItemsCount }}</span>
-          </router-link>
+          </button>
         </div>
 
         <!-- Toggle mobile -->
@@ -115,7 +115,7 @@
           <!-- Ações Desktop (Lado Direito) -->
           <div class="navbar-actions ms-auto d-none d-lg-flex align-items-center gap-3">
             <!-- Carrinho Desktop -->
-            <router-link :to="{ name: 'Checkout', params: { cart: JSON.stringify(cart) } }"
+            <button @click="toggleCartDrawer"
               class="cf-icon-btn cf-cart position-relative" aria-label="Carrinho">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
@@ -123,7 +123,7 @@
                 <path d="M16 10a4 4 0 0 1-8 0" />
               </svg>
               <span v-if="cartItemsCount > 0" class="cf-cart-badge">{{ cartItemsCount }}</span>
-            </router-link>
+            </button>
 
             <!-- Divisor vertical -->
             <div class="nav-divider d-none d-lg-block"></div>
@@ -219,7 +219,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['logout', 'openLoginModal', 'openRegisterModal']),
+    ...mapActions(['logout', 'openLoginModal', 'openRegisterModal', 'toggleCartDrawer']),
     async handleLogout() { await this.logout(); this.$router.push('/') },
     
     handleInput() {
@@ -263,7 +263,7 @@ export default {
       this.showSuggestions = false;
       
       // Lógica de IA se for semântica
-      const isSemantic = query.split(' ').length > 2 || /dor|febre|gripe|remedio|para/i.test(query);
+      const isSemantic = query.split(' ').length > 2 || /\b(dor|febre|gripe|remedio|para)\b/i.test(query);
 
       if (isSemantic) {
         this.$router.push({ path: '/products', query: { ai: query } });
@@ -713,65 +713,132 @@ header {
   box-shadow: none;
 }
 
-/* ---- RESPONSIVO ---- */
+/* ---- RESPONSIVO (PREMIUM MOBILE REBUILD) ---- */
 @media (max-width: 991.98px) {
+  /* Oculta a faixa de topo em mobile para um header mais limpo, estilo App */
+  .top-strip {
+    display: none !important;
+  }
+
+  /* Ajusta o navbar para ser mais compacto e fixed */
+  .navbar-main {
+    min-height: 60px;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+
+  .brand-img {
+    max-height: 40px;
+  }
+
+  /* Menu Collapse estilo Drawer/Overlay Premium */
   .navbar-collapse {
-    background: var(--cf-white);
-    border-top: 1px solid var(--cf-border);
-    padding: 1rem 0;
-    margin-top: 0.5rem;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(0,0,0,0.05);
+    padding: 1.5rem;
     position: absolute;
     top: 100%;
     left: 0;
     width: 100%;
     z-index: 1000;
-    box-shadow: var(--cf-shadow-md);
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
   }
 
+  /* Links no mobile */
+  .cf-nav-link {
+    font-size: 1rem;
+    padding: 1rem !important;
+    border-radius: 12px;
+    font-weight: 500;
+    border: 1px solid transparent;
+    margin-bottom: 0.5rem;
+  }
+  .cf-nav-link:hover, .cf-nav-link.router-link-active {
+    background: var(--cf-green-xlight);
+    border-color: var(--cf-green-light);
+  }
+
+  /* Botões e Ações */
   .navbar-actions {
-    padding-top: 1rem;
-    border-top: 1px solid var(--cf-border);
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
     margin-top: 1rem;
     flex-direction: column;
     align-items: stretch !important;
     gap: 12px !important;
   }
 
-  .search-wrapper {
-    width: 100%;
-    margin: 1rem 0;
-    max-width: none;
-  }
-
-  .cf-search-input.expanded {
-    width: 100%;
-  }
-
-  .search-container {
-    width: 100%;
-  }
-
   .cf-btn-ghost,
   .cf-btn-solid {
     width: 100%;
     text-align: center;
+    padding: 0.8rem;
+    border-radius: 100px; /* Mais moderno */
+    font-size: 0.9rem;
+    font-weight: 600;
   }
 
   .cf-user-btn {
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
+    padding: 0.8rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: transparent;
+    border: 1px solid var(--cf-border);
+  }
+
+  /* Barra de busca que aparece no clique */
+  .mobile-search-bar {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+  }
+  
+  .cf-search-input-static {
+    padding: 0.8rem 3rem 0.8rem 1.5rem;
+    border-radius: 100px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .cf-search-input-static:focus {
+    background: #fff;
+    border-color: var(--cf-green);
+    box-shadow: 0 0 0 4px rgba(42, 92, 69, 0.1);
+  }
+
+  /* Botões superiores (Busca e Cart) */
+  .mobile-actions {
+    gap: 8px;
+  }
+  .cf-icon-btn {
+    width: 42px;
+    height: 42px;
+    background: #f8fafc;
+    border-radius: 50%;
+  }
+  .cf-icon-btn:active {
+    transform: scale(0.95);
+  }
+  .cf-cart-badge {
+    width: 18px; height: 18px; font-size: 0.7rem; top: 0px; right: 0px;
   }
 }
 
 @media (max-width: 576px) {
-  .top-strip {
-    font-size: 0.6rem;
-  }
-
   .brand-img {
-    max-height: 44px;
+    max-height: 36px;
   }
+  .navbar-main { min-height: 54px; }
+  .cf-icon-btn { width: 38px; height: 38px; }
 }
 </style>

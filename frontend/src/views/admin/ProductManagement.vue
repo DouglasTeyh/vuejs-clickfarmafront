@@ -174,10 +174,15 @@
               <div class="asset-side-col">
                 <div class="asset-preview-card ivory">
                   <label class="editorial-label text-center mb-3">Asset Digital</label>
-                  <div class="preview-wrap">
-                    <img :src="form.imageUrl || 'https://cdn-icons-png.flaticon.com/512/883/883360.png'">
+                  <div class="image-upload-box" @click="$refs.fileInput.click()" style="width:100%; height:180px; border:2px dashed var(--cf-border); border-radius:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; background:#fff; position:relative;">
+                    <img v-if="form.imageUrl" :src="getImageUrl(form.imageUrl)" style="width:100%; height:100%; object-fit:contain; padding:10px;">
+                    <div v-else style="text-align:center; color:var(--cf-text-faint);">
+                      <i class="fas fa-camera fa-2x mb-2"></i>
+                      <p class="small mb-0">UPLOAD</p>
+                    </div>
+                    <input type="file" ref="fileInput" class="d-none" accept="image/*" @change="onFileChange">
                   </div>
-                  <input type="text" class="editorial-input sm mt-3" v-model="form.imageUrl" placeholder="URL da imagem">
+                  <input type="text" class="editorial-input sm mt-3" v-model="form.imageUrl" placeholder="Ou URL externa...">
                 </div>
 
                 <div class="regulation-card mt-4">
@@ -223,7 +228,8 @@ export default {
       filtroFarmacia: 'todas',
       filtroReceita: 'todos',
       form: {},
-      editandoId: null
+      editandoId: null,
+      selectedFile: null
     }
   },
   computed: {
@@ -261,6 +267,20 @@ export default {
       } catch (err) { console.error(err); }
       finally { this.isLoading = false; }
     },
+    getImageUrl(url) {
+      if (!url) return 'https://cdn-icons-png.flaticon.com/512/883/883360.png';
+      if (url.startsWith('http')) return url;
+      return url;
+    },
+    onFileChange(e) {
+      const file = e.target.files[0];
+      if (file) {
+        this.selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = (event) => { this.form.imageUrl = event.target.result; };
+        reader.readAsDataURL(file);
+      }
+    },
     abrirModalEdicao(produto) {
       this.editandoId = produto.id;
       const catId = produto.categoriaId || produto.categoria?.id;
@@ -283,7 +303,31 @@ export default {
     async atualizarProduto() {
       this.isSaving = true;
       try {
-        await api.put(`/produtos/${this.editandoId}`, this.form);
+        const payload = {
+          nome: this.form.nome,
+          principioAtivo: this.form.principioAtivo,
+          dosagem: this.form.dosagem,
+          laboratorio: this.form.laboratorio,
+          imageUrl: this.form.imageUrl,
+          descricao: this.form.descricao,
+          descricaoBreve: this.form.descricaoBreve,
+          preco: this.form.preco,
+          estoque: this.form.estoque,
+          categoriaId: this.form.categoriaId,
+          farmaciaId: this.form.farmaciaId,
+          necessitaReceita: this.form.necessitaReceita
+        };
+
+        await api.put(`/produtos/${this.editandoId}`, payload);
+        
+        if (this.selectedFile) {
+          const formData = new FormData();
+          formData.append('file', this.selectedFile);
+          await api.post(`/produtos/${this.editandoId}/upload-image`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+        }
+
         this.showModal = false;
         await this.fetchProducts();
         if (window.$toast) window.$toast.addToast('Produto atualizado com sucesso!', 'success');

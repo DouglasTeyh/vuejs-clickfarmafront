@@ -88,7 +88,13 @@ export default {
         this.toast.success(`Bem-vindo, ${res.data.nome}!`);
         this.$router.push('/courier/dashboard');
       } catch (err) {
-        this.toast.error('Credenciais inválidas. Tente novamente.');
+        console.error('Erro no login entregador:', err);
+        const msg = (err.response?.data?.mensagem || err.message || '').toLowerCase();
+        if (msg.includes('401') || msg.includes('invalid') || msg.includes('credenciais')) {
+          this.toast.error('E-mail ou senha incorretos.');
+        } else {
+          this.toast.error(err.response?.data?.mensagem || 'Falha na autenticação.');
+        }
       } finally {
         this.loading = false;
       }

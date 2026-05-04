@@ -10,10 +10,18 @@ services:
     plan: free
     healthCheckPath: /api/produtos/buscar
     envVars:
-      - key: SPRING_DATASOURCE_URL
+      - key: DB_HOST
         fromDatabase:
           name: clickfarma-db
-          property: jdbcInternalUrl
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: clickfarma-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: clickfarma-db
+          property: database
       - key: SPRING_DATASOURCE_USERNAME
         fromDatabase:
           name: clickfarma-db

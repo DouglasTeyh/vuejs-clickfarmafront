@@ -22,6 +22,10 @@
         :initialMode="authModalMode"
         @close="closeAuthModal"
       />
+      <CartDrawer 
+        :isOpen="isCartDrawerOpen" 
+        @close="closeCartDrawer" 
+      />
       <NotificationToast ref="toast" />
       <Footer />
     </template>
@@ -39,12 +43,13 @@ import Footer from '@/components/common/Footer.vue'
 import GeminiChat from '@/components/gemini/GeminiChat.vue'
 import ProductQuickView from '@/components/products/ProductQuickView.vue'
 import AuthModal from '@/components/auth/AuthModal.vue'
+import CartDrawer from '@/components/cart/CartDrawer.vue'
 import NotificationToast from '@/components/common/NotificationToast.vue'
 import { mapState, mapActions } from 'vuex'
 
 export default {
   name: 'App',
-  components: { Header, Footer, GeminiChat, ProductQuickView, AuthModal, NotificationToast },
+  components: { Header, Footer, GeminiChat, ProductQuickView, AuthModal, NotificationToast, CartDrawer },
   data() {
     return { isChatOpen: false };
   },
@@ -53,7 +58,7 @@ export default {
     window.$toast = this.$refs.toast;
   },
   computed: {
-    ...mapState(['isQuickViewOpen', 'quickViewProduct', 'isAuthModalOpen', 'authModalMode']),
+    ...mapState(['isQuickViewOpen', 'quickViewProduct', 'isAuthModalOpen', 'authModalMode', 'isCartDrawerOpen']),
     isDashboardRoute() {
       const path = this.$route.path;
       return path.startsWith('/admin') || 
@@ -67,7 +72,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['closeQuickView', 'closeAuthModal']),
+    ...mapActions(['closeQuickView', 'closeAuthModal', 'closeCartDrawer']),
     toggleChat() { this.isChatOpen = !this.isChatOpen; }
   }
 }

@@ -56,11 +56,12 @@
             <input 
               type="email" 
               class="form-control" 
-              :class="{ 'is-invalid': error && !loginData.email }"
+              :class="{ 'is-invalid': fieldErrors.email || (error && !loginData.email) }"
               v-model="loginData.email" 
               placeholder="seu@email.com"
-              required
+              @input="clearFieldError('email')"
             >
+            <span v-if="fieldErrors.email" class="error-message">{{ fieldErrors.email }}</span>
           </div>
           <div class="mb-4">
             <label class="form-label d-flex justify-content-between">
@@ -70,11 +71,12 @@
             <input 
               type="password" 
               class="form-control" 
-              :class="{ 'is-invalid': error && !loginData.senha }"
+              :class="{ 'is-invalid': fieldErrors.senha || (error && !loginData.senha) }"
               v-model="loginData.senha" 
               placeholder="Sua senha"
-              required
+              @input="clearFieldError('senha')"
             >
+            <span v-if="fieldErrors.senha" class="error-message">{{ fieldErrors.senha }}</span>
           </div>
           <button type="submit" class="cf-btn-solid w-100 py-3 mb-3" :disabled="loading">
             <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
@@ -83,50 +85,76 @@
         </form>
 
         <!-- Register Form -->
-        <form v-else @submit.prevent="handleRegister" class="auth-form scrollable-form">
+        <form v-else @submit.prevent="handleRegister" class="auth-form scrollable-form" :class="{ 'shake-error': shake }">
           <div class="row g-3">
             <!-- Basic Info -->
             <div class="col-md-6">
               <label class="form-label">Nome {{ registerData.role === 'PHARMACY' ? 'do Estabelecimento' : 'Completo' }} *</label>
-              <input type="text" class="form-control" v-model="registerData.nome" required>
+              <input 
+                type="text" 
+                class="form-control" 
+                :class="{ 'is-invalid': fieldErrors.nome }"
+                v-model="registerData.nome"
+                @input="clearFieldError('nome')"
+              >
+              <span v-if="fieldErrors.nome" class="error-message">{{ fieldErrors.nome }}</span>
             </div>
             <div class="col-md-6">
               <label class="form-label">Email *</label>
-              <input type="email" class="form-control" v-model="registerData.email" required>
+              <input 
+                type="email" 
+                class="form-control" 
+                :class="{ 'is-invalid': fieldErrors.email }"
+                v-model="registerData.email"
+                @input="clearFieldError('email')"
+              >
+              <span v-if="fieldErrors.email" class="error-message">{{ fieldErrors.email }}</span>
             </div>
 
             <!-- Documents -->
             <div class="col-md-6" v-if="registerData.role === 'PHARMACY'">
               <label class="form-label">CNPJ *</label>
-              <div class="input-group">
+              <div class="input-group has-validation">
                 <input 
                   type="text" 
                   class="form-control" 
+                  :class="{ 'is-invalid': fieldErrors.cnpj }"
                   v-model="registerData.cnpj" 
-                  v-maska="'##.###.###/####-##'"
+                  v-mask="'cnpj'"
                   @blur="validateCnpj"
+                  @input="clearFieldError('cnpj')"
                   placeholder="00.000.000/0000-00"
-                  required
                 >
                 <span v-if="validatingCnpj" class="input-group-text"><i class="fa-solid fa-spinner fa-spin"></i></span>
               </div>
+              <span v-if="fieldErrors.cnpj" class="error-message">{{ fieldErrors.cnpj }}</span>
             </div>
             <div class="col-md-6" v-else>
               <label class="form-label">CPF *</label>
               <input 
                 type="text" 
                 class="form-control" 
+                :class="{ 'is-invalid': fieldErrors.cpf }"
                 v-model="registerData.cpf" 
-                v-maska="'###.###.###-##'"
+                v-mask="'cpf'"
+                @input="clearFieldError('cpf')"
                 placeholder="000.000.000-00"
-                required
               >
+              <span v-if="fieldErrors.cpf" class="error-message">{{ fieldErrors.cpf }}</span>
             </div>
 
             <!-- PIX for Pharmacy -->
             <div class="col-md-6" v-if="registerData.role === 'PHARMACY'">
               <label class="form-label">Chave PIX para Recebimento *</label>
-              <input type="text" class="form-control" v-model="registerData.chavePix" placeholder="Chave para repasses semanais" required>
+              <input 
+                type="text" 
+                class="form-control" 
+                :class="{ 'is-invalid': fieldErrors.chavePix }"
+                v-model="registerData.chavePix" 
+                @input="clearFieldError('chavePix')"
+                placeholder="Chave para repasses semanais"
+              >
+              <span v-if="fieldErrors.chavePix" class="error-message">{{ fieldErrors.chavePix }}</span>
             </div>
 
             <!-- Address Section -->
@@ -136,30 +164,53 @@
 
             <div class="col-md-4">
               <label class="form-label">CEP *</label>
-              <div class="input-group">
+              <div class="input-group has-validation">
                 <input 
                   type="text" 
                   class="form-control" 
+                  :class="{ 'is-invalid': fieldErrors.cep }"
                   v-model="registerData.cep" 
-                  v-maska="'#####-###'"
+                  v-mask="'cep'"
                   @blur="handleCepBlur"
+                  @input="clearFieldError('cep')"
                   placeholder="00000-000"
-                  required
                 >
                 <span v-if="loadingCep" class="input-group-text"><i class="fa-solid fa-spinner fa-spin"></i></span>
               </div>
+              <span v-if="fieldErrors.cep" class="error-message">{{ fieldErrors.cep }}</span>
             </div>
             <div class="col-md-8">
               <label class="form-label">Logradouro *</label>
-              <input type="text" class="form-control" v-model="registerData.logradouro" required>
+              <input 
+                type="text" 
+                class="form-control" 
+                :class="{ 'is-invalid': fieldErrors.logradouro }"
+                v-model="registerData.logradouro"
+                @input="clearFieldError('logradouro')"
+              >
+              <span v-if="fieldErrors.logradouro" class="error-message">{{ fieldErrors.logradouro }}</span>
             </div>
             <div class="col-md-3">
               <label class="form-label">Número *</label>
-              <input type="text" class="form-control" v-model="registerData.numero" required>
+              <input 
+                type="text" 
+                class="form-control" 
+                :class="{ 'is-invalid': fieldErrors.numero }"
+                v-model="registerData.numero"
+                @input="clearFieldError('numero')"
+              >
+              <span v-if="fieldErrors.numero" class="error-message">{{ fieldErrors.numero }}</span>
             </div>
             <div class="col-md-5">
               <label class="form-label">Bairro *</label>
-              <input type="text" class="form-control" v-model="registerData.bairro" required>
+              <input 
+                type="text" 
+                class="form-control" 
+                :class="{ 'is-invalid': fieldErrors.bairro }"
+                v-model="registerData.bairro"
+                @input="clearFieldError('bairro')"
+              >
+              <span v-if="fieldErrors.bairro" class="error-message">{{ fieldErrors.bairro }}</span>
             </div>
             <div class="col-md-4">
               <label class="form-label">Complemento</label>
@@ -180,10 +231,12 @@
               <input 
                 type="password" 
                 class="form-control" 
+                :class="{ 'is-invalid': fieldErrors.senha }"
                 v-model="registerData.senha" 
+                @input="clearFieldError('senha')"
                 placeholder="Mínimo 6 caracteres"
-                required
               >
+              <span v-if="fieldErrors.senha" class="error-message">{{ fieldErrors.senha }}</span>
             </div>
           </div>
 
@@ -228,6 +281,7 @@ export default {
       validatingCnpj: false,
       error: null,
       shake: false,
+      fieldErrors: {},
       loginData: {
         email: '',
         senha: ''
@@ -265,43 +319,68 @@ export default {
     },
     toggleMode() {
       this.isLoginMode = !this.isLoginMode;
+      this.error = null;
+      this.fieldErrors = {};
+    },
+    validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    },
+    clearFieldError(field) {
+      if (this.fieldErrors[field]) {
+        delete this.fieldErrors[field];
+      }
+      if (Object.keys(this.fieldErrors).length === 0) {
+        this.error = null;
+      }
     },
     async handleLogin() {
-      this.loading = true;
+      this.fieldErrors = {};
       this.error = null;
       this.shake = false;
 
+      if (!this.loginData.email) {
+        this.fieldErrors.email = 'O email é obrigatório.';
+      } else if (!this.validateEmail(this.loginData.email)) {
+        this.fieldErrors.email = 'Insira um email válido.';
+      }
+
+      if (!this.loginData.senha) {
+        this.fieldErrors.senha = 'A senha é obrigatória.';
+      }
+
+      if (Object.keys(this.fieldErrors).length > 0) {
+        this.triggerShake();
+        return;
+      }
+
+      this.loading = true;
       try {
         const user = await this.login(this.loginData);
-        console.log('Login result:', user);
-        
         if (window.$toast) {
             const nameToSplit = (user && (user.nome || user.name)) || 'Usuário';
             const firstName = String(nameToSplit).split(' ')[0];
             window.$toast.addToast(`Bem-vindo de volta, ${firstName}!`, 'success');
         }
-
         this.close();
-        
-        // Lógica de redirecionamento baseada no Role
         const role = user.role?.toUpperCase();
-        
-        if (role === 'PHARMACY') {
-          this.$router.push('/pharmacy/dashboard');
-        } else if (role === 'COURIER') {
-          this.$router.push('/courier/dashboard');
-        } else if (role === 'ADMIN') {
-          this.$router.push('/admin/dashboard');
-        } else {
-          // Cliente: Continua no site
-          if (this.authRedirectPath) {
-            this.$router.push(this.authRedirectPath);
-          } else {
-            this.$router.go(0);
-          }
+        if (role === 'PHARMACY') { this.$router.push('/pharmacy/dashboard'); }
+        else if (role === 'COURIER') { this.$router.push('/courier/dashboard'); }
+        else if (role === 'ADMIN') { this.$router.push('/admin/dashboard'); }
+        else {
+          if (this.authRedirectPath) { this.$router.push(this.authRedirectPath); }
+          else { this.$router.go(0); }
         }
       } catch (err) {
-        this.error = err.message || 'Email ou senha incorretos. Tente novamente.';
+        console.error('❌ Erro no login:', err);
+        const msg = (err.message || '').toLowerCase();
+        if (msg.includes('credenciais') || msg.includes('invalid') || msg.includes('401')) {
+          this.error = 'E-mail ou senha incorretos.';
+          this.fieldErrors.email = ' ';
+          this.fieldErrors.senha = ' ';
+        } else {
+          this.error = err.message || 'Falha ao entrar.';
+        }
         this.triggerShake();
       } finally {
         this.loading = false;
@@ -318,7 +397,6 @@ export default {
       try {
         const data = await cnpjService.buscarCnpj(this.registerData.cnpj);
         if (data) {
-          // Opcional: Auto-preencher dados da farmácia vindos do CNPJ
           if (!this.registerData.nome) this.registerData.nome = data.fantasia || data.nome;
           if (!this.registerData.cep) {
             this.registerData.cep = data.cep;
@@ -329,10 +407,8 @@ export default {
             this.registerData.estado = data.estado;
           }
         }
-      } catch (error) {
-        this.error = error.message;
-        this.triggerShake();
-        this.registerData.cnpj = '';
+      } catch (err) {
+        this.fieldErrors.cnpj = err.message || 'CNPJ inválido ou não encontrado.';
       } finally {
         this.validatingCnpj = false;
       }
@@ -355,47 +431,63 @@ export default {
       }
     },
     async handleRegister() {
-      this.loading = true;
+      this.fieldErrors = {};
       this.error = null;
       this.shake = false;
 
+      let hasError = false;
+      if (!this.registerData.nome) { this.fieldErrors.nome = 'Nome é obrigatório.'; hasError = true; }
+      if (!this.registerData.email) { 
+        this.fieldErrors.email = 'Email é obrigatório.'; hasError = true; 
+      } else if (!this.validateEmail(this.registerData.email)) {
+        this.fieldErrors.email = 'Email inválido.'; hasError = true;
+      }
+      
+      if (!this.registerData.senha) {
+        this.fieldErrors.senha = 'Senha é obrigatória.'; hasError = true;
+      } else if (this.registerData.senha.length < 6) {
+        this.fieldErrors.senha = 'A senha deve ter pelo menos 6 caracteres.'; hasError = true;
+      }
+
+      if (this.registerData.role === 'PHARMACY') {
+        if (!this.registerData.cnpj) { this.fieldErrors.cnpj = 'CNPJ é obrigatório.'; hasError = true; }
+        if (!this.registerData.cep) { this.fieldErrors.cep = 'CEP é obrigatório.'; hasError = true; }
+        if (!this.registerData.logradouro) { this.fieldErrors.logradouro = 'Endereço é obrigatório.'; hasError = true; }
+        if (!this.registerData.numero) { this.fieldErrors.numero = 'Nº é obrigatório.'; hasError = true; }
+      } else {
+        if (!this.registerData.cpf) { this.fieldErrors.cpf = 'CPF é obrigatório.'; hasError = true; }
+      }
+
+      if (hasError) {
+        this.error = 'Por favor, preencha todos os campos obrigatórios corretamente.';
+        this.triggerShake();
+        return;
+      }
+
+      this.loading = true;
       try {
-        // Validação extra para farmácia
-        if (this.registerData.role === 'PHARMACY' && !this.registerData.cnpj) {
-          throw new Error('CNPJ é obrigatório para farmácias.');
-        }
-        if (this.registerData.role === 'PHARMACY' && !this.registerData.chavePix) {
-          throw new Error('Chave PIX é obrigatória para farmácias.');
-        }
-
         const user = await this.register(this.registerData);
-        console.log('Register result:', user);
-        
-        if (window.$toast) {
-            const nameToSplit = (user && (user.nome || user.name)) || 'Novo Usuário';
-            const firstName = String(nameToSplit).split(' ')[0];
-            window.$toast.addToast(`Conta criada com sucesso! Bem-vindo, ${firstName}.`, 'success');
-        }
-
-        this.close();
-
-        // Lógica de redirecionamento idêntica ao login
-        const role = user.role?.toUpperCase();
-        if (role === 'PHARMACY') {
-          this.$router.push('/pharmacy/dashboard');
-        } else if (role === 'COURIER') {
-          this.$router.push('/courier/dashboard');
-        } else if (role === 'ADMIN') {
-          this.$router.push('/admin/dashboard');
-        } else {
-          if (this.authRedirectPath) {
-            this.$router.push(this.authRedirectPath);
-          } else {
-            this.$router.go(0);
-          }
+        if (user) {
+          if (window.$toast) window.$toast.addToast('Conta criada com sucesso!', 'success');
+          this.close();
+          const role = user.role?.toUpperCase();
+          if (role === 'PHARMACY') { this.$router.push('/pharmacy/dashboard'); } 
+          else if (role === 'COURIER') { this.$router.push('/courier/dashboard'); }
+          else { this.$router.go(0); }
         }
       } catch (err) {
-        this.error = err.message || 'Erro ao criar conta. Tente novamente.';
+        console.error('❌ Erro no registro:', err);
+        const msg = (err.message || '').toLowerCase();
+        
+        if (msg.includes('key (email)=') || (msg.includes('email') && msg.includes('already exists'))) {
+          this.fieldErrors.email = 'Este e-mail já está em uso.';
+        } else if (msg.includes('key (cnpj)=') || (msg.includes('cnpj') && msg.includes('already exists'))) {
+          this.fieldErrors.cnpj = 'Este CNPJ já está cadastrado.';
+        } else if (msg.includes('key (cpf)=') || (msg.includes('cpf') && msg.includes('already exists'))) {
+          this.fieldErrors.cpf = 'Este CPF já está cadastrado.';
+        } else {
+          this.error = err.message || 'Erro ao criar conta.';
+        }
         this.triggerShake();
       } finally {
         this.loading = false;

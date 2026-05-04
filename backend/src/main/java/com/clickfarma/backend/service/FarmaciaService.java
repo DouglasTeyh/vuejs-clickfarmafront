@@ -3,8 +3,10 @@ package com.clickfarma.backend.service;
 import com.clickfarma.backend.dto.FarmaciaRequestDTO;
 import com.clickfarma.backend.dto.FarmaciaResponseDTO;
 import com.clickfarma.backend.model.Farmacia;
+import com.clickfarma.backend.model.Produto;
 import com.clickfarma.backend.model.Usuario;
 import com.clickfarma.backend.repository.FarmaciaRepository;
+import com.clickfarma.backend.repository.ProdutoRepository;
 import com.clickfarma.backend.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -84,6 +86,8 @@ public class FarmaciaService {
         if (dto.getTelefone() != null) farmacia.setTelefone(dto.getTelefone());
         if (dto.getEmail() != null) farmacia.setEmail(dto.getEmail());
         if (dto.getFotoUrl() != null) farmacia.setFotoUrl(dto.getFotoUrl());
+        if (dto.getChavePix() != null) farmacia.setChavePix(dto.getChavePix());
+        if (dto.getTipoChavePix() != null) farmacia.setTipoChavePix(dto.getTipoChavePix());
 
         farmacia = farmaciaRepository.save(farmacia);
         return new FarmaciaResponseDTO(farmacia);
@@ -99,7 +103,24 @@ public class FarmaciaService {
         return new FarmaciaResponseDTO(farmaciaRepository.save(farmacia));
     }
 
+    @Autowired
+    private ProdutoRepository produtoRepository;
+
+    @Transactional
     public void deletar(Long id) {
-        farmaciaRepository.deleteById(id);
+        Farmacia farmacia = buscarEntidade(id);
+        
+        // Deletar produtos vinculados
+        List<Produto> produtos = produtoRepository.findByFarmaciaId(id);
+        produtoRepository.deleteAll(produtos);
+        
+        // Deletar o usuário associado
+        Usuario usuario = farmacia.getUsuario();
+        
+        farmaciaRepository.delete(farmacia);
+        
+        if (usuario != null) {
+            usuarioRepository.delete(usuario);
+        }
     }
 }

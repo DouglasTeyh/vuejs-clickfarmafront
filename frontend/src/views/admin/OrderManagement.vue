@@ -265,36 +265,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.cf-mgmt { padding-bottom: 2rem; animation: fadeIn 0.5s ease-out; }
-
-/* Custom Styling */
-.cf-table-card { background: #fff; border-radius: 24px; border: 1px solid var(--cf-border); box-shadow: var(--cf-shadow-sm); overflow: hidden; }
-
-.cf-user-initials { width: 36px; height: 36px; border-radius: 12px; background: var(--cf-ivory); color: var(--cf-gold); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 800; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(184,149,80,0.1); }
-.cf-user-initials.lg { width: 54px; height: 54px; font-size: 1.4rem; }
-
-.cf-status-badge { font-size: 0.62rem; font-weight: 800; padding: 0.35rem 0.8rem; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.1em; display: inline-flex; align-items: center; }
-.s-pending   { background: #FFF8EC; color: #9A6700; }
-.s-paid      { background: var(--cf-green-xlight); color: var(--cf-green); }
-.s-prep      { background: #FFF0E6; color: #9A4500; }
-.s-sent      { background: #EAF1FB; color: #2a6099; }
-.s-transit   { background: #F0EAFB; color: #5a2a99; }
-.s-done      { background: var(--cf-green-xlight); color: var(--cf-green-dark); box-shadow: inset 0 0 0 1px rgba(42,92,69,0.1); }
-.s-cancelled { background: #fef2f2; color: #dc2626; }
-
-.cf-detail-card { background: var(--cf-ivory); border: 1px solid var(--cf-border-mid); border-radius: 18px; }
-.cf-status-update-box { display: flex; gap: 0.5rem; background: #fff; padding: 0.4rem; border-radius: 14px; border: 1px solid var(--cf-border); }
-
-.cf-select-premium { border: none; outline: none; background: transparent; font-size: 0.85rem; font-weight: 700; color: var(--cf-text-dark); padding: 0 0.5rem; cursor: pointer; }
-
-.total-badge { background: var(--cf-ivory); padding: 1.25rem 2rem; border-radius: 20px; border: 1px dashed var(--cf-green-mid); }
-
-/* Layout Utils */
-.cf-avatar-row { display: flex; align-items: center; gap: 0.85rem; }
-.extra-small { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-.letter-spacing-1 { letter-spacing: 0.08em; }
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-</style>

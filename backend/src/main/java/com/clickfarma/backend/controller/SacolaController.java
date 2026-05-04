@@ -11,8 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import com.clickfarma.backend.dto.SacolaItemResponseDTO;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/sacola")
@@ -28,8 +30,12 @@ public class SacolaController {
     private ProdutoRepository produtoRepository;
 
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<SacolaItem>> listar(@PathVariable Long usuarioId) {
-        return ResponseEntity.ok(sacolaRepository.findByUsuarioId(usuarioId));
+    public ResponseEntity<List<SacolaItemResponseDTO>> listar(@PathVariable Long usuarioId) {
+        List<SacolaItemResponseDTO> dtos = sacolaRepository.findByUsuarioId(usuarioId)
+                .stream()
+                .map(SacolaItemResponseDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     @PostMapping("/adicionar")

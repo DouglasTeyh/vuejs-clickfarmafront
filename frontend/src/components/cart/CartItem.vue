@@ -22,34 +22,31 @@
         
         <!-- Quantidade -->
         <div class="col-md-2">
-          <div class="quantity-control">
-            <label :for="'quantity-' + item.id" class="form-label small">Quantidade</label>
-            <input 
-              type="number" 
-              :id="'quantity-' + item.id"
-              :value="item.quantity" 
-              min="1" 
-              class="form-control"
-              @input="handleQuantityChange($event)"
-              aria-label="Alterar quantidade"
-            >
+          <div class="quantity-control-group d-flex align-items-center">
+            <button class="btn-qty" @click="handleQuantityChange(item.quantity - 1)" :disabled="item.quantity <= 1">
+              <i class="fas fa-minus"></i>
+            </button>
+            <span class="qty-value mx-2">{{ item.quantity }}</span>
+            <button class="btn-qty" @click="handleQuantityChange(item.quantity + 1)">
+              <i class="fas fa-plus"></i>
+            </button>
           </div>
         </div>
         
         <!-- Preço -->
         <div class="col-md-2">
-          <p class="fw-bold item-total">R$ {{ itemTotal }}</p>
-          <p class="text-muted item-unit-price">R$ {{ itemPrice }} cada</p>
+          <p class="fw-bold item-total mb-0">R$ {{ itemTotal }}</p>
+          <p class="text-muted item-unit-price small">R$ {{ itemPrice }} cada</p>
         </div>
         
         <!-- Remover -->
-        <div class="col-md-2 text-center">
+        <div class="col-md-2 text-end">
           <button 
             @click="$emit('remove-item', item.id)" 
-            class="btn btn-outline-danger btn-sm"
-            aria-label="Remover item do carrinho"
+            class="btn-remove"
+            title="Remover do carrinho"
           >
-            ❌ Remover
+            <i class="far fa-trash-alt"></i>
           </button>
         </div>
       </div>
@@ -100,8 +97,8 @@ export default {
     }
   },
   methods: {
-    handleQuantityChange(event) {
-      const quantity = parseInt(event.target.value) || 1
+    handleQuantityChange(newQuantity) {
+      const quantity = Math.max(1, newQuantity)
       this.$emit('update-quantity', this.item.id, quantity)
     },
     handleImageError(event) {
@@ -139,9 +136,55 @@ export default {
   margin-bottom: 0.5rem;
 }
 
-.quantity-control input {
+.quantity-control-group {
+  background: var(--cf-green-xlight);
+  border-radius: 8px;
+  padding: 4px;
+  width: fit-content;
+}
+
+.btn-qty {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: white;
+  color: var(--cf-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.btn-qty:hover:not(:disabled) {
+  background: var(--cf-green);
+  color: white;
+}
+
+.btn-qty:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qty-value {
+  font-weight: 600;
+  min-width: 20px;
   text-align: center;
-  max-width: 80px;
+  color: var(--cf-text-dark);
+}
+
+.btn-remove {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  font-size: 1.1rem;
+  transition: color 0.2s;
+  padding: 8px;
+}
+
+.btn-remove:hover {
+  color: var(--cf-danger);
 }
 
 .item-total {

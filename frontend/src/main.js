@@ -11,8 +11,9 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 // 2. CARREGAR DESIGN SYSTEM DEPOIS (PARA SOBREPOR)
 import './theme.css'
 
-// Configuração do axios global (axios padrão, para compatibilidade)
-axios.defaults.baseURL = '/api'
+// Configuração do axios global
+const backendUrl = process.env.VUE_APP_BACKEND_URL || 'http://localhost:8080';
+axios.defaults.baseURL = backendUrl;
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
 // Interceptor para token (chave unificada: 'authToken')
@@ -27,9 +28,13 @@ axios.interceptors.request.use(
   error => Promise.reject(error)
 )
 
+import { vMask } from './utils/masks'
+
 console.log('🚀 Iniciando ClickFarma Frontend...')
 
 const app = createApp(App)
+app.directive('mask', vMask)
+app.config.globalProperties.$axios = axios;
 app.use(router)
 app.use(store)
 

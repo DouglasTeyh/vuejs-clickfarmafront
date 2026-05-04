@@ -96,6 +96,7 @@
                     <label class="form-label">Telefone celular</label>
                     <input 
                       v-model="profile.telefone" 
+                      v-mask="'phone'"
                       type="tel" 
                       class="form-control"
                       :disabled="!isEditing"
@@ -121,11 +122,11 @@
                     <div class="input-group">
                       <input 
                         v-model="profile.cep" 
+                        v-mask="'cep'"
                         @blur="lookupCep"
                         type="text" 
                         class="form-control"
                         :disabled="!isEditing"
-                        maxlength="9"
                         placeholder="00000-000"
                       >
                       <span v-if="loadingCep" class="input-group-text bg-white">

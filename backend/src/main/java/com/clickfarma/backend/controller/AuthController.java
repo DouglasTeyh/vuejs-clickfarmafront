@@ -65,12 +65,25 @@ public class AuthController {
             Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail())
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
+            Long farmaciaId = null;
+            Long motoboyId = null;
+
+            if ("PHARMACY".equals(usuario.getRole())) {
+                farmaciaId = farmaciaRepository.findByUsuario(usuario)
+                        .map(Farmacia::getId).orElse(null);
+            } else if ("COURIER".equals(usuario.getRole())) {
+                motoboyId = motoboyRepository.findByUsuario(usuario)
+                        .map(Motoboy::getId).orElse(null);
+            }
+
             return ResponseEntity.ok(new LoginResponseDTO(
                     token,
                     usuario.getId(),
                     usuario.getNome(),
                     usuario.getEmail(),
-                    usuario.getRole()
+                    usuario.getRole(),
+                    farmaciaId,
+                    motoboyId
             ));
 
         } catch (Exception e) {
@@ -155,13 +168,26 @@ public class AuthController {
                     .build();
             String token = jwtUtil.generateToken(userDetails);
 
+            Long farmaciaId = null;
+            Long motoboyId = null;
+
+            if ("PHARMACY".equalsIgnoreCase(savedUser.getRole())) {
+                farmaciaId = farmaciaRepository.findByUsuario(savedUser)
+                        .map(Farmacia::getId).orElse(null);
+            } else if ("COURIER".equalsIgnoreCase(savedUser.getRole())) {
+                motoboyId = motoboyRepository.findByUsuario(savedUser)
+                        .map(Motoboy::getId).orElse(null);
+            }
+
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new LoginResponseDTO(
                             token,
                             savedUser.getId(),
                             savedUser.getNome(),
                             savedUser.getEmail(),
-                            savedUser.getRole()
+                            savedUser.getRole(),
+                            farmaciaId,
+                            motoboyId
                     ));
 
         } catch (Exception e) {

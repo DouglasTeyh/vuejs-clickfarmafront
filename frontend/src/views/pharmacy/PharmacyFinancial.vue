@@ -33,6 +33,7 @@
               <div class="mb-4">
                 <label class="cf-label-premium">Chave PIX</label>
                 <input v-model="pix.chave" type="text" class="cf-input-premium" 
+                       v-mask="pix.tipo === 'CNPJ' ? 'cnpj' : (pix.tipo === 'CPF' ? 'cpf' : (pix.tipo === 'TELEFONE' ? 'phone' : ''))"
                        placeholder="Insira sua chave aqui..." required>
                 <div class="extra-small text-muted mt-2">
                   <i class="fas fa-info-circle me-1"></i>Certifique-se de que a chave está correta.

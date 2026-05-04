@@ -46,7 +46,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/uploads/**"
                         ).permitAll()
                         // Sensitive endpoints require authentication
                         .requestMatchers("/api/dashboard/**", "/api/usuarios/**").authenticated()

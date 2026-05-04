@@ -18,7 +18,7 @@ public class Produto {
     @Column(length = 200)
     private String descricaoBreve;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String descricao;
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -27,7 +27,7 @@ public class Produto {
     @Column(nullable = false)
     private Integer estoque;
 
-    @Column(name = "image_url", length = 500)
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "principio_ativo", length = 200)

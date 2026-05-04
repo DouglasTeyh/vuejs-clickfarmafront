@@ -16,20 +16,21 @@ export const cepService = {
     }
 
     try {
-      const response = await axios.get(`https://viacep.com.br/ws/${cleanCep}/json/`);
-      if (response.data.erro) {
-        throw new Error('CEP não encontrado.');
-      }
+      // BrasilAPI é mais rápida e agrega vários provedores (ViaCEP, Correios, etc)
+      const response = await axios.get(`https://brasilapi.com.br/api/cep/v1/${cleanCep}`);
       return {
-        logradouro: response.data.logradouro,
-        bairro: response.data.bairro,
-        cidade: response.data.localidade,
-        estado: response.data.uf,
+        logradouro: response.data.street,
+        bairro: response.data.neighborhood,
+        cidade: response.data.city,
+        estado: response.data.state,
         cep: response.data.cep
       };
     } catch (error) {
       console.error('Erro ao buscar CEP:', error);
-      throw error;
+      if (error.response && error.response.status === 404) {
+        throw new Error('CEP não encontrado.');
+      }
+      throw new Error('Erro ao buscar CEP. Verifique sua conexão.');
     }
   }
 };

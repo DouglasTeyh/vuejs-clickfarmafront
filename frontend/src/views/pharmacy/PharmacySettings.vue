@@ -45,7 +45,11 @@
               </div>
               <div class="form-group">
                 <label class="editorial-label">Telefone de Contato</label>
-                <input v-model="form.telefone" type="text" class="editorial-input" placeholder="(00) 00000-0000">
+                <input v-model="form.telefone" v-mask="'phone'" type="text" class="editorial-input" placeholder="(00) 00000-0000">
+              </div>
+              <div class="form-group">
+                <label class="editorial-label">CEP</label>
+                <input v-model="form.cep" v-mask="'cep'" type="text" class="editorial-input" placeholder="00000-000">
               </div>
               <div class="form-group col-span-2">
                 <label class="editorial-label">E-mail de Notificações</label>
@@ -87,7 +91,9 @@
               </div>
               <div class="form-group">
                 <label class="editorial-label">Chave para Recebimento</label>
-                <input v-model="form.chavePix" type="text" class="editorial-input" placeholder="Insira a chave exata">
+                <input v-model="form.chavePix" type="text" class="editorial-input" 
+                       v-mask="form.tipoChavePix === 'CNPJ' ? 'cnpj' : (form.tipoChavePix === 'CPF' ? 'cpf' : (form.tipoChavePix === 'TELEFONE' ? 'phone' : ''))"
+                       placeholder="Insira a chave exata">
               </div>
             </div>
           </div>

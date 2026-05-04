@@ -10,75 +10,8 @@
       <div class="row">
         <div class="col-md-8">
           <!-- Endereço -->
-          <div class="card shadow-sm border-0 p-4 mb-4">
-            <h4 class="mb-4 font-weight-bold"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Entrega</h4>
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label">Rua *</label>
-                <input
-                  type="text"
-                  v-model.trim="enderecoForm.rua"
-                  class="form-control bg-light"
-                  placeholder="Ex: Rua das Flores"
-                >
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Número *</label>
-                <input
-                  type="text"
-                  v-model.trim="enderecoForm.numero"
-                  class="form-control bg-light"
-                  placeholder="Ex: 123"
-                >
-              </div>
-              <div class="col-md-8">
-                <label class="form-label">Complemento</label>
-                <input
-                  type="text"
-                  v-model.trim="enderecoForm.complemento"
-                  class="form-control bg-light"
-                  placeholder="Apto, bloco, referência..."
-                >
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Bairro *</label>
-                <input
-                  type="text"
-                  v-model.trim="enderecoForm.bairro"
-                  class="form-control bg-light"
-                  placeholder="Ex: Centro"
-                >
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Cidade *</label>
-                <input
-                  type="text"
-                  v-model.trim="enderecoForm.cidade"
-                  class="form-control bg-light"
-                  placeholder="Ex: Recife"
-                >
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">UF *</label>
-                <input
-                  type="text"
-                  v-model.trim="enderecoForm.uf"
-                  class="form-control bg-light text-uppercase"
-                  maxlength="2"
-                  placeholder="Ex: PE"
-                >
-              </div>
-              <div class="col-md-8">
-                <label class="form-label">CEP *</label>
-                <input
-                  type="text"
-                  v-model.trim="enderecoForm.cep"
-                  class="form-control bg-light"
-                  placeholder="Ex: 50000-000"
-                >
-                <small class="text-muted">Campos com * são obrigatórios.</small>
-              </div>
-            </div>
+          <div class="mb-4">
+            <AddressSelector @loaded="enderecoSelecionado = $event" />
           </div>
           <!-- Pagamento -->
           <div class="cf-checkout-card">
@@ -99,9 +32,12 @@
               <h4 class="summary-title mb-4">Resumo do Pedido</h4>
               
               <div class="summary-items mb-4">
-                <div v-for="item in localCart" :key="item.id" class="summary-item mb-2">
-                  <span class="item-name">{{ item.name }} <small>(x{{ item.quantity }})</small></span>
-                  <span class="item-price">R$ {{ (item.price * item.quantity).toFixed(2).replace('.', ',') }}</span>
+                <div v-for="item in localCart" :key="item.id" class="checkout-item-mini mb-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="item-name-mini text-truncate" style="max-width: 180px;">{{ item.name }}</span>
+                    <span class="item-qty-mini small text-muted">x{{ item.quantity }}</span>
+                    <span class="item-price-mini fw-bold">R$ {{ (item.price * item.quantity).toFixed(2).replace('.', ',') }}</span>
+                  </div>
                 </div>
               </div>
 
@@ -132,50 +68,35 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 import { OrderService } from '@/services/orderService.js';
 import PaymentMethod from '@/components/checkout/PaymentMethod.vue';
+import AddressSelector from '@/components/cart/AddressSelector.vue';
+import api from '@/services/api';
 
 export default {
   props: ['cart'],
-  components: { PaymentMethod },
+  components: { PaymentMethod, AddressSelector },
   data() {
     return {
       loading: false,
-      enderecoForm: {
-        rua: '',
-        numero: '',
-        complemento: '',
-        bairro: '',
-        cidade: '',
-        uf: '',
-        cep: ''
-      },
+      enderecoSelecionado: null,
       metodo: 'MERCADO_PAGO',
       localCart: []
     };
   },
   computed: {
     ...mapState(['user']),
-    enderecoEntrega() {
-      const f = this.enderecoForm;
-      const parts = [
-        [f.rua, f.numero].filter(Boolean).join(', ').trim(),
-        f.complemento,
-        f.bairro,
-        [f.cidade, (f.uf || '').toUpperCase()].filter(Boolean).join(' - ').trim(),
-        f.cep ? `CEP ${f.cep}` : ''
-      ].filter(Boolean);
-      return parts.join(' · ');
-    },
     enderecoValido() {
-      const f = this.enderecoForm;
-      return Boolean(
-        f.rua && f.numero && f.bairro && f.cidade && f.uf && f.cep
-      );
+      return Boolean(this.enderecoSelecionado);
     },
     cartTotal() {
       return this.localCart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+  },
+  async mounted() {
+    if (this.isAuthenticated) {
+      await api.get('/enderecos');
     }
   },
   created() {
@@ -186,29 +107,27 @@ export default {
         this.localCart = [];
       }
     }
-    // Preenche com o endereco do usuario se existir (best-effort).
-    try {
-      const endereco = (this.user && this.user.endereco) ? String(this.user.endereco) : '';
-      if (endereco) {
-        // Nao tenta "parsear" string livre; apenas coloca como rua quando vier pronto.
-        this.enderecoForm.rua = endereco;
-      }
-    } catch (e) {}
   },
   methods: {
     setMetodo(m) { this.metodo = m; },
     async finalizar() {
-      if (!this.enderecoValido) {
-        alert('Preencha os dados de entrega (campos obrigatorios).');
-        return;
-      }
       this.loading = true;
       try {
+        const padrao = this.enderecoSelecionado;
+
+        if (!padrao) {
+          alert('Por favor, cadastre um endereço de entrega.');
+          this.loading = false;
+          return;
+        }
+
+        const enderecoString = `${padrao.logradouro}, ${padrao.numero} · ${padrao.bairro} · ${padrao.cidade}/${padrao.estado} · CEP ${padrao.cep}`;
+
         const pedidoRequest = {
           usuarioId: this.user ? this.user.id : 1,
           itens: this.localCart.map(item => ({ produtoId: item.id, quantidade: item.quantity || 1 })),
           metodoPagamento: this.metodo,
-          enderecoEntrega: this.enderecoEntrega,
+          enderecoEntrega: enderecoString,
           observacoes: '',
           subtotal: this.cartTotal,
           valorFrete: 0.0,
@@ -216,24 +135,11 @@ export default {
         };
 
         const res = await OrderService.createOrder(pedidoRequest);
-
-        // Salva o identificador do pedido para a tela de sucesso (Mercado Pago redireciona de volta).
-        try {
-          if (res && res.id) localStorage.setItem('ultimoPedidoId', String(res.id));
-          if (res && res.codigoPedido) localStorage.setItem('ultimoCodigoPedido', String(res.codigoPedido));
-        } catch (err) {
-          // best-effort; nao deve impedir o checkout
-        }
-
+        
         if (res.linkPagamento) {
           window.location.href = res.linkPagamento;
         } else {
-          // Fluxo simulado: segue dentro do sistema.
-          if (this.$router) {
-            this.$router.push('/sucesso-pagamento');
-          } else {
-            window.location.href = '/sucesso-pagamento';
-          }
+          this.$router.push('/sucesso-pagamento');
         }
       } catch (e) {
         console.error(e);
@@ -241,6 +147,12 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    formatCEP(v) {
+      if (!v) return '';
+      v = v.replace(/\D/g, '');
+      v = v.replace(/^(\d{5})(\d)/, '$1-$2');
+      return v.substring(0, 9);
     }
   }
 }

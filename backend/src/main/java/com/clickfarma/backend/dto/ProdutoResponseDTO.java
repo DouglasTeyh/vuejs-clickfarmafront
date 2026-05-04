@@ -31,7 +31,7 @@ public class ProdutoResponseDTO {
         this.nome = produto.getNome();
         this.descricaoBreve = produto.getDescricaoBreve();
         this.descricao = produto.getDescricao();
-        this.preco = produto.getPreco();
+        this.preco = aplicarTaxaClickFarma(produto.getPreco());
         this.estoque = produto.getEstoque();
         this.imageUrl = produto.getImageUrl();
         this.principioAtivo = produto.getPrincipioAtivo();
@@ -53,7 +53,14 @@ public class ProdutoResponseDTO {
         this.precoComDesconto = calcularPrecoComDesconto();
     }
 
+    private BigDecimal aplicarTaxaClickFarma(BigDecimal precoOriginal) {
+        if (precoOriginal == null) return BigDecimal.ZERO;
+        // Adiciona taxa de serviço de 5%
+        return precoOriginal.multiply(new BigDecimal("1.05")).setScale(2, java.math.RoundingMode.HALF_UP);
+    }
+
     private BigDecimal calcularPrecoComDesconto() {
+        if (preco == null) return BigDecimal.ZERO;
         if (Boolean.TRUE.equals(emPromocao) && descontoPercentual != null && descontoPercentual.compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal desconto = preco.multiply(descontoPercentual).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
             return preco.subtract(desconto);

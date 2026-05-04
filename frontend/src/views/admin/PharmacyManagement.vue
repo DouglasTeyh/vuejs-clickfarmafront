@@ -120,12 +120,22 @@
             
             <div class="form-group">
               <label class="editorial-label">CNPJ Operacional</label>
-              <input v-model="form.cnpj" class="editorial-input" placeholder="00.000.000/0001-00">
+              <input v-model="form.cnpj" @input="form.cnpj = formatCNPJ($event.target.value)" class="editorial-input" placeholder="00.000.000/0001-00">
+            </div>
+
+            <div class="form-group">
+              <label class="editorial-label">CEP</label>
+              <input v-model="form.cep" @input="form.cep = formatCEP($event.target.value)" class="editorial-input" placeholder="00000-000">
             </div>
 
             <div class="form-group">
               <label class="editorial-label">Cidade / UF</label>
               <input v-model="form.cidade" class="editorial-input" placeholder="Cidade - UF">
+            </div>
+
+            <div class="form-group">
+              <label class="editorial-label">Telefone</label>
+              <input v-model="form.telefone" @input="form.telefone = formatPhone($event.target.value)" class="editorial-input" placeholder="(00) 00000-0000">
             </div>
 
             <div class="form-group col-span-2">
@@ -216,7 +226,29 @@ export default {
       try { await api.delete(`/farmacias/${this.paraDeletar.id}`); await this.carregar(); this.paraDeletar = null; }
       catch { alert('Erro ao remover.'); }
     },
-    d(dt) { if (!dt) return '—'; return new Date(dt).toLocaleDateString('pt-BR'); }
+    d(dt) { if (!dt) return '—'; return new Date(dt).toLocaleDateString('pt-BR'); },
+    formatCNPJ(v) {
+      if (!v) return '';
+      v = v.replace(/\D/g, '');
+      v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+      v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+      v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+      v = v.replace(/(\d{4})(\d)/, '$1-$2');
+      return v.substring(0, 18);
+    },
+    formatCEP(v) {
+      if (!v) return '';
+      v = v.replace(/\D/g, '');
+      v = v.replace(/^(\d{5})(\d)/, '$1-$2');
+      return v.substring(0, 9);
+    },
+    formatPhone(v) {
+      if (!v) return '';
+      v = v.replace(/\D/g, '');
+      v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+      v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+      return v.substring(0, 15);
+    }
   }
 };
 </script>

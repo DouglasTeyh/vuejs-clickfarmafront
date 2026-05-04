@@ -18,35 +18,38 @@ export const cnpjService = {
     }
 
     try {
-      // Usando ReceitaWS via proxy (ou direto se for um ambiente que permita)
-      // Nota: Em produção, o ideal é fazer essa chamada pelo BACKEND para evitar CORS e expor chaves.
-      const response = await axios.get(`https://publica.cnpj.ws/cnpj/${cleanCnpj}`);
+      // Usando BrasilAPI (mais estável e sem problemas graves de CORS para frontend)
+      const response = await axios.get(`https://brasilapi.com.br/api/cnpj/v1/${cleanCnpj}`);
       
       const data = response.data;
-      const status = data.estabelecimento.situacao_cadastral;
       
-      if (status !== 'Ativa' && status !== 'ATIVA') {
-        throw new Error(`Este CNPJ não está ativo (Status: ${status}).`);
-      }
-
+      // No BrasilAPI, a situação cadastral é um número (2 = Ativa) ou string
+      const status = data.descricao_situacao_cadastral || data.situacao_cadastral;
+      
       return {
         nome: data.razao_social,
-        fantasia: data.estabelecimento.nome_fantasia || data.razao_social,
+        fantasia: data.nome_fantasia || data.razao_social,
         cnpj: data.cnpj,
         situacao: status,
-        logradouro: data.estabelecimento.tipo_logradouro + ' ' + data.estabelecimento.logradouro,
-        numero: data.estabelecimento.numero,
-        bairro: data.estabelecimento.bairro,
-        cep: data.estabelecimento.cep,
-        cidade: data.estabelecimento.cidade.nome,
-        estado: data.estabelecimento.estado.sigla
+        logradouro: data.logradouro,
+        numero: data.numero,
+        bairro: data.bairro,
+        cep: data.cep,
+        cidade: data.municipio,
+        estado: data.uf
       };
     } catch (error) {
       console.error('Erro ao buscar CNPJ:', error);
-      if (error.response && error.response.status === 429) {
-        throw new Error('Muitas consultas. Aguarde um momento e tente novamente.');
+      if (error.response && error.response.status === 404) {
+        throw new Error('CNPJ não encontrado.');
       }
-      throw new Error(error.message || 'Erro ao validar CNPJ.');
+      if (error.response && error.response.status === 400) {
+        throw new Error('CNPJ inválido ou formatado incorretamente.');
+      }
+      if (error.response && error.response.status === 429) {
+        throw new Error('Muitas consultas. Aguarde um momento.');
+      }
+      throw new Error('Erro ao validar CNPJ. Verifique se o número está correto.');
     }
   }
 };

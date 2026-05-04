@@ -295,9 +295,95 @@ export default {
 .cf-scroll-content { display: flex; gap: 20px; width: max-content; padding: 0 5px; }
 .cf-product-card-horizontal { width: 280px; }
 
+/* ---- RESPONSIVO (PREMIUM MOBILE REBUILD) ---- */
 @media (max-width: 991px) {
-  .hero-section { min-height: 60vh; padding: 60px 0; }
-  .hero-title { font-size: 2.8rem; }
-  .cf-product-card-horizontal { width: 240px; }
+  /* Hero Section */
+  .hero-section {
+    min-height: auto;
+    padding: 3rem 0;
+    text-align: center;
+    background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  }
+  
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 1rem;
+  }
+
+  .hero-badge {
+    font-size: 0.65rem;
+    padding: 6px 12px;
+    margin-bottom: 1rem;
+    background: rgba(42,92,69,0.08);
+  }
+
+  .hero-title {
+    font-size: 2.2rem;
+    line-height: 1.1;
+    margin-bottom: 1rem !important;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 2rem !important;
+    padding: 0 1rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px !important;
+    padding: 0 1rem;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    border-radius: 100px;
+  }
+
+  /* Seção AI */
+  .ai-banner {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 15px;
+    padding: 1.2rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .ai-banner h4 {
+    font-size: 1.1rem;
+  }
+
+  .ai-icon-pulse {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+
+  /* Listas de Produtos */
+  .category-title {
+    font-size: 1.6rem;
+  }
+
+  .products-sections {
+    padding: 2rem 0;
+  }
+
+  .category-row {
+    margin-bottom: 2.5rem !important;
+  }
+
+  .cf-product-card-horizontal {
+    width: 220px; /* Cartões levemente menores no mobile */
+  }
+
+  .cf-horizontal-scroll {
+    padding: 5px 0 20px;
+  }
 }
 </style>

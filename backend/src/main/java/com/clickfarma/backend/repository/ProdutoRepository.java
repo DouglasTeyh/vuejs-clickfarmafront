@@ -20,14 +20,14 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
     List<Produto> findByEstoqueLessThan(Integer limite);
 
-    @Query("SELECT p FROM Produto p WHERE " +
-            "(:nome IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :nome, '%')) OR " +
-            " LOWER(p.descricao) LIKE LOWER(CONCAT('%', :nome, '%')) OR " +
-            " LOWER(p.principioAtivo) LIKE LOWER(CONCAT('%', :nome, '%'))) AND " +
-            "(:categoriaId IS NULL OR p.categoria.id = :categoriaId) AND " +
+    @Query("SELECT p FROM Produto p LEFT JOIN p.farmacia f LEFT JOIN p.categoria c WHERE " +
+            "(:nome IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', CAST(:nome AS text), '%')) OR " +
+            " LOWER(p.descricao) LIKE LOWER(CONCAT('%', CAST(:nome AS text), '%')) OR " +
+            " LOWER(p.principioAtivo) LIKE LOWER(CONCAT('%', CAST(:nome AS text), '%'))) AND " +
+            "(:categoriaId IS NULL OR c.id = :categoriaId) AND " +
             "(:precoMin IS NULL OR p.preco >= :precoMin) AND " +
             "(:precoMax IS NULL OR p.preco <= :precoMax) AND " +
-            "(:cidade IS NULL OR LOWER(p.farmacia.cidade) = LOWER(:cidade)) AND " +
+            "(:cidade IS NULL OR LOWER(f.cidade) = LOWER(CAST(:cidade AS text))) AND " +
             "(:emPromocao IS NULL OR p.emPromocao = :emPromocao)")
     List<Produto> buscarProdutosFiltrados(
             @Param("nome") String nome,

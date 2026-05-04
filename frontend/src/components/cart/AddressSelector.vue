@@ -15,23 +15,35 @@
       <i class="fas fa-info-circle me-1"></i> Nenhum endereço cadastrado.
     </div>
 
-    <div v-else class="address-list">
-      <div 
-        v-for="addr in enderecos" 
-        :key="addr.id"
-        class="address-item p-2 mb-2 border rounded"
-        :class="{ 'border-primary bg-light-primary': addr.padrao }"
-        @click="selecionarPadrao(addr.id)"
-        style="cursor: pointer;"
-      >
-        <div class="d-flex justify-content-between align-items-start">
-          <div class="small">
-            <div class="fw-bold">{{ addr.logradouro }}, {{ addr.numero }}</div>
-            <div class="text-muted">{{ addr.bairro }} - {{ addr.cidade }}/{{ addr.estado }}</div>
-            <div v-if="addr.complemento" class="text-muted italic">{{ addr.complemento }}</div>
-          </div>
-          <span v-if="addr.padrao" class="badge bg-primary">Padrão</span>
+    <div v-else class="address-display">
+      <!-- Caso mostre apenas o padrão ou um específico -->
+      <div v-if="enderecoPadrao && !showAll" class="address-item p-3 mb-2 border rounded border-primary bg-light-primary d-flex justify-content-between align-items-center">
+        <div class="small">
+          <div class="fw-bold"><i class="fas fa-home me-2 text-primary"></i>{{ enderecoPadrao.logradouro }}, {{ enderecoPadrao.numero }}</div>
+          <div class="text-muted">{{ enderecoPadrao.bairro }} - {{ enderecoPadrao.cidade }}/{{ enderecoPadrao.estado }}</div>
         </div>
+        <button class="btn btn-link btn-sm text-primary text-decoration-none fw-bold" @click="showAll = true">Trocar</button>
+      </div>
+
+      <!-- Lista completa para troca -->
+      <div v-if="showAll || !enderecoPadrao" class="address-list animate__animated animate__fadeIn">
+        <div 
+          v-for="addr in enderecos" 
+          :key="addr.id"
+          class="address-item p-2 mb-2 border rounded"
+          :class="{ 'border-primary bg-light-primary': addr.padrao }"
+          @click="selecionarEFechar(addr.id)"
+          style="cursor: pointer;"
+        >
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="small">
+              <div class="fw-bold">{{ addr.logradouro }}, {{ addr.numero }}</div>
+              <div class="text-muted">{{ addr.bairro }} - {{ addr.cidade }}/{{ addr.estado }}</div>
+            </div>
+            <span v-if="addr.padrao" class="badge bg-primary">Padrão</span>
+          </div>
+        </div>
+        <button v-if="enderecoPadrao" class="btn btn-light btn-sm w-100 mt-2" @click="showAll = false">Voltar</button>
       </div>
     </div>
 
@@ -102,7 +114,13 @@ export default {
         estado: '',
         complemento: '',
         padrao: false
-      }
+      },
+      showAll: false
+    }
+  },
+  computed: {
+    enderecoPadrao() {
+      return this.enderecos.find(a => a.padrao) || this.enderecos[0];
     }
   },
   async mounted() {
@@ -114,6 +132,7 @@ export default {
       try {
         const res = await api.get('/enderecos')
         this.enderecos = res.data
+        this.$emit('loaded', this.enderecoPadrao)
       } catch (err) {
         console.error('Erro ao carregar endereços:', err)
       } finally {
@@ -140,6 +159,10 @@ export default {
       } catch (err) {
         console.error(err)
       }
+    },
+    async selecionarEFechar(id) {
+      await this.selecionarPadrao(id)
+      this.showAll = false
     }
   }
 }

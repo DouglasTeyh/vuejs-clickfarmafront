@@ -264,12 +264,18 @@ export default {
       this.isLoading = true;
       try {
         const user = JSON.parse(localStorage.getItem('user'));
-        const { data: farmacias } = await farmaciasService.listarTodas();
-        const f = farmacias.find(x => x.email === user.email);
-        if (f) {
-          this.farmaciaId = f.id;
-          const { data: prods } = await api.get(`/produtos/buscar?farmaciaId=${f.id}`);
-          this.produtos = prods.filter(p => p.farmaciaId === f.id);
+        if (user && user.farmaciaId) {
+          this.farmaciaId = user.farmaciaId;
+        } else {
+          // Fallback se não tiver farmaciaId no user
+          const { data: farmacias } = await farmaciasService.listarTodas();
+          const f = farmacias.find(x => x.email === user.email);
+          if (f) this.farmaciaId = f.id;
+        }
+
+        if (this.farmaciaId) {
+          const { data: prods } = await api.get(`/produtos/buscar?farmaciaId=${this.farmaciaId}`);
+          this.produtos = prods.filter(p => p.farmaciaId === this.farmaciaId);
         }
       } catch (err) { console.error(err); }
       finally { this.isLoading = false; }
@@ -315,14 +321,27 @@ export default {
       if (!this.farmaciaId) return;
       this.isSaving = true;
       try {
-        const payload = { ...this.form, farmaciaId: this.farmaciaId };
+        const payload = {
+          nome: this.form.nome,
+          principioAtivo: this.form.principioAtivo,
+          dosagem: this.form.dosagem,
+          laboratorio: this.form.laboratorio,
+          imageUrl: this.form.imageUrl,
+          descricao: this.form.descricao,
+          preco: this.form.preco,
+          estoque: this.form.estoque,
+          categoriaId: this.form.categoriaId,
+          necessitaReceita: this.form.necessitaReceita,
+          farmaciaId: this.farmaciaId
+        };
         
         let produtoId = this.editandoId;
         if (this.editandoId) {
           await api.put(`/produtos/${this.editandoId}`, payload);
         } else {
           const res = await api.post('/produtos', payload);
-          produtoId = res.data.id || res.data.data?.id;
+          // O backend retorna MensagemResponseDTO com o produto em 'dados'
+          produtoId = res.data.dados?.id || res.data.id;
         }
 
         // Se houver arquivo selecionado, fazer upload
@@ -338,9 +357,23 @@ export default {
         this.selectedFile = null;
         await this.carregarFarmaciaEProdutos();
       } catch (err) {
-        console.error(err);
-        alert('Erro ao salvar produto.');
-      } finally { this.isSaving = false; }
+        console.error('❌ Erro ao salvar produto:', err);
+        const msg = (err.response?.data?.mensagem || err.response?.data?.message || err.message || '').toLowerCase();
+        
+        let errorMsg = 'Não foi possível salvar o produto. Verifique os dados.';
+        if (msg.includes('nome')) errorMsg = 'O nome do produto é inválido ou muito curto.';
+        else if (msg.includes('preço') || msg.includes('price')) errorMsg = 'O preço deve ser maior que zero.';
+        else if (msg.includes('estoque') || msg.includes('stock')) errorMsg = 'A quantidade em estoque é obrigatória.';
+        else if (msg.includes('too long')) errorMsg = 'Algum campo contém texto demais.';
+        
+        if (window.$toast) {
+          window.$toast.addToast(errorMsg, 'danger');
+        } else {
+          alert(errorMsg);
+        }
+      } finally { 
+        this.isSaving = false; 
+      }
     },
     async deletarProduto(id) {
       if (confirm('Deseja realmente excluir este produto?')) {

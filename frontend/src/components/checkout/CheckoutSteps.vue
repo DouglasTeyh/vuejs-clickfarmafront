@@ -143,18 +143,34 @@ export default {
   color: #adb5bd;
 }
 
+/* ---- RESPONSIVO (PREMIUM MOBILE REBUILD) ---- */
 @media (max-width: 768px) {
+  .checkout-steps {
+    padding: 1rem 0.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  }
+
   .step-label {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
+    margin-top: 4px;
+    letter-spacing: 0.02em;
   }
   
   .step-icon {
     width: 32px;
     height: 32px;
+    border-width: 1.5px;
   }
   
+  .step-number, .completed-icon {
+    font-size: 0.8rem;
+  }
+
   .steps::before {
     top: 16px;
+    height: 1.5px;
   }
 }
 </style>

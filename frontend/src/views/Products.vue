@@ -279,7 +279,26 @@ export default {
         console.log('🤖 Disparando busca inteligente por IA:', query);
         const response = await this.$axios.get(`/api/produtos/busca-ia?query=${encodeURIComponent(query)}`);
         // Aqui estamos substituindo os produtos do store localmente apenas para exibição
-        this.$store.commit('SET_PRODUCTS', response.data);
+        const mappedResults = response.data.map(p => ({
+          id: p.id,
+          name: p.nome,
+          price: p.preco,
+          category: p.categoriaNome || 'Geral',
+          description: p.descricao || p.descricaoBreve || '',
+          inStock: p.estoque !== null ? p.estoque > 0 : true,
+          estoque: p.estoque !== null ? p.estoque : 0,
+          imageUrl: p.imageUrl,
+          images: [p.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800'],
+          dosagem: p.dosagem,
+          farmaciaNome: p.farmaciaNome,
+          principioAtivo: p.principioAtivo,
+          laboratorio: p.laboratorio,
+          necessitaReceita: p.necessitaReceita,
+          emPromocao: p.emPromocao,
+          descontoPercentual: p.descontoPercentual,
+          precoComDesconto: p.precoComDesconto
+        }));
+        this.$store.commit('SET_PRODUCTS', mappedResults);
         this.searchTerm = `Busca Inteligente: ${query}`;
       } catch (err) {
         console.error('❌ Erro na busca IA:', err);
@@ -300,13 +319,16 @@ export default {
       this.initializeComponent()
     },
 
-    clearAllFilters() {
+    async clearAllFilters() {
       this.searchTerm = ''
       this.filters = {
         category: '',
         sortBy: 'name',
         stock: 'all'
       }
+      this.loading = true;
+      await this.fetchProducts();
+      this.loading = false;
     }
   }
 }
@@ -366,105 +388,69 @@ export default {
   padding: 1rem 0;
 }
 
+/* RESPONSIVO (PREMIUM MOBILE REBUILD) */
 @media (max-width: 991px) {
   .filters-wrapper {
     top: 60px;
+    padding: 0.5rem 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  }
+
+  .filters-section {
+    padding: 0.5rem 0;
+  }
+
+  .filters-section .row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filters-section .row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filters-section .col-lg-4, 
+  .filters-section .col-lg-3,
+  .filters-section .col-md-6 {
+    flex: 0 0 auto;
+    width: 200px;
+    padding-right: 10px;
+  }
+
+  .form-select {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
   }
 }
 
-.search-box { position: relative; }
-.search-input {
-  padding-left: 2.8rem;
-  background: var(--cf-ivory);
-  border: 1px solid var(--cf-border-mid);
-}
-.search-input:focus {
-  background: var(--cf-white);
-  border-color: var(--cf-green);
-}
-.search-icon {
-  position: absolute;
-  left: 1.1rem; top: 50%;
-  transform: translateY(-50%);
-  color: var(--cf-text-faint);
-  font-size: 1rem;
-}
-
-.filter-group label {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--cf-text-muted);
-  margin-bottom: 0.4rem;
-  font-weight: 500;
-}
-
-.active-filters {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0.8rem 1rem;
-  background: var(--cf-green-xlight);
-  border-radius: var(--cf-r-md);
-  margin-top: 1rem;
-}
-.filter-tag {
-  background: var(--cf-white);
-  color: var(--cf-green);
-  border: 1px solid var(--cf-green-light);
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.clear-all {
-  font-size: 0.72rem;
-  color: var(--cf-text-muted);
-  text-decoration: underline;
-  background: none; border: none;
-  cursor: pointer;
-}
-
-/* GRID */
-.products-grid { animation: fadeInUp 0.6s var(--cf-ease) both; }
-
-/* STATES */
-.cf-spinner { color: var(--cf-green); }
-
-.empty-state, .error-state {
-  padding: 5rem 1rem;
-  text-align: center;
-}
-.empty-icon, .error-icon {
-  font-size: 4rem;
-  color: var(--cf-cream);
-  margin-bottom: 1.5rem;
-}
-
-/* QUICK ACTIONS */
-.quick-actions-card {
-  background: var(--cf-cream);
-  border: 1px dashed var(--cf-border-mid);
-  border-radius: var(--cf-r-xl);
-  padding: 3rem 2rem;
-}
-.qa-title { font-family: var(--cf-sans); font-size: 1.6rem; font-weight: 600; color: var(--cf-text-dark); }
-
-/* RESPONSIVO */
 @media (max-width: 768px) {
-  .products-header { padding: 2.5rem 0; text-align: center; }
-  .products-header .col-md-4 { margin-top: 1.5rem; }
+  .products-header { padding: 1.5rem 0; text-align: left; }
+  .products-header h1 { font-size: 1.8rem; font-weight: 700; }
+  
+  .active-filters {
+    flex-wrap: wrap;
+    padding: 0.6rem;
+    border-radius: 10px;
+  }
+  
+  .filter-tag {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    border-radius: 8px;
+  }
 
-  /* Ajustes finos para o grid de 2 colunas no mobile */
-  .cf-product-visual { height: 160px; }
-  .cf-card-body { padding: 0.75rem; gap: 0.15rem; }
-  .cf-product-name { font-size: 0.95rem; min-height: 2.4em; }
-  .cf-product-desc { display: none; } /* Esconde descrição no mobile p/ economizar espaço */
-  .cf-price { font-size: 1.2rem; }
-  .cf-add-btn { padding: 0.5rem 0.7rem; font-size: 0.65rem; }
-  .cf-installment { font-size: 0.65rem; }
-  .cf-card-foot { padding-top: 0.6rem; }
+  .products-grid .row {
+    margin-left: -5px;
+    margin-right: -5px;
+  }
+
+  .products-grid .col-6 {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
 }
 </style>

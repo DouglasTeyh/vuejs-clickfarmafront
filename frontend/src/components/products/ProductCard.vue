@@ -25,12 +25,7 @@
         </span>
       </div>
 
-      <!-- Wishlist — aparece no hover -->
-      <button class="cf-wishlist" @click.prevent.stop title="Salvar">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-      </button>
+
     </div>
 
     <!-- Informações do produto -->
@@ -163,7 +158,7 @@ export default {
 .cf-card-image {
   display: block;
   position: relative;
-  background: var(--cf-green-xlight);
+  background: #ffffff;
   aspect-ratio: 1 / 1;
   overflow: hidden;
   text-decoration: none;
@@ -224,32 +219,7 @@ export default {
 .badge-in  { background: var(--cf-green-light); color: var(--cf-green); }
 .badge-out { background: #F9EDED; color: var(--cf-danger); }
 
-/* ---- WISHLIST ---- */
-.cf-wishlist {
-  position: absolute;
-  top: 9px; right: 9px;
-  width: 30px; height: 30px;
-  background: rgba(255,255,255,0.88);
-  border: 1px solid var(--cf-border);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--cf-text-faint);
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(-3px);
-  transition: all 180ms var(--cf-ease);
-}
-.cf-product-card:hover .cf-wishlist {
-  opacity: 1;
-  transform: translateY(0);
-}
-.cf-wishlist:hover {
-  color: var(--cf-danger);
-  background: white;
-  border-color: rgba(139,58,58,0.2);
-}
+
 
 /* ---- CORPO ---- */
 .cf-card-body {
@@ -311,6 +281,7 @@ export default {
   color: var(--cf-text-muted);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   min-height: 2.5em;
@@ -394,10 +365,73 @@ export default {
   box-shadow: 0 4px 12px rgba(184,149,80,0.24);
 }
 
-/* ---- RESPONSIVO ---- */
-@media (max-width: 576px) {
-  .cf-product-icon { font-size: 3rem; }
-  .cf-product-name { font-size: 1rem; }
-  .cf-price { font-size: 1.25rem; }
+/* ---- RESPONSIVO (PREMIUM MOBILE REBUILD) ---- */
+@media (max-width: 768px) {
+  .cf-card-image {
+    aspect-ratio: auto;
+    height: 140px; /* Altura fixa para manter proporção em grids de 2 colunas */
+  }
+
+  .cf-product-visual {
+    height: 100%;
+  }
+
+  .cf-product-img {
+    padding: 0.5rem;
+  }
+
+  .cf-card-body {
+    padding: 0.8rem;
+    gap: 0.2rem;
+  }
+
+  .cf-product-name {
+    font-size: 0.9rem;
+    line-height: 1.2;
+    min-height: 2.4em; /* Mantém alinhamento mesmo se o nome for curto */
+    margin-bottom: 0.5rem;
+  }
+
+  .cf-product-meta {
+    display: none; /* Esconde meta infos para economizar espaço no card mobile */
+  }
+
+  .cf-product-desc {
+    display: none; /* Esconde descrição no mobile */
+  }
+
+  .cf-price {
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  .cf-old-price {
+    font-size: 0.65rem;
+  }
+
+  .cf-installment {
+    font-size: 0.6rem;
+  }
+
+  .cf-card-foot {
+    padding-top: 0.6rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .cf-add-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 380px) {
+  .cf-card-image { height: 120px; }
+  .cf-price { font-size: 1rem; }
+  .cf-add-btn span { font-size: 0.65rem; }
 }
 </style>
