@@ -9,6 +9,10 @@ services:
     dockerfilePath: Dockerfile
     plan: free
     healthCheckPath: /api/produtos/buscar
+    disk:
+      name: clickfarma-uploads
+      mountPath: /app/uploads
+      sizeGB: 1
     envVars:
       - key: DB_HOST
         fromDatabase:
@@ -35,7 +39,7 @@ services:
       - key: DB_DIALECT
         value: org.hibernate.dialect.PostgreSQLDialect
       - key: APP_BACKEND_URL
-        sync: false # A URL que o Render der para este serviço (ex: https://backend.onrender.com)
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: AI_PROVIDER
@@ -55,7 +59,7 @@ services:
       - key: ADMIN_PASSWORD_1
         sync: false
       - key: APP_FRONTEND_URL
-        sync: false # URL do seu frontend no Render
+        sync: false
       - key: PORT
         value: 8080
 
@@ -69,8 +73,10 @@ services:
     dockerfilePath: Dockerfile.frontend
     plan: free
     envVars:
+      - key: BACKEND_URL
+        value: http://clickfarma-backend:8080
       - key: VUE_APP_API_URL
-        sync: false # URL do seu backend no Render (ex: https://backend.onrender.com/api)
+        value: /api
 
 databases:
   - name: clickfarma-db
