@@ -146,6 +146,22 @@ public class PedidoController {
         }
     }
 
+    // POST - Confirmar Pagamento (Chamado pelo frontend após retorno do MP)
+    @PostMapping("/{id}/confirmar-pagamento")
+    public ResponseEntity<?> confirmarPagamento(@PathVariable Long id) {
+        try {
+            PedidoResponseDTO pedido = pedidoService.atualizarStatus(id, "PAGO");
+            return ResponseEntity.ok(new MensagemResponseDTO(
+                    "Pagamento confirmado com sucesso!",
+                    true,
+                    pedido
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(new MensagemResponseDTO(e.getMessage(), false));
+        }
+    }
+
     // GET - Rastrear pedido
     @GetMapping("/{codigoPedido}/rastreio")
     public ResponseEntity<?> rastrearPedido(@PathVariable String codigoPedido) {

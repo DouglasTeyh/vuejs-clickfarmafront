@@ -38,6 +38,8 @@
 </template>
 
 <script>
+import api from '@/services/api';
+
 export default {
   name: 'SucessoPagamento',
   data() {
@@ -49,15 +51,41 @@ export default {
       timer: null
     }
   },
-  mounted() {
+  async mounted() {
     // Limpar carrinho e flags de checkout
     localStorage.removeItem('cart');
     this.$store.dispatch('clearCart');
+    
+    // Capturar dados da URL (retorno do Mercado Pago)
+    const query = this.$route.query;
+    const status = query.status || query.collection_status;
+    const externalRef = query.external_reference;
+
+    // Se temos status aprovado, confirmamos no backend
+    if (status === 'approved' || status === 'paid') {
+      const idParaConfirmar = externalRef || this.pedidoId;
+      if (idParaConfirmar) {
+        await this.confirmarPagamentoNoBackend(idParaConfirmar);
+      }
+    } else if (!status && this.pedidoId) {
+      // Se caiu aqui sem params mas temos o ID no localstorage, 
+      // podemos tentar confirmar (fallback para fluxos sem auto-return)
+      await this.confirmarPagamentoNoBackend(this.pedidoId);
+    }
     
     // Iniciar contagem regressiva para redirecionamento
     this.startCountdown();
   },
   methods: {
+    async confirmarPagamentoNoBackend(id) {
+      try {
+        console.log("💳 Confirmando pagamento para o pedido:", id);
+        await api.post(`/pedidos/${id}/confirmar-pagamento`);
+        console.log("✅ Pagamento confirmado com sucesso!");
+      } catch (e) {
+        console.error("❌ Erro ao confirmar pagamento no backend:", e);
+      }
+    },
     startCountdown() {
       const totalTime = 4000; // 4s
       const interval = 100;
