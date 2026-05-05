@@ -140,27 +140,31 @@ export default {
       
       const cleanText = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       
-      // 1. Busca por nome do produto
-      const matchedByName = this.products.filter(p => {
+      // Busca aprimorada: tenta nomes completos e também palavras-chave individuais para maior recall
+      const matched = this.products.filter(p => {
         if (!p.name) return false;
         const pName = p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        if (pName.length < 3) return false;
-        return cleanText.includes(pName) || pName.split(' ').some(word => word.length > 3 && cleanText.includes(word));
+        
+        // Match exato do nome ou se o nome do produto está contido no texto
+        if (cleanText.includes(pName)) return true;
+        
+        // 2. Match contra o Princípio Ativo (essencial para recomendações genéricas da IA)
+        if (p.principioAtivo) {
+          const pAtivo = p.principioAtivo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          if (cleanText.includes(pAtivo)) return true;
+        }
+
+        // 3. Match por palavras individuais do nome (mínimo 4 letras)
+        const words = pName.split(/\s+/).filter(w => w.length > 3);
+        return words.some(word => {
+          const regex = new RegExp(`\\b${word}\\b`, 'i');
+          return regex.test(cleanText);
+        });
       });
 
-      // 2. Busca por categoria (para termos genéricos como "Suplementos")
-      const matchedByCategory = this.products.filter(p => {
-        if (!p.category) return false;
-        const pCat = p.category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        return cleanText.includes(pCat);
-      });
-
-      // Combina e remove duplicatas
-      const combined = [...matchedByName, ...matchedByCategory];
-      const unique = Array.from(new Set(combined.map(p => p.id)))
-        .map(id => combined.find(p => p.id === id));
-
-      return unique.slice(0, 6); // Aumentado para 6 para recomendações genéricas
+      // Remove duplicatas e limita a 5 sugestões para não poluir
+      const unique = Array.from(new Map(matched.map(p => [p.id, p])).values());
+      return unique.slice(0, 5);
     },
 
     renderMarkdown(text) {
@@ -326,19 +330,31 @@ export default {
           const response = await receitaService.processarReceita(imagemBase64, arquivo.name);
           if (response.sucesso && response.medicamentos && response.medicamentos.length > 0) {
             
-            // Map the API results to our ProductCard acceptable shape safely
             const mappedProducts = response.medicamentos.map(m => ({
-                id: m.produtoId || Math.floor(Math.random() * 100000).toString(),
+                id: m.produtoId || `notfound-${Math.random().toString(36).substr(2, 9)}`,
                 name: m.nomeCompleto || m.nome,
                 price: m.preco || 0,
-                inStock: (m.estoque !== undefined && m.estoque > 0) ? true : false,
+                inStock: m.situacaoCatalogo === 'DISPONIVEL',
                 category: 'Medicamentos',
-                description: m.descricaoProduto || ''
+                description: m.descricaoProduto || m.posologia || 'Identificado via OCR',
+                isNotFound: m.situacaoCatalogo === 'NAO_ENCONTRADO'
             }));
+
+            const disponiveis = mappedProducts.filter(p => p.inStock).length;
+            const total = mappedProducts.length;
+
+            let botMsg = response.mensagemOrientacao || `Lemos sua receita! Identificamos ${total} item(ns).`;
+            if (disponiveis === 0) {
+              botMsg += "\n\n⚠️ Infelizmente nenhum dos itens da receita está disponível no nosso estoque no momento.";
+            } else if (disponiveis < total) {
+              botMsg += `\n\n✅ Encontramos ${disponiveis} de ${total} itens disponíveis para compra.`;
+            } else {
+              botMsg += "\n\n✅ Todos os itens da receita estão disponíveis!";
+            }
 
             this.messages.push({
               role: 'bot',
-              content: 'Prontinho! Li a receita. Consegui identificar os seguintes medicamentos:',
+              content: botMsg,
               suggestedProducts: mappedProducts,
               time: this.getCurrentTime()
             });
@@ -346,7 +362,7 @@ export default {
           } else {
              this.messages.push({
                role: 'bot',
-               content: 'Desculpe, não consegui identificar medicamentos na imagem. Tente uma foto mais nítida.',
+               content: 'Desculpe, não consegui identificar medicamentos na imagem. Tente uma foto mais nítida e bem iluminada.',
                time: this.getCurrentTime()
              });
           }
@@ -379,10 +395,7 @@ export default {
   flex-direction: column;
   height: 100%;
   background: var(--cf-white);
-  border-radius: var(--cf-r-xl);
   overflow: hidden;
-  box-shadow: var(--cf-shadow-lg);
-  border: 1px solid var(--cf-border);
 }
 
 .chat-header {
@@ -452,6 +465,13 @@ export default {
 .message.bot .message-avatar { background: var(--cf-green-light); color: var(--cf-green); border: 1px solid var(--cf-green-mid); }
 .message.user .message-avatar { background: var(--cf-ivory); color: var(--cf-text-mid); border: 1px solid var(--cf-border-mid); }
 
+.message-content {
+  flex: 1;
+  min-width: 0; /* Important for horizontal scroll children */
+  display: flex;
+  flex-direction: column;
+}
+
 .message-text {
   padding: 0.8rem 1rem;
   border-radius: var(--cf-r-md);
@@ -502,12 +522,25 @@ export default {
 
 /* CHAT PRODUCT EMBED */
 .chat-products-wrapper {
-  margin-top: 10px;
+  margin-top: 12px;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: nowrap;
   overflow-x: auto;
-  padding-bottom: 5px;
+  padding-bottom: 8px;
+  width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cf-green-light) transparent;
+}
+.chat-products-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+.chat-products-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-products-wrapper::-webkit-scrollbar-thumb {
+  background-color: var(--cf-green-light);
+  border-radius: 20px;
 }
 .chat-product-item {
   min-width: 160px;

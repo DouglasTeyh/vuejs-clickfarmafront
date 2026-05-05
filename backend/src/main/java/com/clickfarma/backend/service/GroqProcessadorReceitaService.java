@@ -153,7 +153,8 @@ public class GroqProcessadorReceitaService {
                     return Mono.just(respostaGroq);
                 })
                 .map(respostaGroq -> parsePrimeiraExtracao(respostaGroq, textoReceita))
-                .map(this::filtrarItensIrrelevantes);
+                .map(this::filtrarItensIrrelevantes)
+                .flatMap(this::enriquecerComCatalogoClickfarma);
     }
 
     private MedicamentoExtraidoDTO processarReceitaPorPadrao(String textoReceita) {

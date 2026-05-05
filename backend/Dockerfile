@@ -9,6 +9,10 @@ RUN mvn clean package -DskipTests
 # Stage 2: Run
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
+
+# Instalar dependências para Tesseract OCR
+RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-por
+
 COPY --from=build /app/target/*.jar app.jar
 
 # Criar pasta de uploads

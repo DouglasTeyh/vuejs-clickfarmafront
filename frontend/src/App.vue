@@ -6,12 +6,21 @@
       <main class="main-content" :class="{ 'blur-bg': isAuthModalOpen }">
         <router-view />
       </main>
+      
+      <!-- Overlay para o Chatbot (Blur + Darken) -->
+      <transition name="fade">
+        <div v-if="isChatOpen" class="chat-overlay" @click="toggleChat"></div>
+      </transition>
+
       <div v-show="!isChatOpen" class="gemini-floating-btn" @click="toggleChat">
         <i class="fa-solid fa-robot"></i>
       </div>
-      <div v-show="isChatOpen" class="gemini-modal">
-        <GeminiChat @close="toggleChat" />
-      </div>
+      
+      <transition name="drawer">
+        <div v-if="isChatOpen" class="gemini-modal">
+          <GeminiChat @close="toggleChat" />
+        </div>
+      </transition>
       <ProductQuickView
         :isOpen="isQuickViewOpen"
         :product="quickViewProduct"
@@ -97,29 +106,54 @@ body { background-color: var(--cf-ivory) !important; }
 
 .gemini-floating-btn {
   position: fixed; bottom: 25px; right: 25px;
-  width: 58px; height: 58px;
+  width: 68px; height: 68px;
   background: var(--cf-green); border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; box-shadow: var(--cf-shadow-md);
-  transition: all 300ms var(--cf-ease); z-index: 9999;
-  color: white; font-size: 1.4rem; border: 4px solid var(--cf-white);
+  transition: all 300ms var(--cf-ease); 
+  z-index: 2000; /* Abaixo do CartDrawer (2100) */
+  color: white; font-size: 1.8rem; border: 4px solid var(--cf-white);
 }
 .gemini-floating-btn:hover {
   transform: scale(1.08) translateY(-3px);
   background: var(--cf-green-dark); box-shadow: var(--cf-shadow-lg);
 }
+
 .gemini-modal {
-  position: fixed; bottom: 25px; right: 25px;
-  width: 380px; height: min(600px, 80vh); z-index: 10000;
-  border-radius: var(--cf-r-xl); box-shadow: var(--cf-shadow-lg);
-  overflow: hidden; animation: slideInUp 400ms var(--cf-ease);
-  background: var(--cf-white); border: 1px solid var(--cf-border);
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 420px; height: 100vh; z-index: 2050;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+  overflow: hidden;
+  background: var(--cf-white);
 }
-@keyframes slideInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+
+/* Transição do Drawer */
+.drawer-enter-active, .drawer-leave-active {
+  transition: all 400ms var(--cf-ease);
 }
+.drawer-enter-from, .drawer-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+/* Overlay do Chat */
+.chat-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.1);
+  backdrop-filter: blur(8px) brightness(0.6);
+  z-index: 2040;
+  cursor: pointer;
+}
+
+/* Transição de Fade para o Overlay */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 400ms var(--cf-ease);
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
 @media (max-width: 768px) {
-  .gemini-modal { width: 100%; height: 100%; bottom: 0; right: 0; border-radius: 0; }
+  .gemini-modal { width: 100%; height: 100%; top: 0; right: 0; }
 }
 </style>

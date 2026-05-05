@@ -38,7 +38,7 @@ public class TesseractOCRService {
     @Value("${receita.tesseract.useUserWords:true}")
     private boolean useUserWords;
 
-    @Value("${receita.tesseract.datapath:/usr/share/tesseract-ocr/5/tessdata/}")
+    @Value("${receita.tesseract.datapath:/usr/share/tessdata/}")
     private String tesseractDatapath;
 
     private static volatile Path userWordsTempFile;
