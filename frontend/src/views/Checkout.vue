@@ -32,7 +32,7 @@
               <h4 class="summary-title mb-4">Resumo do Pedido</h4>
               
               <div class="summary-items mb-4">
-                <div v-for="item in localCart" :key="item.id" class="checkout-item-mini mb-3">
+                <div v-for="item in cart" :key="item.id" class="checkout-item-mini mb-3">
                   <div class="d-flex justify-content-between align-items-center">
                     <span class="item-name-mini text-truncate" style="max-width: 180px;">{{ item.name }}</span>
                     <span class="item-qty-mini small text-muted">x{{ item.quantity }}</span>
@@ -75,23 +75,23 @@ import AddressSelector from '@/components/cart/AddressSelector.vue';
 import api from '@/services/api';
 
 export default {
-  props: ['cart'],
+  name: 'Checkout',
   components: { PaymentMethod, AddressSelector },
   data() {
     return {
       loading: false,
       enderecoSelecionado: null,
-      metodo: 'MERCADO_PAGO',
-      localCart: []
+      metodo: 'MERCADO_PAGO'
     };
   },
   computed: {
-    ...mapState(['user']),
+    ...mapState(['user', 'cart', 'authToken']),
+    isAuthenticated() { return !!this.authToken; },
     enderecoValido() {
       return Boolean(this.enderecoSelecionado);
     },
     cartTotal() {
-      return this.localCart.reduce((total, item) => total + (item.price * item.quantity), 0);
+      return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
     }
   },
   async mounted() {
@@ -100,13 +100,6 @@ export default {
     }
   },
   created() {
-    if (this.cart) {
-      try {
-        this.localCart = JSON.parse(this.cart);
-      } catch(e) {
-        this.localCart = [];
-      }
-    }
   },
   methods: {
     setMetodo(m) { this.metodo = m; },
@@ -125,7 +118,7 @@ export default {
 
         const pedidoRequest = {
           usuarioId: this.user ? this.user.id : 1,
-          itens: this.localCart.map(item => ({ produtoId: item.id, quantidade: item.quantity || 1 })),
+          itens: this.cart.map(item => ({ produtoId: item.id, quantidade: item.quantity || 1 })),
           metodoPagamento: this.metodo,
           enderecoEntrega: enderecoString,
           observacoes: '',
@@ -136,6 +129,10 @@ export default {
 
         const res = await OrderService.createOrder(pedidoRequest);
         
+        // Armazenar ID para a tela de sucesso
+        if (res.id) localStorage.setItem('ultimoPedidoId', res.id);
+        if (res.codigo) localStorage.setItem('ultimoCodigoPedido', res.codigo);
+
         if (res.linkPagamento) {
           window.location.href = res.linkPagamento;
         } else {
@@ -198,4 +195,31 @@ export default {
 .total-amount { font-family: var(--cf-sans); font-size: 2rem; font-weight: 600; color: var(--cf-green); }
 
 .text-green { color: var(--cf-green); }
+
+/* ---- MOBILE RESPONSIVENESS (PREMIUM REBUILD) ---- */
+@media (max-width: 991px) {
+  .checkout-page { padding-top: 0; }
+  .container { padding-left: 1.25rem; padding-right: 1.25rem; }
+  
+  .section-title { font-size: 2rem; }
+  
+  .sticky-top {
+    position: relative !important;
+    top: 0 !important;
+    margin-top: 2rem;
+  }
+  
+  .cf-summary-card {
+    padding: 1.5rem;
+  }
+  
+  .total-amount {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-title { font-size: 1.6rem; }
+  .card-header-cf { padding: 1rem 1.5rem; }
+}
 </style>

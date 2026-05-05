@@ -12,6 +12,8 @@ public class FarmaciaResponseDTO {
     private String telefone;
     private String email;
     private String fotoUrl;
+    private String chavePix;
+    private String tipoChavePix;
     private LocalDateTime dataCadastro;
 
     public FarmaciaResponseDTO(Farmacia farmacia) {
@@ -23,6 +25,8 @@ public class FarmaciaResponseDTO {
         this.telefone = farmacia.getTelefone();
         this.email = farmacia.getEmail();
         this.fotoUrl = farmacia.getFotoUrl();
+        this.chavePix = farmacia.getChavePix();
+        this.tipoChavePix = farmacia.getTipoChavePix();
         this.dataCadastro = farmacia.getDataCadastro();
     }
 
@@ -35,5 +39,7 @@ public class FarmaciaResponseDTO {
     public String getTelefone() { return telefone; }
     public String getEmail() { return email; }
     public String getFotoUrl() { return fotoUrl; }
+    public String getChavePix() { return chavePix; }
+    public String getTipoChavePix() { return tipoChavePix; }
     public LocalDateTime getDataCadastro() { return dataCadastro; }
 }

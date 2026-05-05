@@ -10,6 +10,7 @@ public class ProdutoResponseDTO {
     private String descricaoBreve;
     private String descricao;
     private BigDecimal preco;
+    private BigDecimal precoBase;
     private Integer estoque;
     private String imageUrl;
     private String principioAtivo;
@@ -32,6 +33,7 @@ public class ProdutoResponseDTO {
         this.descricaoBreve = produto.getDescricaoBreve();
         this.descricao = produto.getDescricao();
         this.preco = aplicarTaxaClickFarma(produto.getPreco());
+        this.precoBase = produto.getPreco();
         this.estoque = produto.getEstoque();
         this.imageUrl = produto.getImageUrl();
         this.principioAtivo = produto.getPrincipioAtivo();
@@ -79,6 +81,8 @@ public class ProdutoResponseDTO {
     public void setDescricao(String descricao) { this.descricao = descricao; }
     public BigDecimal getPreco() { return preco; }
     public void setPreco(BigDecimal preco) { this.preco = preco; }
+    public BigDecimal getPrecoBase() { return precoBase; }
+    public void setPrecoBase(BigDecimal precoBase) { this.precoBase = precoBase; }
     public Integer getEstoque() { return estoque; }
     public void setEstoque(Integer estoque) { this.estoque = estoque; }
     public String getImageUrl() { return imageUrl; }

@@ -70,8 +70,8 @@
               </td>
               <td>
                 <div class="price-stack">
-                  <span class="price-base">R$ {{ (p.preco || 0).toFixed(2) }}</span>
-                  <span class="price-final">R$ {{ calcularPrecoFinal(p.preco || 0).toFixed(2) }}</span>
+                  <span class="price-base">R$ {{ (p.precoBase || p.preco || 0).toFixed(2) }}</span>
+                  <span class="price-final">R$ {{ (p.preco || 0).toFixed(2) }}</span>
                 </div>
               </td>
               <td class="text-center pe-5">
@@ -314,7 +314,7 @@ export default {
     },
     abrirModalEdicao(p) {
       this.editandoId = p.id;
-      this.form = { ...p, categoriaId: p.categoriaId || p.categoria?.id };
+      this.form = { ...p, preco: p.precoBase || p.preco, categoriaId: p.categoriaId || p.categoria?.id };
       this.showModal = true;
     },
     async salvarProduto() {

@@ -83,6 +83,9 @@ export default {
     return { addingToCart: false, addedToCart: false }
   },
   computed: {
+    isAuthenticated() {
+      return this.$store.getters.isAuthenticated;
+    },
     formattedPrice() {
       const price = this.product.emPromocao ? this.product.precoComDesconto : this.product.price;
       return (price || 0).toFixed(2).replace('.', ',')
@@ -118,12 +121,17 @@ export default {
     },
     async handleAddToCart(e) {
       e.stopPropagation()
+      if (!this.isAuthenticated) {
+        if (window.$toast) window.$toast.addToast('Você precisa entrar na sua conta para adicionar à sacola', 'error');
+        this.$store.dispatch('openLoginModal');
+        return;
+      }
       if (!this.product.inStock || this.addingToCart) return
       this.addingToCart = true
       try {
         await this.$store.dispatch('addToCart', this.product)
         this.addedToCart = true
-        this.$emit('add-to-cart', this.product)
+        if (window.$toast) window.$toast.addToast(`${this.product.name} adicionado ao carrinho!`, 'success');
         setTimeout(() => { this.addedToCart = false }, 2200)
       } catch (err) {
         console.error(err)
@@ -158,7 +166,7 @@ export default {
 .cf-card-image {
   display: block;
   position: relative;
-  background: #ffffff;
+  background-color: #ffffff !important;
   aspect-ratio: 1 / 1;
   overflow: hidden;
   text-decoration: none;

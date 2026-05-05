@@ -129,6 +129,9 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
+import api from '@/services/api';
+
 export default {
   name: 'Orders',
   data() {
@@ -138,11 +141,15 @@ export default {
     }
   },
   computed: {
+    ...mapState(['user']),
     hasOrders() { return this.validOrders.length > 0 },
     validOrders() {
-      return this.orders
-        .filter(order => this.isValidOrder(order))
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
+      // Sort by date descending
+      return [...this.orders].sort((a, b) => {
+        const dateA = a.dataCriacao || a.date;
+        const dateB = b.dataCriacao || b.date;
+        return new Date(dateB) - new Date(dateA);
+      });
     },
     averageOrderValue() {
       if (this.validOrders.length === 0) return '0,00'
@@ -155,7 +162,8 @@ export default {
     orderStatusCount() {
       const statusCount = {}
       this.validOrders.forEach(order => {
-        statusCount[order.status] = (statusCount[order.status] || 0) + 1
+        const status = (order.status || 'PENDENTE').toLowerCase();
+        statusCount[status] = (statusCount[status] || 0) + 1
       })
       return Object.keys(statusCount).map(status => ({
         type: status,
@@ -165,28 +173,79 @@ export default {
     }
   },
   methods: {
-    isValidOrder(order) { return order && order.id && order.items && order.date; },
-    formatDate(dateString) { return dateString ? new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'; },
+    formatDate(dateString) { 
+      if (!dateString) return '-';
+      return new Date(dateString).toLocaleDateString('pt-BR', { 
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      }); 
+    },
     statusClass(status) {
-      const classes = { 'confirmed': 'badge-warning', 'processing': 'badge-warning', 'shipped': 'badge-success', 'delivered': 'badge-success', 'cancelled': 'badge-danger' };
-      return classes[status] || 'badge-secondary';
+      const s = (status || '').toLowerCase();
+      const classes = { 
+        'pendente': 'badge-secondary',
+        'confirmado': 'badge-warning', 
+        'pago': 'badge-success',
+        'em_preparo': 'badge-warning',
+        'saiu_para_entrega': 'badge-success',
+        'entregue': 'badge-success', 
+        'cancelado': 'badge-danger' 
+      };
+      return classes[s] || 'badge-secondary';
     },
     statusText(status) {
-      const texts = { 'confirmed': 'Confirmado', 'processing': 'Em Preparo', 'shipped': 'Enviado', 'delivered': 'Entregue', 'cancelled': 'Cancelado' };
-      return texts[status] || status;
+      const s = (status || '').toLowerCase();
+      const texts = { 
+        'pendente': 'Aguardando Pagamento',
+        'pago': 'Pagamento Aprovado',
+        'confirmado': 'Confirmado', 
+        'em_preparo': 'Em Preparo', 
+        'saiu_para_entrega': 'Em Rota',
+        'entregue': 'Entregue', 
+        'cancelado': 'Cancelado' 
+      };
+      return texts[s] || status;
     },
-    calculateOrderTotal(order) { return order.total || order.items.reduce((s, i) => s + (i.price * i.quantity), 0); },
-    getOrderTotal(order) { return this.calculateOrderTotal(order).toFixed(2).replace('.', ','); },
-    async refreshOrders() { this.loading = true; setTimeout(() => { this.loadOrders(); this.loading = false; }, 800); },
+    calculateOrderTotal(order) { 
+      return order.totalFinal || order.total || 0; 
+    },
+    getOrderTotal(order) { 
+      return this.calculateOrderTotal(order).toFixed(2).replace('.', ','); 
+    },
+    async refreshOrders() { 
+      await this.loadOrders(); 
+    },
     viewOrderDetails(order) { this.$router.push(`/tracking/${order.id}`); },
     trackOrder(order) { this.$router.push(`/tracking/${order.id}`); },
     clearAllOrders() { if(confirm('Remover histórico?')) { this.orders = []; localStorage.removeItem('userOrders'); } },
-    loadOrders() {
-      const saved = localStorage.getItem('userOrders');
-      if (saved) this.orders = JSON.parse(saved);
+    async loadOrders() {
+      if (!this.user) return;
+      this.loading = true;
+      try {
+        const { data } = await api.get(`/pedidos/usuario/${this.user.id}`);
+        // Mapear campos do backend para o formato do template se necessário
+        this.orders = data.map(o => ({
+          ...o,
+          id: o.id,
+          date: o.dataCriacao,
+          status: o.status,
+          items: (o.itens || []).map(i => ({
+            id: i.id,
+            name: i.produtoNome || 'Produto',
+            quantity: i.quantidade,
+            price: i.precoUnitario
+          }))
+        }));
+      } catch (e) {
+        console.error('Erro ao carregar pedidos:', e);
+      } finally {
+        this.loading = false;
+      }
     }
   },
-  mounted() { this.loadOrders(); }
+  mounted() { 
+    this.loadOrders(); 
+  }
 }
 </script>
 

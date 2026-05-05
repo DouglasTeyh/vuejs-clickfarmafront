@@ -26,29 +26,30 @@
         </div>
 
         <div v-else class="cart-items-list">
-          <div v-for="item in cart" :key="item.id" class="drawer-item mb-4 pb-4 border-bottom">
-            <div class="d-flex gap-3">
+          <div v-for="item in cart" :key="item.id" class="drawer-item mb-4">
+            <div class="item-card-premium">
               <div class="item-img-wrap">
-                <img :src="item.image || item.imageUrl" :alt="item.name" class="rounded">
+                <img :src="item.image || item.imageUrl" :alt="item.name">
               </div>
-              <div class="item-info flex-grow-1">
-                <h6 class="item-name mb-1">{{ item.name }}</h6>
-                <div class="item-price-row d-flex justify-content-between align-items-center">
-                  <span class="fw-bold text-green">R$ {{ (item.price * item.quantity).toFixed(2).replace('.', ',') }}</span>
-                  
-                  <div class="qty-controls d-flex align-items-center">
-                    <button class="btn-qty" @click="updateQuantity(item.id, item.quantity - 1)" :disabled="item.quantity <= 1">
+              <div class="item-details">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <h6 class="item-name">{{ item.name }}</h6>
+                  <button class="btn-remove-compact" @click="removeItem(item.id)" title="Remover">
+                    <i class="far fa-trash-alt"></i>
+                  </button>
+                </div>
+                <div class="item-price-row">
+                  <span class="item-price">R$ {{ (item.price * item.quantity).toFixed(2).replace('.', ',') }}</span>
+                  <div class="qty-stepper">
+                    <button class="step-btn" @click="updateQuantity(item.id, item.quantity - 1)" :disabled="item.quantity <= 1">
                       <i class="fas fa-minus"></i>
                     </button>
-                    <span class="qty-value mx-2">{{ item.quantity }}</span>
-                    <button class="btn-qty" @click="updateQuantity(item.id, item.quantity + 1)">
+                    <span class="step-val">{{ item.quantity }}</span>
+                    <button class="step-btn" @click="updateQuantity(item.id, item.quantity + 1)">
                       <i class="fas fa-plus"></i>
                     </button>
                   </div>
                 </div>
-                <button class="btn-remove-item mt-2" @click="removeItem(item.id)">
-                  <i class="far fa-trash-alt me-1"></i> Remover
-                </button>
               </div>
             </div>
           </div>
@@ -117,105 +118,30 @@ export default {
 }
 .btn-close-drawer:hover { color: var(--cf-danger); }
 
-.item-img-wrap img { width: 70px; height: 70px; object-fit: cover; background: #f8f9fa; }
+.item-img-wrap img { width: 80px; height: 80px; object-fit: contain; background: #fff; border-radius: 12px; border: 1px solid #f1f5f9; }
 
-.item-name { font-size: 0.95rem; font-weight: 600; color: var(--cf-text-dark); }
-.text-green { color: var(--cf-green); }
+.item-card-premium { display: flex; gap: 1rem; background: #fff; padding: 10px; border-radius: 16px; transition: all 0.2s; }
+.item-card-premium:hover { background: #f8fafc; }
 
-.qty-controls { background: #f0f7f4; border-radius: 6px; padding: 2px; }
-.btn-qty { 
-  width: 24px; height: 24px; border: none; background: white; 
-  border-radius: 4px; color: var(--cf-green); font-size: 0.7rem;
-  display: flex; align-items: center; justify-content: center;
-}
-.btn-qty:disabled { opacity: 0.5; }
+.item-details { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.item-name { font-size: 0.85rem; font-weight: 600; color: #1e293b; margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-.btn-remove-item {
-  background: none; border: none; color: var(--cf-text-faint); 
-  font-size: 0.75rem; padding: 0;
-}
-.btn-remove-item:hover { color: var(--cf-danger); }
+.item-price-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.item-price { font-size: 0.95rem; font-weight: 700; color: var(--cf-green); }
 
-.drawer-content { overflow-y: auto; flex-grow: 1; }
+.qty-stepper { display: flex; align-items: center; background: #f1f5f9; border-radius: 100px; padding: 2px; }
+.step-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: white; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: all 0.2s; }
+.step-btn:hover:not(:disabled) { background: var(--cf-green); color: white; }
+.step-val { min-width: 28px; text-align: center; font-size: 0.85rem; font-weight: 700; color: #1e293b; }
+
+.btn-remove-compact { background: none; border: none; color: #94a3b8; font-size: 0.9rem; padding: 4px; transition: color 0.2s; }
+.btn-remove-compact:hover { color: #ef4444; }
+
+.drawer-footer .btn { border-radius: 100px; }
 
 /* ---- RESPONSIVO (PREMIUM MOBILE REBUILD) ---- */
 @media (max-width: 576px) {
-  .cart-drawer { 
-    width: 100%; 
-    right: -100%; 
-    border-top-left-radius: 0;
-  }
-  
-  .drawer-header {
-    padding: 1.2rem 1.5rem !important;
-  }
-
-  .drawer-header h4 {
-    font-size: 1.2rem;
-  }
-
-  .btn-close-drawer {
-    font-size: 1.5rem; /* Maior para toque */
-    padding: 0.5rem;
-  }
-
-  .drawer-content {
-    padding: 1rem !important;
-  }
-
-  .item-img-wrap img {
-    width: 60px;
-    height: 60px;
-  }
-
-  .item-name {
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem !important;
-  }
-
-  .item-price-row {
-    flex-wrap: nowrap;
-    gap: 0.5rem;
-  }
-
-  .text-green {
-    font-size: 1.1rem;
-  }
-
-  .qty-controls {
-    padding: 4px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-  }
-
-  .btn-qty {
-    width: 32px; /* Maior área de toque no mobile */
-    height: 32px;
-    font-size: 0.9rem;
-    background: white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  }
-
-  .qty-value {
-    min-width: 20px;
-    text-align: center;
-    font-weight: 600;
-  }
-
-  .btn-remove-item {
-    font-size: 0.8rem;
-    padding: 0.5rem 0;
-  }
-
-  .drawer-footer {
-    padding: 1.5rem !important;
-    padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important; /* Suporte para iPhone safe area */
-  }
-
-  .drawer-footer .btn {
-    padding: 1rem;
-    font-size: 1.1rem;
-    border-radius: 100px;
-  }
+  .cart-drawer { width: 100%; right: -100%; }
+  .item-img-wrap img { width: 70px; height: 70px; }
 }
 </style>

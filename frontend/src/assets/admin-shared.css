@@ -244,3 +244,108 @@
 .status-pill.s-cancelled .pill-text { color: #dc2626; }
 .status-pill.s-cancelled .pill-dot { background: #dc2626; }
 
+/* =========================================================
+   MOBILE RESPONSIVENESS REBUILD
+========================================================= */
+@media (max-width: 991px) {
+  /* Header */
+  .mgmt-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .header-tools {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .cf-input-group {
+    width: 100%;
+  }
+
+  /* Filters */
+  .inventory-filters-row {
+    flex-direction: column;
+  }
+  .filter-group-premium {
+    width: 100%;
+  }
+
+  /* Tables */
+  .cf-table-card-premium {
+    border-radius: 16px;
+  }
+  .editorial-table th, .editorial-table td {
+    padding: 1rem;
+  }
+  
+  /* Cards */
+  .dossier-card-premium {
+    padding: 1rem;
+  }
+
+  .config-modal, .dossier-modal, .asset-modal {
+    border-radius: 20px;
+    max-height: 95vh;
+  }
+  
+  .config-header, .dossier-header, .modal-header-premium {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .config-content, .dossier-content, .modal-content-premium {
+    padding: 1.5rem;
+  }
+
+  .config-footer, .dossier-footer, .modal-footer-premium {
+    padding: 1.25rem 1.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-cancel, .btn-save, .btn-cancel-modal, .btn-save-modal {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-premium-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .editorial-title {
+    font-size: 1.8rem;
+  }
+  .editorial-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .entity-card-lg {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .status-selector-wrap .selector-current {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .selector-action {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-update-status {
+    width: 100%;
+  }
+  
+  .action-group {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+

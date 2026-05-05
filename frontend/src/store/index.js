@@ -316,7 +316,7 @@ export default createStore({
   state: {
     user: null,
     products: [],
-    cart: [],
+    cart: JSON.parse(localStorage.getItem('cart') || '[]'),
     categories: [],
     authToken: localStorage.getItem('authToken') || null,
     authChecked: false,
@@ -402,20 +402,23 @@ export default createStore({
       } else {
         state.cart.push({ ...product, quantity: 1 });
       }
+      localStorage.setItem('cart', JSON.stringify(state.cart));
     },
     REMOVE_FROM_CART(state, productId) {
       state.cart = state.cart.filter(item => item.id !== productId);
+      localStorage.setItem('cart', JSON.stringify(state.cart));
     },
     UPDATE_CART_QUANTITY(state, { productId, quantity }) {
       const item = state.cart.find(item => item.id === productId);
       if (item) {
-        // Garante que a quantidade seja um número e no mínimo 1
         const newQuantity = Number(quantity);
         item.quantity = isNaN(newQuantity) || newQuantity < 1 ? 1 : newQuantity;
+        localStorage.setItem('cart', JSON.stringify(state.cart));
       }
     },
     CLEAR_CART(state) {
       state.cart = [];
+      localStorage.removeItem('cart');
     },
     SET_ORDER(state, order) {
       state.lastOrder = order;
@@ -460,6 +463,7 @@ export default createStore({
     },
     SET_CART(state, cart) {
       state.cart = cart;
+      localStorage.setItem('cart', JSON.stringify(state.cart));
     },
     // Auth Modal Mutations
     OPEN_AUTH_MODAL(state, { mode = 'login', redirect = null } = {}) {
@@ -682,7 +686,7 @@ export default createStore({
         } catch (e) { console.error('Erro ao remover do backend:', e); }
       }
     },
-    async updateCartQuantity({ commit, state }, payload) {
+    async updateCartQuantity({ commit, state }, { productId, quantity }) {
 
       commit('UPDATE_CART_QUANTITY', { productId, quantity });
       if (state.user) {

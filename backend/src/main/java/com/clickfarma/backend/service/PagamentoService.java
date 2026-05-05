@@ -93,9 +93,10 @@ public class PagamentoService {
 
             String notification = normalizeNotificationUrl(webhookUrl);
 
-            String autoReturn = (successUrl != null && successUrl.toLowerCase().startsWith("https://"))
-                    ? "approved"
-                    : null;
+            // O Mercado Pago EXIGE https para auto_return. No localhost (http), ele retorna erro 400.
+            String autoReturn = (successUrl != null && successUrl.toLowerCase().startsWith("https")) ? "approved" : null;
+
+            log.info("🔗 Configurando Preferência - SuccessURL: {}, AutoReturn: {}", successUrl, autoReturn);
 
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
@@ -157,7 +158,6 @@ public class PagamentoService {
         Farmacia farmacia = farmaciaRepository.findById(farmaciaId)
                 .orElseThrow(() -> new RuntimeException("Farmácia não encontrada"));
 
-        // Lógica simplificada para exemplo, ajuste conforme necessário
         BigDecimal valorBruto = BigDecimal.ZERO; 
         BigDecimal taxa = BigDecimal.ZERO;
         BigDecimal liquido = BigDecimal.ZERO;

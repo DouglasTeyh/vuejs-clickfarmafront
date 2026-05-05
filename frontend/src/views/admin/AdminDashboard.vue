@@ -212,8 +212,9 @@ export default {
 <style scoped>
 /* ═══ Shell & Base ═══ */
 .cf-admin-shell {
+  position: fixed;
+  inset: 0;
   display: flex;
-  height: 100vh;
   overflow: hidden;
   background: var(--cf-ivory);
   font-family: var(--cf-sans);

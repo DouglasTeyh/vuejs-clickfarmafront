@@ -61,7 +61,7 @@
           <div class="cf-horizontal-scroll">
             <div class="cf-scroll-content">
               <div v-for="product in recommendedProductsList" :key="'rec-'+product.id" class="cf-product-card-horizontal">
-                <ProductCard :product="product" @add-to-cart="handleAddToCart" />
+                <ProductCard :product="product" />
               </div>
             </div>
           </div>
@@ -84,12 +84,20 @@
               </router-link>
             </div>
 
-            <div class="cf-horizontal-scroll">
-              <div class="cf-scroll-content">
-                <div v-for="product in getProdutosPorCategoria(cat)" :key="product.id" class="cf-product-card-horizontal">
-                  <ProductCard :product="product" @add-to-cart="handleAddToCart" />
+            <div class="cf-horizontal-scroll-wrapper" style="position: relative;">
+              <button class="cf-scroll-btn left" @click="scrollLeft($event)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <div class="cf-horizontal-scroll">
+                <div class="cf-scroll-content">
+                  <div v-for="product in getProdutosPorCategoria(cat)" :key="product.id" class="cf-product-card-horizontal">
+                    <ProductCard :product="product" />
+                  </div>
                 </div>
               </div>
+              <button class="cf-scroll-btn right" @click="scrollRight($event)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -163,13 +171,15 @@ export default {
     },
     getProdutosPorCategoria(cat) {
       if (!this.products) return [];
-      return this.products.filter(p => p.category === cat);
+      return this.products.filter(p => p.category === cat).slice(0, 20);
     },
-    handleAddToCart(product) {
-      this.addToCart(product);
-      if (window.$toast) {
-        window.$toast.addToast(`${product.name} adicionado ao carrinho!`, 'success');
-      }
+    scrollLeft(e) {
+      const container = e.currentTarget.parentElement.querySelector('.cf-horizontal-scroll');
+      if(container) container.scrollBy({ left: -300, behavior: 'smooth' });
+    },
+    scrollRight(e) {
+      const container = e.currentTarget.parentElement.querySelector('.cf-horizontal-scroll');
+      if(container) container.scrollBy({ left: 300, behavior: 'smooth' });
     }
   }
 }
@@ -285,15 +295,27 @@ export default {
 .cf-h-line { width: 40px; height: 3px; background: var(--cf-green); border-radius: 2px; margin-top: 4px; }
 
 /* Scroll Horizontal */
+.cf-horizontal-scroll-wrapper { position: relative; }
 .cf-horizontal-scroll {
   overflow-x: auto;
   padding: 10px 0 25px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 .cf-horizontal-scroll::-webkit-scrollbar { display: none; }
 .cf-scroll-content { display: flex; gap: 20px; width: max-content; padding: 0 5px; }
 .cf-product-card-horizontal { width: 280px; }
+.cf-scroll-btn {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: white; border: 1px solid var(--cf-border); color: var(--cf-green);
+  box-shadow: var(--cf-shadow-sm); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.cf-scroll-btn:hover { background: var(--cf-green); color: white; }
+.cf-scroll-btn.left { left: -20px; }
+.cf-scroll-btn.right { right: -20px; }
 
 /* ---- RESPONSIVO (PREMIUM MOBILE REBUILD) ---- */
 @media (max-width: 991px) {

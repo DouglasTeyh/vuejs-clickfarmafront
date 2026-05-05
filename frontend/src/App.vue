@@ -56,6 +56,8 @@ export default {
   mounted() {
     // Expoe o toast globalmente
     window.$toast = this.$refs.toast;
+    // Verifica status de autenticação ao carregar
+    this.checkAuthStatus();
   },
   computed: {
     ...mapState(['isQuickViewOpen', 'quickViewProduct', 'isAuthModalOpen', 'authModalMode', 'isCartDrawerOpen']),
@@ -72,7 +74,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['closeQuickView', 'closeAuthModal', 'closeCartDrawer']),
+    ...mapActions(['closeQuickView', 'closeAuthModal', 'closeCartDrawer', 'checkAuthStatus']),
     toggleChat() { this.isChatOpen = !this.isChatOpen; }
   }
 }

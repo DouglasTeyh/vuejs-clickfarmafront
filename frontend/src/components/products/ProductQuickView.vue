@@ -81,12 +81,6 @@
               </button>
             </div>
 
-            <div class="cf-info-footer mt-4">
-              <router-link :to="`/products/${product.id}`" class="cf-full-details-link" @click="close">
-                Ver detalhes completos
-                <i class="fa-solid fa-arrow-right ms-1"></i>
-              </router-link>
-            </div>
           </div>
 
         </div>

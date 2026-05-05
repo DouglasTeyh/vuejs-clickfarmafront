@@ -215,8 +215,10 @@ export default {
 <style scoped>
 /* ═══ Shell & Base ═══ */
 .cf-pharmacy-shell {
+  position: fixed;
+  inset: 0;
   display: flex;
-  min-height: 100vh;
+  overflow: hidden;
   background: var(--cf-ivory);
   font-family: var(--cf-sans);
   color: var(--cf-text-dark);
@@ -305,7 +307,13 @@ export default {
 .logout-btn:hover { color: #ff6b6b; }
 
 /* ═══ Main Content ═══ */
-.cf-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.cf-main { 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+  height: 100vh;
+  min-width: 0; 
+}
 .cf-topbar { height: 80px; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; z-index: 1000; position: sticky; top: 0; }
 .topbar-left { display: flex; align-items: center; gap: 2rem; }
 .mobile-toggle { background: var(--cf-ivory); border: 1px solid var(--cf-border); width: 44px; height: 44px; border-radius: 12px; color: var(--cf-text-dark); cursor: pointer; }
