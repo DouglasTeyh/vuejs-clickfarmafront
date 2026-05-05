@@ -21,88 +21,75 @@
       <div class="container">
         <div class="row g-4 g-lg-5">
 
-          <!-- Coluna marca -->
-          <div class="col-lg-4 col-md-6">
+          <!-- Coluna 1: Marca & Social -->
+          <div class="col-lg-4 col-md-12">
             <div class="cf-footer-brand">
               <img src="/images/Logotipo.svg" alt="ClickFarma" class="footer-logo-img">
             </div>
             <p class="cf-footer-desc mt-3">
               Sua farmácia online de confiança. Dermocosméticos, medicamentos e bem-estar com qualidade e agilidade.
             </p>
-
-            <!-- Redes sociais -->
             <div class="cf-social-row mt-4">
               <a href="#" class="cf-social" aria-label="Facebook">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                 </svg>
               </a>
               <a href="#" class="cf-social" aria-label="Instagram">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <rect x="2" y="2" width="20" height="20" rx="5"/>
-                  <circle cx="12" cy="12" r="4"/>
-                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+                  <rect x="2" y="2" width="20" height="20" rx="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
                 </svg>
               </a>
               <a href="#" class="cf-social" aria-label="WhatsApp">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a10 10 0 0 0-9.985 9.985c0 1.985.552 3.836 1.509 5.421L2 22l4.728-1.497A9.943 9.943 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2a10 10 0 0 0-10 10c0 1.762.459 3.417 1.26 4.854z"/>
+                  <path
+                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a10 10 0 0 0-9.985 9.985c0 1.985.552 3.836 1.509 5.421L2 22l4.728-1.497A9.943 9.943 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2a10 10 0 0 0-10 10c0 1.762.459 3.417 1.26 4.854z" />
                 </svg>
               </a>
             </div>
           </div>
 
-          <!-- Loja -->
-          <div class="col-lg-2 col-md-3 col-6">
-            <h6 class="cf-footer-col-title">Loja</h6>
-            <ul class="cf-footer-links">
-              <li><router-link to="/" class="cf-footer-link">Home</router-link></li>
-              <li><router-link to="/products" class="cf-footer-link">Produtos</router-link></li>
-              <li><router-link to="/promotions" class="cf-footer-link">Promoções</router-link></li>
-              <li><router-link to="/track-order" class="cf-footer-link">Rastrear Pedido</router-link></li>
-              <li class="mt-2"><router-link to="/pharmacy/login" class="cf-footer-link text-warning"><i class="fas fa-store me-1"></i>Para Farmácias</router-link></li>
-              <li><router-link to="/courier/login" class="cf-footer-link text-warning"><i class="fas fa-motorcycle me-1"></i>Para Entregadores</router-link></li>
-            </ul>
-          </div>
-
-          <!-- Categorias -->
-          <div class="col-lg-2 col-md-3 col-6">
-            <h6 class="cf-footer-col-title">Categorias</h6>
-            <ul class="cf-footer-links">
-              <li><a href="#" class="cf-footer-link">Medicamentos</a></li>
-              <li><a href="#" class="cf-footer-link">Dermocosméticos</a></li>
-              <li><a href="#" class="cf-footer-link">Vitaminas</a></li>
-              <li><a href="#" class="cf-footer-link">Maternidade</a></li>
-            </ul>
-          </div>
-
-          <!-- Atendimento + Newsletter -->
-          <div class="col-lg-4 col-md-6">
+          <!-- Coluna 2: Atendimento -->
+          <div class="col-lg-4 col-md-6 col-6">
             <h6 class="cf-footer-col-title">Atendimento</h6>
             <div class="cf-contact-list">
               <div class="cf-contact-item">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.1 11.91a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <span>(81) 99818-9999</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path
+                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.1 11.91a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                <span>(81) 9 9999-9999</span>
               </div>
               <div class="cf-contact-item">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                <span>gustavson.adm@gmail.com</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+                <span class="email-text">contato.clickfarma@gmail.com</span>
               </div>
               <div class="cf-contact-item">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
                 <span>Seg–Sex 8h–20h · Sáb 9h–14h</span>
               </div>
             </div>
+          </div>
 
-            <!-- Newsletter -->
-            <div class="cf-newsletter mt-3">
-              <p class="cf-newsletter-label">Receba ofertas exclusivas</p>
+          <!-- Coluna 3: Newsletter (Oculta no mobile) -->
+          <div class="col-lg-4 d-none d-lg-block">
+            <h6 class="cf-footer-col-title">Novidades</h6>
+            <div class="cf-newsletter">
+              <p class="cf-newsletter-label">Ofertas exclusivas por e-mail</p>
               <div class="cf-newsletter-form">
                 <input type="email" class="cf-newsletter-input" placeholder="Seu e-mail" />
                 <button class="cf-newsletter-btn">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                    <polyline points="12 5 19 12 12 19"/>
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
                   </svg>
                 </button>
               </div>
@@ -194,6 +181,7 @@ export default {
   font-weight: 500;
   color: var(--cf-text-dark);
 }
+
 .cf-trust-sub {
   display: block;
   font-size: 0.7rem;
@@ -214,6 +202,7 @@ export default {
   align-items: center;
   gap: 10px;
 }
+
 .footer-logo-img {
   max-height: 42px;
   width: auto;
@@ -234,6 +223,7 @@ export default {
   display: flex;
   gap: 8px;
 }
+
 .cf-social {
   width: 34px;
   height: 34px;
@@ -247,6 +237,7 @@ export default {
   background: var(--cf-white);
   transition: all 200ms var(--cf-ease);
 }
+
 .cf-social:hover {
   border-color: var(--cf-green);
   color: var(--cf-green);
@@ -266,11 +257,14 @@ export default {
   position: relative;
   padding-bottom: 0.6rem;
 }
+
 .cf-footer-col-title::after {
   content: '';
   position: absolute;
-  bottom: 0; left: 0;
-  width: 18px; height: 1.5px;
+  bottom: 0;
+  left: 0;
+  width: 18px;
+  height: 1.5px;
   background: var(--cf-gold);
   border-radius: 1px;
 }
@@ -282,6 +276,7 @@ export default {
   flex-direction: column;
   gap: 0.55rem;
 }
+
 .cf-footer-link {
   font-size: 0.85rem;
   color: var(--cf-text-muted);
@@ -289,6 +284,7 @@ export default {
   transition: color 160ms var(--cf-ease);
   font-weight: 300;
 }
+
 .cf-footer-link:hover {
   color: var(--cf-green);
 }
@@ -299,6 +295,7 @@ export default {
   flex-direction: column;
   gap: 0.7rem;
 }
+
 .cf-contact-item {
   display: flex;
   align-items: center;
@@ -307,6 +304,7 @@ export default {
   color: var(--cf-text-muted);
   font-weight: 300;
 }
+
 .cf-contact-item svg {
   color: var(--cf-green);
   flex-shrink: 0;
@@ -322,6 +320,7 @@ export default {
   margin-bottom: 0.55rem;
   font-weight: 500;
 }
+
 .cf-newsletter-form {
   display: flex;
   border: 1px solid var(--cf-border-mid);
@@ -330,10 +329,12 @@ export default {
   background: var(--cf-white);
   transition: border-color 180ms var(--cf-ease);
 }
+
 .cf-newsletter-form:focus-within {
   border-color: var(--cf-green);
-  box-shadow: 0 0 0 3px rgba(42,92,69,0.07);
+  box-shadow: 0 0 0 3px rgba(42, 92, 69, 0.07);
 }
+
 .cf-newsletter-input {
   flex: 1;
   background: transparent;
@@ -346,7 +347,10 @@ export default {
   outline: none;
   min-width: 0;
 }
-.cf-newsletter-input::placeholder { color: var(--cf-text-faint); }
+
+.cf-newsletter-input::placeholder {
+  color: var(--cf-text-faint);
+}
 
 .cf-newsletter-btn {
   background: var(--cf-green);
@@ -360,7 +364,10 @@ export default {
   flex-shrink: 0;
   transition: background 160ms var(--cf-ease);
 }
-.cf-newsletter-btn:hover { background: var(--cf-green-dark); }
+
+.cf-newsletter-btn:hover {
+  background: var(--cf-green-dark);
+}
 
 /* ---- BOTTOM BAR ---- */
 .cf-footer-bottom {
@@ -368,12 +375,14 @@ export default {
   border-top: 1px solid var(--cf-border);
   padding: 0.9rem 0;
 }
+
 .cf-copyright {
   font-size: 0.76rem;
   color: var(--cf-text-faint);
   margin: 0;
   font-weight: 300;
 }
+
 .cf-copyright strong {
   color: var(--cf-text-muted);
   font-weight: 500;
@@ -384,35 +393,143 @@ export default {
   align-items: center;
   gap: 8px;
 }
+
 .cf-legal-link {
   font-size: 0.73rem;
   color: var(--cf-text-faint);
   text-decoration: none;
   transition: color 150ms var(--cf-ease);
 }
-.cf-legal-link:hover { color: var(--cf-green); }
-.cf-sep { color: var(--cf-border-mid); font-size: 0.7rem; }
+
+.cf-legal-link:hover {
+  color: var(--cf-green);
+}
+
+.cf-sep {
+  color: var(--cf-border-mid);
+  font-size: 0.7rem;
+}
 
 /* ---- RESPONSIVO ---- */
 @media (max-width: 992px) {
-  .cf-trust-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem 1.5rem; }
+  .cf-trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
 }
+
 @media (max-width: 768px) {
-  .cf-footer-body { padding: 2.5rem 0 2rem; }
-  .cf-footer-links { margin-bottom: 1.5rem; }
+  .cf-footer-body {
+    padding: 3rem 0 2rem;
+  }
+
+  .cf-footer-links {
+    margin-bottom: 2rem;
+  }
+
+  .cf-footer-col-title {
+    font-size: 0.75rem;
+  }
 }
+
 @media (max-width: 576px) {
-  .cf-trust-grid { grid-template-columns: 1fr; gap: 0.75rem; }
-  .cf-footer-body { padding: 2rem 0 1.5rem; }
-  .cf-footer-desc { max-width: 100%; text-align: center; }
-  .cf-footer-brand { justify-content: center; }
-  .cf-social-row { justify-content: center; }
-  .cf-footer-col-title { text-align: center; }
-  .cf-footer-col-title::after { left: 50%; transform: translateX(-50%); }
-  .cf-footer-links { align-items: center; }
-  .cf-contact-item { justify-content: center; }
-  .cf-newsletter-label { text-align: center; }
-  .cf-copyright { text-align: center; width: 100%; }
-  .cf-legal { width: 100%; justify-content: center; }
+
+  /* Trust Band - 2 colunas para não ficar linguiça */
+  .cf-trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem 1rem;
+  }
+
+  .cf-trust-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .cf-trust-icon {
+    margin-bottom: 4px;
+  }
+
+  .cf-footer-body {
+    padding: 2.5rem 0;
+  }
+
+  /* Brand centralizado no topo */
+  .cf-footer-brand {
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .cf-footer-desc {
+    max-width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .cf-social-row {
+    justify-content: center;
+    margin-bottom: 2.5rem;
+  }
+
+  /* Links em grid 2 colunas */
+  .row.g-4>div {
+    margin-top: 0;
+    margin-bottom: 2rem;
+  }
+
+  .col-6 {
+    width: 50%;
+  }
+
+  .cf-footer-col-title {
+    text-align: left;
+  }
+
+  .cf-footer-links {
+    align-items: flex-start;
+  }
+
+  /* Atendimento e Newsletter */
+  .cf-contact-list {
+    gap: 0.8rem;
+  }
+
+  .cf-contact-item {
+    font-size: 0.8rem;
+  }
+
+  .cf-newsletter {
+    margin-top: 2rem;
+    background: var(--cf-white);
+    padding: 1.25rem;
+    border-radius: 16px;
+    border: 1px solid var(--cf-border);
+  }
+
+  .cf-newsletter-label {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  /* Bottom Bar */
+  .cf-footer-bottom {
+    padding: 1.5rem 0;
+  }
+
+  .cf-footer-bottom .container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .cf-copyright {
+    font-size: 0.7rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .cf-legal {
+    justify-content: center;
+    gap: 12px;
+  }
 }
 </style>
