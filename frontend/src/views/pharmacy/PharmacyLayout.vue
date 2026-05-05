@@ -246,8 +246,17 @@ export default {
   justify-content: space-between;
   padding: 0 1.5rem;
   border-bottom: 1px solid rgba(255,255,255,0.05);
+  position: relative;
+  transition: all 0.3s;
 }
-.brand-wrap { display: flex; align-items: center; gap: 1rem; overflow: hidden; }
+.cf-sidebar.collapsed .sidebar-header {
+  padding: 0;
+  justify-content: center;
+}
+
+.brand-wrap { display: flex; align-items: center; gap: 1rem; overflow: hidden; transition: all 0.3s; }
+.cf-sidebar.collapsed .brand-wrap { gap: 0; }
+
 .brand-logo {
   width: 42px; height: 42px;
   background: var(--cf-gold);
@@ -256,6 +265,7 @@ export default {
   color: white; font-size: 1.1rem;
   box-shadow: 0 4px 15px rgba(184,149,80,0.4);
   flex-shrink: 0;
+  transition: all 0.3s;
 }
 .brand-name {
   font-family: var(--cf-serif);
@@ -275,7 +285,17 @@ export default {
   display: flex; align-items: center; justify-content: center;
   transition: all 0.2s;
 }
-.collapse-btn:hover { background: var(--cf-gold); color: #fff; }
+.cf-sidebar.collapsed .collapse-btn {
+  position: absolute;
+  right: -14px;
+  top: 26px;
+  background: var(--cf-gold);
+  color: #fff;
+  border: 2px solid var(--cf-green-dark);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 10;
+}
+.collapse-btn:hover { background: var(--cf-gold); color: #fff; transform: scale(1.1); }
 
 .sidebar-content { flex: 1; overflow-y: auto; padding: 1.5rem 1rem; }
 .nav-group { margin-bottom: 2rem; }
