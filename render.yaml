@@ -9,10 +9,6 @@ services:
     dockerfilePath: Dockerfile
     plan: free
     healthCheckPath: /api/produtos/buscar
-    disk:
-      name: clickfarma-uploads
-      mountPath: /app/uploads
-      sizeGB: 1
     envVars:
       - key: DB_HOST
         fromDatabase:
