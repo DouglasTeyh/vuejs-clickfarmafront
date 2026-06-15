@@ -4,6 +4,7 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline
 COPY src ./src
+ENV MAVEN_OPTS="-Xmx384m"
 RUN mvn clean package -DskipTests
 
 # Stage 2: Run
