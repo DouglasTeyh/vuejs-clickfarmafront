@@ -6,7 +6,7 @@ services:
     name: clickfarma-backend
     env: docker
     dockerContext: backend
-    dockerfilePath: Dockerfile
+    dockerfilePath: backend/Dockerfile
     plan: free
     healthCheckPath: /api/produtos/buscar
     envVars:
@@ -70,7 +70,7 @@ services:
     plan: free
     envVars:
       - key: BACKEND_URL
-        value: http://clickfarma-backend:8080
+        sync: false
       - key: VUE_APP_API_URL
         value: /api
 
