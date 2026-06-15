@@ -45,5 +45,5 @@ server {
 }
 EOF
 
-# Script de inicialização para substituir as variáveis
-CMD ["/bin/sh", "-c", "envsubst '${PORT} ${BACKEND_URL}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+# Script de inicialização para substituir as variáveis com fallback seguro
+CMD ["/bin/sh", "-c", "export BACKEND_URL=${BACKEND_URL:-http://localhost:8080/api/} && envsubst '${PORT} ${BACKEND_URL}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
