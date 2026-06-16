@@ -33,7 +33,7 @@ Durante a criação do Blueprint, você precisará preencher os seguintes valore
 ### Para o Frontend (`clickfarma-frontend`):
 | Chave | Descrição |
 | :--- | :--- |
-| `VUE_APP_API_URL` | A URL do backend + `/api` (ex: `https://backend.onrender.com/api`). |
+| `BACKEND_URL` | A URL pública do backend (ex: `https://clickfarma-backend.onrender.com`). Não adicione `/api` ou barra `/` no final. |
 
 ## 3. Notas Técnicas (Importante!)
 
