@@ -16,7 +16,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +30,9 @@ public class SecurityConfig {
 
     @Autowired
     private DebugSecurityFilter debugSecurityFilter;
+
+    @Value("${app.frontend.url:*}")
+    private String frontendUrl;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -71,14 +77,23 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList(
+        
+        String cleanFrontendUrl = frontendUrl != null ? frontendUrl.replaceAll("/+$", "") : "";
+        List<String> origins = new ArrayList<>(Arrays.asList(
                 "http://localhost",
                 "http://localhost:80",
                 "http://localhost:8080",
                 "http://localhost:8081",
                 "http://localhost:8082",
-                "http://127.0.0.1*"
+                "http://127.0.0.1*",
+                "https://*.onrender.com",
+                "http://*.onrender.com"
         ));
+        if (!cleanFrontendUrl.isEmpty() && !origins.contains(cleanFrontendUrl)) {
+            origins.add(cleanFrontendUrl);
+        }
+        
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
         configuration.setExposedHeaders(Arrays.asList("Authorization"));

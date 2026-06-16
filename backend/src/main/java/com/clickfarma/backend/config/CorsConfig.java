@@ -13,8 +13,9 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        String cleanFrontendUrl = frontendUrl != null ? frontendUrl.replaceAll("/+$", "") : "";
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost", "http://127.0.0.1", "http://localhost:8081", frontendUrl)
+                .allowedOriginPatterns("http://localhost", "http://127.0.0.1", "http://localhost:8081", "https://*.onrender.com", "http://*.onrender.com", cleanFrontendUrl)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
