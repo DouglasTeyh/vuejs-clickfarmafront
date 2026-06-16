@@ -53,4 +53,8 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     Optional<Produto> findByNomeIgnoreCase(String nome);
 
     List<Produto> findByFarmaciaId(Long farmaciaId);
+
+    long countByCategoriaId(Long categoriaId);
+
+    boolean existsByNomeAndCategoriaId(String nome, Long categoriaId);
 }
