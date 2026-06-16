@@ -200,6 +200,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
+import api from '@/services/api'
 export default {
   name: 'Header',
   data() {
@@ -234,7 +235,7 @@ export default {
       if (this.searchQuery.length < 3) return;
       this.loadingSuggestions = true;
       try {
-        const response = await this.$axios.get(`/api/produtos/sugestoes?query=${this.searchQuery}`);
+        const response = await api.get(`/produtos/sugestoes?query=${this.searchQuery}`);
         this.suggestions = response.data;
       } catch (error) {
         console.error('Erro ao buscar sugestões:', error);

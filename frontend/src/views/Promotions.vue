@@ -44,6 +44,7 @@
 
 <script>
 import ProductCard from '@/components/products/ProductCard.vue'
+import api from '@/services/api'
 
 export default {
   name: 'Promotions',
@@ -75,7 +76,7 @@ export default {
     async fetchPromotions() {
       this.loading = true;
       try {
-        const response = await this.$axios.get('/api/produtos/filtrar?emPromocao=true');
+        const response = await api.get('/produtos/buscar?emPromocao=true');
         this.products = response.data;
       } catch (error) {
         console.error('Erro ao buscar promoções:', error);

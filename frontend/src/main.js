@@ -12,7 +12,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import './theme.css'
 
 // Configuração do axios global
-const backendUrl = process.env.VUE_APP_BACKEND_URL || 'http://localhost:8080';
+const backendUrl = process.env.VUE_APP_BACKEND_URL || '';
 axios.defaults.baseURL = backendUrl;
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 

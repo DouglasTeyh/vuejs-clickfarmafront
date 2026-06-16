@@ -153,6 +153,7 @@
 <script>
 import { mapState, mapActions } from 'vuex'
 import ProductCard from '@/components/products/ProductCard.vue'
+import api from '@/services/api'
 
 export default {
   name: 'Products',
@@ -342,7 +343,7 @@ export default {
       this.error = null;
       try {
         console.log('🤖 Disparando busca inteligente por IA:', query);
-        const response = await this.$axios.get(`/api/produtos/busca-ia?query=${encodeURIComponent(query)}`);
+        const response = await api.get(`/produtos/busca-ia?query=${encodeURIComponent(query)}`);
         // Aqui estamos substituindo os produtos do store localmente apenas para exibição
         const mappedResults = response.data.map(p => ({
           id: p.id,
