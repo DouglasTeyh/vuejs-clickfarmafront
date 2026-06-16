@@ -20,4 +20,4 @@ COPY --from=build /app/target/*.jar app.jar
 RUN mkdir -p uploads/products
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=70.0", "-Xss256k", "-jar", "app.jar"]
