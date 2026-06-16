@@ -268,10 +268,6 @@ public class DataSeeder implements CommandLineRunner {
                 "Indicado para dor de garganta, dor de dente, inflamações musculares e articulares. Caixa com 12 comprimidos.",
                 13.40, 190, img5, "EMS", "Nimesulida", "100mg", true, false, 0.0));
         return list;
-    }s.",
-                13.40, 190, "https://images.unsplash.com/photo-1607619056574-7b8d304a2723?w=400&h=400&fit=crop",
-                "EMS", "Nimesulida", "100mg", true, false, 0.0));
-        return list;
     }
 
     private List<ProductSeedData> getCosmeticosData() {
