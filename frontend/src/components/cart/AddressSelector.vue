@@ -121,10 +121,25 @@ export default {
   computed: {
     enderecoPadrao() {
       return this.enderecos.find(a => a.padrao) || this.enderecos[0];
+    },
+    isAuthenticated() {
+      return this.$store.getters.isAuthenticated;
+    }
+  },
+  watch: {
+    isAuthenticated: {
+      immediate: true,
+      async handler(val) {
+        if (val) {
+          await this.carregarEnderecos();
+        } else {
+          this.enderecos = [];
+        }
+      }
     }
   },
   async mounted() {
-    await this.carregarEnderecos()
+    // Carregamento inicial gerenciado pelo watcher com immediate: true
   },
   methods: {
     async carregarEnderecos() {

@@ -183,8 +183,15 @@ public class ProdutoController {
                     "Produto deletado com sucesso!",
                     true
             ));
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new MensagemResponseDTO("Não é possível excluir este produto pois existem pedidos associados a ele. Zere seu estoque ou retire-o de linha.", false));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+            if (e.getMessage() != null && e.getMessage().contains("não encontrado")) {
+                status = HttpStatus.NOT_FOUND;
+            }
+            return ResponseEntity.status(status)
                     .body(new MensagemResponseDTO(e.getMessage(), false));
         }
     }

@@ -8,8 +8,12 @@ import com.clickfarma.backend.model.Produto;
 import com.clickfarma.backend.repository.CategoriaRepository;
 import com.clickfarma.backend.repository.FarmaciaRepository;
 import com.clickfarma.backend.repository.ProdutoRepository;
+import com.clickfarma.backend.repository.SacolaItemRepository;
+import com.clickfarma.backend.repository.HistoricoVisualizacaoRepository;
+import com.clickfarma.backend.repository.AgendamentoRecompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -34,6 +38,15 @@ public class ProdutoService {
 
     @Autowired
     private FileStorageService fileStorageService;
+
+    @Autowired
+    private SacolaItemRepository sacolaItemRepository;
+
+    @Autowired
+    private HistoricoVisualizacaoRepository historicoVisualizacaoRepository;
+
+    @Autowired
+    private AgendamentoRecompraRepository agendamentoRecompraRepository;
 
     // Criar produto
     public ProdutoResponseDTO criarProduto(ProdutoRequestDTO produtoDTO) {
@@ -154,9 +167,19 @@ public class ProdutoService {
     }
 
     // Deletar produto
+    @Transactional
     public void deletarProduto(Long id) {
         Produto produto = produtoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado com ID: " + id));
+        
+        // Deletar referências em sacolas
+        sacolaItemRepository.deleteByProdutoId(id);
+
+        // Deletar referências no histórico de visualização
+        historicoVisualizacaoRepository.deleteByProdutoId(id);
+
+        // Deletar agendamentos de recompra
+        agendamentoRecompraRepository.deleteByProdutoId(id);
         
         // Deletar a imagem do disco se existir
         if (produto.getImageUrl() != null) {

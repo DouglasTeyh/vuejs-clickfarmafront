@@ -13,4 +13,6 @@ public interface AgendamentoRecompraRepository extends JpaRepository<Agendamento
     List<AgendamentoRecompra> findByUsuarioId(Long usuarioId);
 
     List<AgendamentoRecompra> findByDataProximaNotificacaoBeforeAndStatus(LocalDateTime data, String status);
+
+    void deleteByProdutoId(Long produtoId);
 }

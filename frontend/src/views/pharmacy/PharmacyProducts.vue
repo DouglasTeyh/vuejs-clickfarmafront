@@ -380,7 +380,15 @@ export default {
         try {
           await api.delete(`/produtos/${id}`);
           await this.carregarFarmaciaEProdutos();
-        } catch (err) { alert('Erro ao deletar.'); }
+          if (window.$toast) {
+            window.$toast.addToast('Produto excluído com sucesso!', 'success');
+          } else {
+            alert('Produto excluído com sucesso!');
+          }
+        } catch (err) {
+          const msg = err.response?.data?.mensagem || 'Erro ao deletar.';
+          alert(msg);
+        }
       }
     }
   }

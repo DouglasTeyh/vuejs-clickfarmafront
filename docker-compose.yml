@@ -43,6 +43,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
       - OCR_SPACE_API_KEY=${OCR_SPACE_API_KEY}
+      - MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN}
       - DB_DRIVER=org.postgresql.Driver
       - DB_DIALECT=org.hibernate.dialect.PostgreSQLDialect
 

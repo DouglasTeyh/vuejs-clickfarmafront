@@ -11,4 +11,5 @@ public interface SacolaItemRepository extends JpaRepository<SacolaItem, Long> {
     List<SacolaItem> findByUsuarioId(Long usuarioId);
     Optional<SacolaItem> findByUsuarioIdAndProdutoId(Long usuarioId, Long produtoId);
     void deleteByUsuarioId(Long usuarioId);
+    void deleteByProdutoId(Long produtoId);
 }

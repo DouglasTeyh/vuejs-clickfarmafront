@@ -20,4 +20,6 @@ public interface HistoricoVisualizacaoRepository extends JpaRepository<Historico
     @Query("SELECT h.produto.id FROM HistoricoVisualizacao h " +
            "WHERE h.usuario.id = :usuarioId GROUP BY h.produto.id ORDER BY MAX(h.dataVisualizacao) DESC")
     List<Long> findProdutoIdsByUsuarioIdRecent(@Param("usuarioId") Long usuarioId);
+
+    void deleteByProdutoId(Long produtoId);
 }
